@@ -225,7 +225,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "master",
-      "RemoteSha": "811440ffb0d29505b6ac0f14162c8b85f6518335",
+      "RemoteSha": "c93fc5283bd1025f8e768e9f5c486f73d4981300",
       "RemoteHost": "api.github.com",
       "Requirements": [
         "CohortGenerator",
@@ -260,7 +260,7 @@
         "validate",
         "yaml"
       ],
-      "Hash": "ccd3ae265286507abffa97916c134f25"
+      "Hash": "42d580b1182599a74c8638f7300e90dd"
     },
     "MASS": {
       "Package": "MASS",
