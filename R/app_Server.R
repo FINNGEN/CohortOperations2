@@ -8,7 +8,7 @@ app_server <- function(input, output, session) {
   # Your application server logic
 
   # get settings loaded from file
-  configurationList <- shiny::getShinyOption("configurationList")
+  databasesConfig <- shiny::getShinyOption("databasesConfig")
 
   # list of connection handlers that are passed to modules,
   # not all modules used all, they modules check the list has at least the ones they need
@@ -24,7 +24,7 @@ app_server <- function(input, output, session) {
   )
 
 
-  mod_selectDatabases_server("selectDatabases", configurationList, r_connectionHandlers)
+  mod_selectDatabases_server("selectDatabases", databasesConfig, r_connectionHandlers)
 
   mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_connectionHandlers, r_workbench)
   mod_importCohortsFromFile_server("importCohortsFromFile", r_connectionHandlers, r_workbench)

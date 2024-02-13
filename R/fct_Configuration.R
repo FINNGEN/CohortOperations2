@@ -1,13 +1,13 @@
 
 
 
-fct_getDatabaseIdNamesListFromConfigurationList <- function(configurationList) {
+fct_getDatabaseIdNamesListFromdatabasesConfig <- function(databasesConfig) {
 
-  fct_assertConfigurationList(configurationList)
+  fct_assertdatabasesConfig(databasesConfig)
 
   databaseIdNamesList <- list()
-  for(databaseId in names(configurationList)){
-    databaseIdNamesList[[configurationList[[databaseId]]$cohortTableHandler$database$databaseName]] <- databaseId
+  for(databaseId in names(databasesConfig)){
+    databaseIdNamesList[[databasesConfig[[databaseId]]$cohortTableHandler$database$databaseName]] <- databaseId
   }
 
   return(databaseIdNamesList)
@@ -17,16 +17,16 @@ fct_getDatabaseIdNamesListFromConfigurationList <- function(configurationList) {
 
 
 
-fct_configurationListToDatabasesHandlers <- function(
-    configurationList,
+fct_databasesConfigToDatabasesHandlers <- function(
+    databasesConfig,
     loadConnectionChecksLevel = "basicChecks") {
 
-  fct_assertConfigurationList(configurationList)
+  fct_assertdatabasesConfig(databasesConfig)
 
   databasesHandlers <- list()
-  for(databaseId in names(configurationList)){
+  for(databaseId in names(databasesConfig)){
 
-    cohortTableHandlerConfig <- configurationList[[databaseId]]$cohortTableHandler
+    cohortTableHandlerConfig <- databasesConfig[[databaseId]]$cohortTableHandler
 
     cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
 
@@ -39,8 +39,8 @@ fct_configurationListToDatabasesHandlers <- function(
 
 
 
-fct_checkConfigurationList  <- function(configurationList) {
-  collection <- .fct_assertConfigurationList(configurationList)
+fct_checkdatabasesConfig  <- function(databasesConfig) {
+  collection <- .fct_assertdatabasesConfig(databasesConfig)
   if (collection$isEmpty()) {
     return(TRUE)
   } else {
@@ -48,18 +48,18 @@ fct_checkConfigurationList  <- function(configurationList) {
   }
 }
 
-fct_assertConfigurationList  <- function(configurationList) {
-  collection <- .fct_assertConfigurationList(configurationList)
+fct_assertdatabasesConfig  <- function(databasesConfig) {
+  collection <- .fct_assertdatabasesConfig(databasesConfig)
   if (!collection$isEmpty()) {
     checkmate::reportAssertions(collection)
   }
 }
 
-.fct_assertConfigurationList <- function(configurationList) {
+.fct_assertdatabasesConfig <- function(databasesConfig) {
 
   collection = checkmate::makeAssertCollection()
 
-  configurationList |> checkmate::assertList()
+  databasesConfig |> checkmate::assertList()
   # TODO check structure
 
   return(collection)

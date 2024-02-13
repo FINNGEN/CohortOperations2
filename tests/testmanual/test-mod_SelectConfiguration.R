@@ -19,7 +19,7 @@ app <- shiny::shinyApp(
     mod_selectDatabases_ui("select_configuration")
   ),
   function(input,output,session){
-    mod_selectDatabases_server("select_configuration", configurationList, r_connectionHandlers)
+    mod_selectDatabases_server("select_configuration", databasesConfig, r_connectionHandlers)
   },
   options = list(launch.browser=TRUE)
 )

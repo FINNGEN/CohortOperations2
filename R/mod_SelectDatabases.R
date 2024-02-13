@@ -25,7 +25,7 @@ mod_selectDatabases_ui <- function(id) {
 }
 
 
-mod_selectDatabases_server <- function(id, configurationList, r_connectionHandlers) {
+mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -37,17 +37,17 @@ mod_selectDatabases_server <- function(id, configurationList, r_connectionHandle
 
 
     shiny::observe({
-      configurationListChecks <- fct_checkConfigurationList(configurationList)
+      databasesConfigChecks <- fct_checkdatabasesConfig(databasesConfig)
 
-      if (isFALSE(configurationListChecks)) {
+      if (isFALSE(databasesConfigChecks)) {
         shinyWidgets::sweetAlert(
           session = session,
           title = "Error reading the settings file.",
-          text = configurationListChecks,
+          text = databasesConfigChecks,
           type = "error"
         )
       }else{
-        databaseIdNamesList <- fct_getDatabaseIdNamesListFromConfigurationList(configurationList)
+        databaseIdNamesList <- fct_getDatabaseIdNamesListFromdatabasesConfig(databasesConfig)
         r$selectDatabases_pickerInput <- databaseIdNamesList[1]
 
         shinyWidgets::updatePickerInput(
@@ -66,14 +66,14 @@ mod_selectDatabases_server <- function(id, configurationList, r_connectionHandle
 
       sweetAlert_spinner("Connecting to databases")
 
-      selectedConfigurationList <- configurationList[input$selectDatabases_pickerInput]
+      selecteddatabasesConfig <- databasesConfig[input$selectDatabases_pickerInput]
 
       loadConnectionChecksLevel <- "allChecks"
       if (!input$allChecks_checkbox) {
         loadConnectionChecksLevel <- "basicChecks"
       }
 
-      databasesHandlers <- fct_configurationListToDatabasesHandlers(selectedConfigurationList, loadConnectionChecksLevel)
+      databasesHandlers <- fct_databasesConfigToDatabasesHandlers(selecteddatabasesConfig, loadConnectionChecksLevel)
       r_connectionHandlers$databasesHandlers <- databasesHandlers
 
       remove_sweetAlert_spinner()

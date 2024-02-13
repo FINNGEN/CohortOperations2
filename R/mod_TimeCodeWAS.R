@@ -318,7 +318,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url
-      url <- paste0("http://127.0.0.1:8111/?pathToResultsZip=", rf_results()$result)
+      url <- paste0(shiny::getShinyOption("cohortOperationsConfig")$urlCohortOperationsViewer, rf_results()$result)
       browseURL(url)
 
     })
