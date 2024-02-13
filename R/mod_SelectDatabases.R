@@ -8,7 +8,15 @@ mod_selectDatabases_ui <- function(id) {
     shiny::br(),
     shiny::p("CohortOperations can connect to one or more databases. By default, it will connect only to the top database."),
     shiny::br(),
-    shiny::uiOutput(ns("selectDatabases_pickerInput_uiOutput")),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectDatabases_pickerInput"),
+      label = "Connect to databases:",
+      choices = NULL,
+      multiple = TRUE),
+    shiny::checkboxInput(
+      inputId = ns("allChecks_checkbox"),
+      label = "Perform all the checks on the databases (Slow, only for debugging)",
+      value = FALSE),
     shiny::br(),
     shiny::h4("Connection status"),
     shiny::p("This table shows the connected databases."),
@@ -28,40 +36,44 @@ mod_selectDatabases_server <- function(id, configurationList, r_connectionHandle
     )
 
 
-    output$selectDatabases_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
+      configurationListChecks <- fct_checkConfigurationList(configurationList)
 
-       configurationListChecks <- fct_checkConfigurationList(configurationList)
-
-      if (isTRUE(configurationListChecks)) {
+      if (isFALSE(configurationListChecks)) {
+        shinyWidgets::sweetAlert(
+          session = session,
+          title = "Error reading the settings file.",
+          text = configurationListChecks,
+          type = "error"
+        )
+      }else{
         databaseIdNamesList <- fct_getDatabaseIdNamesListFromConfigurationList(configurationList)
+        r$selectDatabases_pickerInput <- databaseIdNamesList[1]
 
-        shinyWidgets::pickerInput(
-          inputId = ns("selectDatabases_pickerInput"),
-          label = "Select databases to connect:",
+        shinyWidgets::updatePickerInput(
+          session = session,
+          inputId = "selectDatabases_pickerInput",
           choices = databaseIdNamesList,
-          selected = databaseIdNamesList[1],
-          multiple = TRUE)
-      } else {
-        shiny::tagList(
-          shiny::h6("Error reading the settings file.", configurationListChecks),
-          shiny::h6(configurationListChecks),
-          shinyWidgets::pickerInput(
-            inputId = ns("selectDatabases_pickerInput"),
-            label = "Connect to databases:",
-            choices = NULL,
-            multiple = TRUE)
+          selected = databaseIdNamesList[1]
         )
       }
     })
 
 
-    shiny::observeEvent(input$selectDatabases_pickerInput, {
+
+
+    shiny::observeEvent(c(input$selectDatabases_pickerInput, input$allChecks_checkbox), {
 
       sweetAlert_spinner("Connecting to databases")
 
       selectedConfigurationList <- configurationList[input$selectDatabases_pickerInput]
 
-      databasesHandlers <- fct_configurationListToDatabasesHandlers(selectedConfigurationList)
+      loadConnectionChecksLevel <- "allChecks"
+      if (!input$allChecks_checkbox) {
+        loadConnectionChecksLevel <- "basicChecks"
+      }
+
+      databasesHandlers <- fct_configurationListToDatabasesHandlers(selectedConfigurationList, loadConnectionChecksLevel)
       r_connectionHandlers$databasesHandlers <- databasesHandlers
 
       remove_sweetAlert_spinner()

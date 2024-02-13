@@ -7,7 +7,7 @@ fct_getDatabaseIdNamesListFromConfigurationList <- function(configurationList) {
 
   databaseIdNamesList <- list()
   for(databaseId in names(configurationList)){
-    databaseIdNamesList[[configurationList[[databaseId]]$cohortTableHandler$databaseName]] <- databaseId
+    databaseIdNamesList[[configurationList[[databaseId]]$cohortTableHandler$database$databaseName]] <- databaseId
   }
 
   return(databaseIdNamesList)
@@ -17,7 +17,9 @@ fct_getDatabaseIdNamesListFromConfigurationList <- function(configurationList) {
 
 
 
-fct_configurationListToDatabasesHandlers <- function(configurationList) {
+fct_configurationListToDatabasesHandlers <- function(
+    configurationList,
+    loadConnectionChecksLevel = "basicChecks") {
 
   fct_assertConfigurationList(configurationList)
 
@@ -26,7 +28,7 @@ fct_configurationListToDatabasesHandlers <- function(configurationList) {
 
     cohortTableHandlerConfig <- configurationList[[databaseId]]$cohortTableHandler
 
-    cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig)
+    cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
 
     databasesHandlers[[databaseId]] <- list(cohortTableHandler = cohortTableHandler)
   }
@@ -63,5 +65,10 @@ fct_assertConfigurationList  <- function(configurationList) {
   return(collection)
 
 }
+
+
+
+
+
 
 

@@ -222,10 +222,10 @@
       "Version": "0.0.0.9002",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteUsername": "javier-gracia-tabuenca-tuni",
+      "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "master",
-      "RemoteSha": "a56031343505c666e280401138720440c6b06bda",
+      "RemoteSha": "811440ffb0d29505b6ac0f14162c8b85f6518335",
       "RemoteHost": "api.github.com",
       "Requirements": [
         "CohortGenerator",
@@ -260,7 +260,7 @@
         "validate",
         "yaml"
       ],
-      "Hash": "edf474f240493ac20fd29f537ae28b40"
+      "Hash": "ccd3ae265286507abffa97916c134f25"
     },
     "MASS": {
       "Package": "MASS",
@@ -2031,7 +2031,12 @@
     "renv": {
       "Package": "renv",
       "Version": "1.0.3",
-      "Source": "Repository"
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "utils"
+      ],
+      "Hash": "41b847654f567341725473431dd0d5ab"
     },
     "rlang": {
       "Package": "rlang",

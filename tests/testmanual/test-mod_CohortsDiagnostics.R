@@ -29,7 +29,7 @@ app <- shiny::shinyApp(
   ),
   function(input,output,session){
     mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
-    mod_cohortDiagnostics_server("test", r_connectionHandlers)
+    mod_cohortDiagnostics_server("test", r_connectionHandlers, r_workbench)
   },
   options = list(launch.browser=TRUE)
 )

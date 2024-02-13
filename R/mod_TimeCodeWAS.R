@@ -7,11 +7,26 @@ mod_timeCodeWAS_ui <- function(id) {
     shinyjs::useShinyjs(),
     #
     shiny::tags$h4("Database"),
-    shiny::uiOutput(ns("selectDatabases_pickerInput_uiOutput")),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectDatabases_pickerInput"),
+      label = "Select database where to match cohorts:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
-    shiny::uiOutput(ns("selectCaseCohort_pickerInput_uiOutput")),
-    shiny::uiOutput(ns("selectControlCohort_pickerInput_uiOutput")),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectCaseCohort_pickerInput"),
+      label = "Select case cohort:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectControlCohort_pickerInput"),
+      label = "Select control cohort:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Settings"),
     #
@@ -46,22 +61,22 @@ mod_timeCodeWAS_ui <- function(id) {
     #
     htmltools::hr(),
     shiny::tags$h4("Summary"),
-    shiny::verbatimTextOutput(ns("newCohortName_text")),
+    shiny::verbatimTextOutput(ns("summary_text")),
     shiny::tags$br(),
     shiny::actionButton(ns("run_actionButton"), "Run Study"),
     #
     htmltools::hr(),
     shiny::tags$h4("Results"),
-    reactable::reactableOutput(ns("reactableResults")),
+    shiny::verbatimTextOutput(ns("results_text")),
     shiny::tags$br(),
-    shiny::downloadButton(ns("download_actionButton"), "Download to sandbox"),
-    shiny::downloadButton(ns("download_actionButton2"), "Download out of sandbox"),
+    shiny::downloadButton(ns("download_actionButton"), "Download to Sandbox"),
+    shiny::downloadButton(ns("download_actionButton2"), "Download out of Sandbox"),
     shiny::actionButton(ns("view_actionButton"), "Open Viewer"),
   )
 }
 
 
-mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
+mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -73,7 +88,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
     r_ranges <- mod_formTimeWindows_server("selectRanges")
 
     r <- shiny::reactiveValues(
-      studySettings = NULL
+      analysisSettings = NULL
     )
 
     rf_timeCodeWasCounts <- shiny::reactiveVal()
@@ -85,42 +100,43 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
 
 
     #
-    # render selectDatabases_pickerInput with database names
+    # update selectDatabases_pickerInput with database names
     #
-    output$selectDatabases_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
+      shiny::req(r_connectionHandlers$databasesHandlers)
+
       databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
 
-      shinyWidgets::pickerInput(
-        inputId = ns("selectDatabases_pickerInput"),
-        label = "Select database where to match cohorts:",
+      shinyWidgets::updatePickerInput(
+        inputId = "selectDatabases_pickerInput",
         choices = databaseIdNamesList,
-        selected = databaseIdNamesList[1],
-        multiple = FALSE)
+        selected = databaseIdNamesList[1]
+      )
     })
 
     #
-    # render selectCaseCohort_pickerInput with cohort names in selectDatabases_pickerInput database
+    # update selectCaseCohort_pickerInput with cohort names in selectDatabases_pickerInput database
     #
-    output$selectCaseCohort_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectDatabases_pickerInput)
 
       cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortIdAndNames()
       cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
-      cohortIdAndNamesList <- c(list(`----` = as.character(NA)), cohortIdAndNamesList)
 
-      shiny::selectInput(
-        inputId = ns("selectCaseCohort_pickerInput"),
-        label = "Select Case cohort:",
+      shinyWidgets::updatePickerInput(
+        inputId = "selectCaseCohort_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = cohortIdAndNamesList[["----"]],
-        multiple = FALSE)
+        selected = character(0)
+      )
     })
 
 
     #
-    # render matchToCohortId_pickerInput with cohort names not in selectCaseCohort_pickerInput
+    # update matchToCohortId_pickerInput with cohort names not in selectCaseCohort_pickerInput
     #
-    output$selectControlCohort_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectDatabases_pickerInput)
       shiny::req(input$selectCaseCohort_pickerInput)
 
@@ -133,14 +149,13 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
       }else{
         cohortIdAndNamesList <- list()
       }
-      cohortIdAndNamesList <- c(list(`----` = as.character(NA)), cohortIdAndNamesList)
 
-      shiny::selectInput(
-        inputId = ns("selectControlCohort_pickerInput"),
-        label = "Select Control Cohort:",
+
+      shinyWidgets::updatePickerInput(
+        inputId = "selectControlCohort_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = cohortIdAndNamesList[["----"]],
-        multiple = FALSE)
+        selected = character(0)
+      )
     })
 
     #
@@ -166,8 +181,8 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
       shiny::req(r_ranges()$temporalStartDays)
       shiny::req(r_ranges()$temporalEndDays)
 
-      studySettings <- list(
-        studyType = "timeCodeWAS",
+      analysisSettings <- list(
+        analysisType = "timeCodeWAS",
         cohortIdCases = input$selectCaseCohort_pickerInput,
         cohortIdControls = input$selectControlCohort_pickerInput,
         temporalCovariateSettings = list(
@@ -177,10 +192,10 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
       )
 
       for(covaraiteSetting in input$selectCovariates){
-        studySettings$temporalCovariateSettings[[covaraiteSetting]] <- TRUE
+        analysisSettings$temporalCovariateSettings[[covaraiteSetting]] <- TRUE
       }
 
-      r$studySettings <- studySettings
+      r$analysisSettings <- analysisSettings
 
     })
 
@@ -188,10 +203,10 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
     # Render temporal name
     #
     output$newCohortName_text <- shiny::renderText({
-      if(!shiny::isTruthy(r$studySettings)){
+      if(!shiny::isTruthy(r$analysisSettings)){
         "----"
       }else{
-        yaml::as.yaml(r$studySettings)
+        yaml::as.yaml(r$analysisSettings)
       }
     })
 
@@ -199,46 +214,58 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
     # click to run
     #
     shiny::observeEvent(input$run_actionButton, {
-      shiny::req(r$studySettings)
-      # copy studySettings to .r_l$.l
+      shiny::req(r$analysisSettings)
+      # copy analysisSettings to .r_l$.l
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
 
-      l <- r$studySettings
+      l <- r$analysisSettings
 
       .r_l$.l <- list(
         cohortTableHandler = cohortTableHandler,
-        studySettings = l,
+        analysisSettings = l,
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
     })
 
 
     # Take parameters, run function in a future, open modal with log, close modal when ready, return value
-    rf_timeCodeWasCounts <- modalWithLog_server(
+    rf_results <- modalWithLog_server(
       id = "sss",
       .f = function(
           cohortTableHandler,
-          studySettings,
+          analysisSettings,
           sqlRenderTempEmulationSchema
         ){
         # needs to be set in the future
         options(sqlRenderTempEmulationSchema=sqlRenderTempEmulationSchema)
         #
+        ParallelLogger::logInfo("Create tmp folder")
+        tmpdirTime <- file.path(tempdir(), format(Sys.time(), "%Y%m%d_%H%M%S"))
+        dir.create(tmpdirTime)
+        ParallelLogger::logInfo(tmpdirTime)
+        #
         ParallelLogger::logInfo("Start timeCodeWasCounts")
-        temporalCovariateSettings <- do.call(FeatureExtraction::createTemporalCovariateSettings, studySettings$temporalCovariateSettings)
+        temporalCovariateSettings <- do.call(FeatureExtraction::createTemporalCovariateSettings, analysisSettings$temporalCovariateSettings)
         #browser()
-        timeCodeWasCounts <- HadesExtras::CohortDiagnostics_runTimeCodeWAS(
-          connection = cohortTableHandler$connectionHandler$getConnection(),
-          cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
-          vocabularyDatabaseSchema = cohortTableHandler$vocabularyDatabaseSchema,
-          cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
-          cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
-          cohortIdCases = as.integer(studySettings$cohortIdCases),
-          cohortIdControls = as.integer(studySettings$cohortIdControls),
-          covariateSettings = temporalCovariateSettings
+        HadesExtras::executeTimeCodeWAS(
+          exportFolder = tmpdirTime,
+          cohortTableHandler = cohortTableHandler,
+          cohortIdCases = as.integer(analysisSettings$cohortIdCases),
+          cohortIdControls = as.integer(analysisSettings$cohortIdControls),
+          covariateSettings = temporalCovariateSettings,
+          minCellCount = analysisSettings$minCellCount
         )
+
+        ParallelLogger::logInfo("Merging results")
+        yaml::write_yaml(analysisSettings, file.path(tmpdirTime, "analysisSettings.yaml"))
+
+        # zip all files
+        analysisResultsZipPath <- file.path(tmpdirTime, "analysisResults.zip")
+        zip::zipr(zipfile = analysisResultsZipPath, files = list.files(tmpdirTime, full.names = TRUE, recursive = TRUE))
+
         ParallelLogger::logInfo("End timeCodeWasCounts")
-        return(timeCodeWasCounts)
+
+        return(analysisResultsZipPath)
       },
       .r_l = .r_l,
       logger = shiny::getShinyOption("logger"))
@@ -247,61 +274,54 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers) {
     #
     # display results
     #
-    output$reactableResults <- reactable::renderReactable({
-      shiny::req(rf_timeCodeWasCounts)
+    output$summary_text <- shiny::renderText({
+      rf_results()$result
+      shiny::req(rf_results)
 
-      rf_timeCodeWasCounts() |>
-      reactable::reactable(
-        sortable = TRUE,
-        resizable = TRUE,
-        filterable = TRUE,
-        defaultPageSize = 5
-      )
+      if(rf_results()$success){
+        shiny::removeModal()
+      }
 
+      rf_results()$result
     })
 
     #
     # activate settings if cohorts have been selected
     #
     shiny::observe({
-      condition <- !is.null(rf_timeCodeWasCounts())
+      tryCatch({
+        condition <- shiny::isTruthy(rf_results()$success)
+      }, error = function(e){
+        condition <<- FALSE
+      })
+
       shinyjs::toggleState("download_actionButton", condition = condition )
+      shinyjs::toggleState("download_actionButton2", condition = FALSE )
       shinyjs::toggleState("view_actionButton", condition = condition )
     })
 
 
     output$download_actionButton <- shiny::downloadHandler(
-      filename = function(){"analysisName_TimeCodeWAS.zip"},
+      filename = function(){"analysisName_timeCodeWAS.zip"},
       content = function(fname){
 
-        sweetAlert_spinner("Preparing files for download")
-
-        # create a new directory in random temp directory
-        tmpDir <- file.path(tempdir(), "cohortOperationsStudy")
-        dir.create(tmpDir)
-
-        # save cohorts used in analysis
-        usedCohortsIds <- c(r$studySettings$cohortIdCases, r$studySettings$cohortIdControls)
-        usedCohortsSummaryDatabases <- fct_getCohortsSummariesFromDatabasesHandlers(r_connectionHandlers$databasesHandlers) |>
-          dplyr::filter(cohortId %in% usedCohortsIds) |>
-          dplyr::select(databaseName, cohortId, shortName, cohortName,cohortEntries, cohortSubjects)
-
-        write.csv(usedCohortsSummaryDatabases, file.path(tmpDir, "cohortsSummary.csv"))
-
-        # save analysis settings
-        yaml::write_yaml(r$studySettings, file.path(tmpDir, "studySettings.yaml"))
-
-        # save analysis results
-        write.csv(rf_timeCodeWasCounts(), file.path(tmpDir, "results.csv"))
-
-        # zip all files
-        zip::zipr(zipfile = fname, files = tmpDir)
-
-        remove_sweetAlert_spinner()
+        if(rf_results()$success){
+          file.copy(rf_results()$result, fname)
+        }
 
         return(fname)
       }
     )
+
+
+    shiny::observeEvent(input$view_actionButton, {
+      shiny::req(rf_results())
+      shiny::req(rf_results()$success)
+      # open tab to url
+      url <- paste0("http://127.0.0.1:8111/?pathToResultsZip=", rf_results()$result)
+      browseURL(url)
+
+    })
 
 
 

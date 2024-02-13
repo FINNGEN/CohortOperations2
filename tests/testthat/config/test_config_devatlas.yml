@@ -1,7 +1,10 @@
 # EUNOMIA
-dev_bigquery:
+BQ1:
   cohortTableHandler:
-    databaseName: bigquery1
+    database:
+      databaseId: BQ1
+      databaseName: bigquery1
+      databaseDescription: BigQuery database
     connection:
       connectionDetailsSettings:
         dbms: bigquery
@@ -22,9 +25,12 @@ dev_bigquery:
 #     resultsshchema:
 
 # EUNOMIA 2
-dev_eunomia_2:
+E1:
   cohortTableHandler:
-    databaseName: eunomia2
+    database:
+      databaseId: E1
+      databaseName: eunomia1
+      databaseDescription: Eunomia database 1
     connection:
       connectionDetailsSettings:
           dbms: eunomia
