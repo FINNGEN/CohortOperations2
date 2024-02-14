@@ -166,6 +166,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
       colnames(cohortData) <- stringr::str_to_lower(colnames(cohortData))
 
       r$original_colnames <- c("", colnames(cohortData))
+      r$assigned_colnames <- c(isolate(input$cohort_name), isolate(input$person_source_value), isolate(input$cohort_start_date), isolate(input$cohort_end_date))
       r$cohortDataUploaded   <- cohortData
 
       if(length(colnames(cohortData)) < 4){
@@ -173,6 +174,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
       } else if(!all(c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date") %in% colnames(cohortData))){
         showModal(assignmentDialog())
       } else {
+        r$assigned_colnames <- NULL
         r$columnNamesOK <- TRUE
       }
     })
