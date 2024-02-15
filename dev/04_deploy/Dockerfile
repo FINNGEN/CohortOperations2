@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=linux/amd64 rocker/rstudio:4.3.0
+FROM --platform=linux/amd64 rocker/r-ver:4.3.0
 
 # install OS dependencies including java and python 3
 RUN apt-get update && apt-get install -y openjdk-11-jdk liblzma-dev libbz2-dev libncurses5-dev curl python3-dev python3.venv git \
@@ -50,12 +50,17 @@ RUN --mount=type=secret,id=build_github_pat \
         && rm ./Renviron
 
 # install the jdbc drivers for database access using the OHDSI DatabaseConnector R package
-RUN mkdir -p /home/rstudio/jdbc_drivers
-ENV DATABASECONNECTOR_JAR_FOLDER="/home/rstudio/jdbc_drivers"
-RUN R -e "DatabaseConnector::downloadJdbcDrivers('bigquery')" 
+# RUN mkdir -p /home/rstudio/jdbc_drivers
+# ENV DATABASECONNECTOR_JAR_FOLDER="/home/rstudio/jdbc_drivers"
+# RUN R -e "DatabaseConnector::downloadJdbcDrivers('bigquery')" 
+# TEMP: for some resason these get a newer version and dont work, impot old version 
+RUN mkdir -p /root/jdbc_drivers
+RUN unzip /root/CohortOperations2/dev/04_deploy/bq_drivers_1.2.14.zip -d /root/jdbc_drivers
 
 #
 # FORCES REBUILD FROM THIS POINT
+# if you want the cache to be busted from this point, you can add a build argument to the build command like so:
+# docker build --build-arg CACHEBUST=$(date +%s) -t myimage .
 #
 ARG CACHEBUST=1
 
@@ -66,5 +71,12 @@ RUN R -e "renv::restore()" \
 
 
 EXPOSE 8888
-ENV CO2CONFIGFILE = "/tmp/co2_config.yml"
-CMD ["/usr/local/bin/R", "-e", "devtools::load_all('.');run_app(testthat::test_path('config', 'cohortOperationsConfig.yml'), Sys.getenv('CO2CONFIGFILE'), options = list(port=8888))"]
+ENV CO2_CONFIG_FILE "/tmp/co2_config.yml"
+ENV CO2_DATABASES_CONFIG_FILE "/tmp/co2_databases_config.yml"
+ENTRYPOINT  ["/usr/local/bin/R", "-e", \
+             "devtools::load_all('.'); \ 
+             run_app(\
+                Sys.getenv('CO2_CONFIG_FILE'), \
+                Sys.getenv('CO2_DATABASES_CONFIG_FILE'), \
+                options = list(host='0.0.0.0', port=8888)\
+            )"]
