@@ -49,20 +49,22 @@ RUN --mount=type=secret,id=build_github_pat \
         && R -e "renv::isolate()" \
         && rm ./Renviron
 
+
+RUN git pull
 # install the jdbc drivers for database access using the OHDSI DatabaseConnector R package
 # RUN mkdir -p /home/rstudio/jdbc_drivers
 # ENV DATABASECONNECTOR_JAR_FOLDER="/home/rstudio/jdbc_drivers"
 # RUN R -e "DatabaseConnector::downloadJdbcDrivers('bigquery')" 
 # TEMP: for some resason these get a newer version and dont work, impot old version 
 RUN mkdir -p /root/jdbc_drivers
-RUN unzip /root/CohortOperations2/dev/04_deploy/bq_drivers_1.2.14.zip -d /root/jdbc_drivers
+RUN unzip dev/04_deploy/bq_drivers_1.2.14.zip -d /root/jdbc_drivers
 
 #
 # FORCES REBUILD FROM THIS POINT
 # if you want the cache to be busted from this point, you can add a build argument to the build command like so:
 # docker build --build-arg CACHEBUST=$(date +%s) -t myimage .
 #
-ARG CACHEBUST=1
+ARG CACHEBUST=2
 
 # Update the code and dependencies
 RUN git pull

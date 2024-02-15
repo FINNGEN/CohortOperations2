@@ -48,7 +48,7 @@ BQ1:
         user: ''
         password: ''
         connectionString: jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/tmp/atlas-development-270609-410deaacc58b.json;Timeout=100000;
-        pathToDriver: /home/rstudio/jdbc_drivers
+        pathToDriver: /root/jdbc_drivers/bigquery 
       tempEmulationSchema: atlas-development-270609.sandbox #optional
       useBigrqueryUpload: true #optional
     cdm:
@@ -72,34 +72,10 @@ http://localhost:9999/
 
 ```bash
 echo "
-urlCohortOperationsViewer: http://127.0.0.1:9999/?pathToResultsZip=
+urlCohortOperationsViewer: http://127.0.0.1:9998/?pathToResultsZip=
 " > /tmp/co2_config.yml
 
 echo "
-# DF11
-DF11:
-  cohortTableHandler:
-    database:
-      databaseId: DF11
-      databaseName: FinngGen-DF11
-      databaseDescription: FinnGen database 11
-    connection:
-      connectionDetailsSettings:
-        dbms: bigquery
-        user: ""
-        password: ""
-        connectionString: jdbc:bigquery://https://www.googleapis.com/auth/bigquery:433;ProjectId=fg-production-sandbox-6;OAuthType=3;Timeout=10000;
-        pathToDriver: /home/rstudio/jdbc_drivers # from docker file
-      tempEmulationSchema: fg-production-sandbox-6.sandbox #needed for creating tmp table in BigQuery
-      useBigrqueryUpload: true # option for HadesExtras
-    cdm:
-      cdmDatabaseSchema: finngen-production-library.finngen_omop_r11
-      vocabularyDatabaseSchema: finngen-production-library.finngen_omop_r11
-    cohortTable:
-      cohortDatabaseSchema: fg-production-sandbox-6.sandbox
-      cohortTableName: javier_test_cohort_table
-
-# DF10
 DF12:
   cohortTableHandler:
     database:
@@ -109,18 +85,41 @@ DF12:
     connection:
       connectionDetailsSettings:
         dbms: bigquery
-        user: ""
-        password: ""
+        user: ''
+        password: ''
         connectionString: jdbc:bigquery://https://www.googleapis.com/auth/bigquery:433;ProjectId=fg-production-sandbox-6;OAuthType=3;Timeout=10000;
-        pathToDriver: /home/rstudio/jdbc_drivers # from docker file
+        pathToDriver: /root/jdbc_drivers/bigquery 
       tempEmulationSchema: fg-production-sandbox-6.sandbox #needed for creating tmp table in BigQuery
       useBigrqueryUpload: true # option for HadesExtras
     cdm:
-      cdmDatabaseSchema: finngen-production-library.finngen_omop_r10
-      vocabularyDatabaseSchema: finngen-production-library.finngen_omop_r10
+      cdmDatabaseSchema: finngen-production-library.finngen_omop_r12
+      vocabularyDatabaseSchema: finngen-production-library.finngen_omop_r12
     cohortTable:
       cohortDatabaseSchema: fg-production-sandbox-6.sandbox
       cohortTableName: javier_test_cohort_table
+
+DF11:
+  cohortTableHandler:
+    database:
+      databaseId: DF11
+      databaseName: FinngGen-DF11
+      databaseDescription: FinnGen database 11
+    connection:
+      connectionDetailsSettings:
+        dbms: bigquery
+        user: ''
+        password: ''
+        connectionString: jdbc:bigquery://https://www.googleapis.com/auth/bigquery:433;ProjectId=fg-production-sandbox-6;OAuthType=3;Timeout=10000;
+        pathToDriver: /root/jdbc_drivers/bigquery 
+      tempEmulationSchema: fg-production-sandbox-6.sandbox #needed for creating tmp table in BigQuery
+      useBigrqueryUpload: true # option for HadesExtras
+    cdm:
+      cdmDatabaseSchema: finngen-production-library.finngen_omop_r11
+      vocabularyDatabaseSchema: finngen-production-library.finngen_omop_r11
+    cohortTable:
+      cohortDatabaseSchema: fg-production-sandbox-6.sandbox
+      cohortTableName: javier_test_cohort_table
+
 " > /tmp/co2_databases_config.yml
 
 docker run -p 9999:8888 -v /tmp:/tmp  \
@@ -150,9 +149,6 @@ To run the application in development mode, you can use the following command:
 
 ```bash
 cp /Users/javier/keys/atlas-development-270609-410deaacc58b.json /tmp/
-
-mkdir /tmp/bigquery
-cp -r /Users/javier/.config/hades/bigquery/* /tmp/bigquery
 
 echo "
 urlCohortOperationsViewer: http://127.0.0.1:9999/?pathToResultsZip=
@@ -192,7 +188,7 @@ BQ1:
         user: ''
         password: ''
         connectionString: jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/tmp/atlas-development-270609-410deaacc58b.json;Timeout=100000;
-        pathToDriver: /home/rstudio/jdbc_drivers
+        pathToDriver: /root/jdbc_drivers/bigquery 
       tempEmulationSchema: atlas-development-270609.sandbox #optional
       useBigrqueryUpload: true #optional
     cdm:
