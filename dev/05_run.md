@@ -9,6 +9,8 @@ Replace the table name with your table name (e.g. javier_test_cohort_table).
 Replace the docker image version with the version you want to use (e.g. 0.0.1).
 
 ```bash
+docker pull eu.gcr.io/finngen-sandbox-v3-containers/co2:0.0.1
+
 echo "
 urlCohortOperationsViewer: http://127.0.0.1:9998/?pathToResultsZip=
 " > /tmp/co2_config.yml

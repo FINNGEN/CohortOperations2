@@ -4,6 +4,8 @@
 
 ### Build docker image
 
+Create a file named GITHUBPAT.txt with the GitHub personal access token in the same folder as the Dockerfile.
+
 Docker image is build from the repository not form the local files. Make sure the repository is updated. 
 
 ```{bash, eval=FALSE}
