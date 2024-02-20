@@ -29,3 +29,5 @@ jobs:
      # changed
       - uses: r-lib/actions/setup-renv@v2
       - uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"error"'
