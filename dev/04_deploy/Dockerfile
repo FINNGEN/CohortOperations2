@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=linux/amd64 rocker/r-ver:4.3.0
+FROM --platform=linux/amd64 rocker/rstudio:4.3.0
 
 # install OS dependencies including java and python 3
 RUN apt-get update && apt-get install -y openjdk-11-jdk liblzma-dev libbz2-dev libncurses5-dev curl python3-dev python3.venv git \
@@ -72,7 +72,11 @@ RUN R -e "renv::restore()" \
     && R -e "renv::isolate()" 
 
 
-EXPOSE 8888
+# for RStudio
+EXPOSE 8787 
+# for the app
+EXPOSE 8888 
+
 ENV CO2_CONFIG_FILE "/tmp/co2_config.yml"
 ENV CO2_DATABASES_CONFIG_FILE "/tmp/co2_databases_config.yml"
 ENTRYPOINT  ["/usr/local/bin/R", "-e", \
@@ -82,3 +86,5 @@ ENTRYPOINT  ["/usr/local/bin/R", "-e", \
                 Sys.getenv('CO2_DATABASES_CONFIG_FILE'), \
                 options = list(host='0.0.0.0', port=8888)\
             )"]
+
+
