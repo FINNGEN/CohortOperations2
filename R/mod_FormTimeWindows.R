@@ -32,6 +32,15 @@ mod_formTimeWindows_ui <- function(id) {
                           shiny::numericInput(
                             ns("windows"), "Windows", min = 1, max = 20, value = 4, width = "33%"))
                       ),
+                      shiny::column(
+                        3, offset = 0,  style="margin-top:25px; margin-bottom:-20px;",
+                        shinyWidgets::awesomeCheckbox(
+                          inputId = ns("zero_window"),
+                          label = "Add day 0-0 window",
+                          status = "primary",
+                          value = TRUE
+                        )
+                      )
                     ),
                     shiny::uiOutput(ns("slider.ui")),
                     shiny::br(),
@@ -47,8 +56,11 @@ mod_formTimeWindows_ui <- function(id) {
                         shiny::tableOutput(ns("slider_distance"))
                       )
                     ),
-                    # shiny::column(6, div(style = "margin-top: 100px;", verbatimTextOutput(ns("the_slider_output")))
-                    # )
+                    shiny::br(),
+                    shiny::actionButton(ns("slider_help_button"), "Help"),
+                    shinyjs::hidden(
+                      shiny::verbatimTextOutput(ns("slider_help"))
+                    )
     )
   )
 }
@@ -94,6 +106,9 @@ mod_formTimeWindows_server <- function(id, session) {
       distance_table(diff(input$the_slider), c("Window", "Days", "Weeks", "Months", "Years"))
     }, digits = 1)
 
+    #
+    # slider.ui
+    #
     output$slider.ui <- shiny::renderUI({
       shiny::req(input$windows, days_before(), days_after())
 
@@ -123,14 +138,36 @@ mod_formTimeWindows_server <- function(id, session) {
       )
     })
 
+    output$slider_help <- shiny::renderText({
+      paste(
+        "You can move the slider thumbs by dragging or by using the arrow keys.",
+        "The 'Day 0-0 window' is a special case, and is included by default.",
+        sep = "\n"
+      )
+    })
+
+    shiny::observeEvent(input$slider_help_button, {
+      shinyjs::toggle(id = "slider_help")
+    })
+
+    #
+    # reactive for the time windows
+    #
     shiny::reactive({
       shiny::req(input$the_slider)
       breaks <- as.vector(input$the_slider)
 
-      list(
-        temporalStartDays = breaks[1:(length(breaks) - 1)],
-        temporalEndDays = breaks[2:length(breaks)]
-      )
+      if(input$zero_window){
+        list(
+          temporalStartDays = c(0, breaks[1:(length(breaks) - 1)]),
+          temporalEndDays = c(0, breaks[2:length(breaks)])
+        )
+      } else {
+        list(
+          temporalStartDays = breaks[1:(length(breaks) - 1)],
+          temporalEndDays = breaks[2:length(breaks)]
+        )
+      }
     })
 
 
