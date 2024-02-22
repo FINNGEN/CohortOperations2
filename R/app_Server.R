@@ -44,6 +44,18 @@ app_server <- function(input, output, session) {
   mod_timeCodeWAS_server("timeCodeWAS", r_connectionHandlers, r_workbench)
 
 
+  output$about <- shiny::renderUI({
+    # load news from shinyoption pathtomd
+
+    shiny::div(
+      shiny::markdown(readLines(shiny::getShinyOption("pathToNews"))),
+      shiny::br(),
+      shiny::p(shiny::getShinyOption("gitInfo"))
+    )
+
+  })
+
+
 
 }
 

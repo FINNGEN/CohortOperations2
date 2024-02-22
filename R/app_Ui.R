@@ -28,7 +28,9 @@ app_ui <- function(request) {
           shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("")),
           shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("")),
           shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("")),
-          shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road"))
+          shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road")),
+          shiny::h5(" About"),
+          shinydashboard::menuItem("About", tabName = "about", icon = shiny::icon("info"))
         )
       ),
 
@@ -196,7 +198,15 @@ app_ui <- function(request) {
               solidHeader = TRUE, width = 12,
               mod_timeCodeWAS_ui("timeCodeWAS")
             )
-          )
+          ),
+           shinydashboard::tabItem(
+              tabName = "about",
+              shinydashboard::box(
+                  title = "About",
+                  shiny::uiOutput("about"),
+                  width = 12
+              )
+            )
         )
       )
     )
