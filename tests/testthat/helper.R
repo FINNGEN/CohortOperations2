@@ -2,7 +2,7 @@
 
 helper_createNewDatabaseHandlers <- function(withEunomiaCohorts = FALSE) {
 
-  databasesHandlers <- fct_configurationListToDatabasesHandlers(configurationList)
+  databasesHandlers <- fct_databasesConfigToDatabasesHandlers(databasesConfig)
 
   if(withEunomiaCohorts==TRUE){
 

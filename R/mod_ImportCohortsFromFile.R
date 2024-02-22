@@ -5,7 +5,12 @@ mod_importCohortsFromFile_ui <- function(id) {
     mod_appendCohort_ui(),
     shinyjs::useShinyjs(),
     #
-    shiny::uiOutput(ns("selectDatabases_pickerInput_uiOutput")),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectDatabases_pickerInput"),
+      label = "Load patients into database:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
     shiny::fileInput(ns("uploadedFile"), "Choose a file in cohortData format:",
                      multiple = FALSE,
                      accept = c("text/tsv", "text/tabular-separated-values,text/plain", ".tsv",
@@ -45,15 +50,15 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
     #
     # render selectDatabases_pickerInput
     #
-    output$selectDatabases_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
+      # r_connectionHandlers$databasesHandlers
+
       databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
 
-      shinyWidgets::pickerInput(
-        inputId = ns("selectDatabases_pickerInput"),
-        label = "Load patients into databases:",
+      shinyWidgets::updatePickerInput(
+        inputId = "selectDatabases_pickerInput",
         choices = databaseIdNamesList,
-        selected = databaseIdNamesList[1],
-        multiple = FALSE)
+        selected = databaseIdNamesList[1])
     })
 
     #

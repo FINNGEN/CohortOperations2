@@ -1,7 +1,7 @@
 
 setup_ModalWithLog <- function(
     logFileName = tempfile(fileext = ".co2log.txt")
-  ) {
+) {
   # setup  ------------------------------------------------------------------
   # init future
   future::plan(future::multisession, workers = 2)
@@ -51,11 +51,18 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
           ParallelLogger::logInfo("Launching ")
           #run
           result <- do.call(.f, .l)
+          result <- list(
+            success = TRUE,
+            result = result
+          )
           #
         }, error = function(e){
           ParallelLogger::logError("Error in future in modalWithLog_server", e)
-          result <<- e$message
-          })
+          result <<- list(
+            success = FALSE,
+            result = e$message
+          )
+        })
 
         # set result to reactive
         queue$producer$fireAssignReactive("result_val",result)

@@ -1,0 +1,33 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+  workflow_dispatch:
+
+name: rcheck
+
+jobs:
+  rcheck:
+    runs-on: ubuntu-latest
+    # Only restrict concurrency for non-PR jobs
+    concurrency:
+      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'renv'
+          use-public-rspm: true
+     # changed
+      - uses: r-lib/actions/setup-renv@v2
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"error"'

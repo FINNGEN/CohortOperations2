@@ -17,11 +17,26 @@ mod_matchCohorts_ui <- function(id) {
     shinyjs::useShinyjs(),
     #
     shiny::tags$h4("Database"),
-    shiny::uiOutput(ns("selectDatabases_pickerInput_uiOutput")),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectDatabases_pickerInput"),
+      label = "Select database where to match cohorts:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
-    shiny::uiOutput(ns("selectTargetCohort_pickerInput_uiOutput")),
-    shiny::uiOutput(ns("selectMatchCohort_pickerInput_uiOutput")),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectTargetCohort_pickerInput"),
+      label = "Select cohort to find matches from:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectMatchCohort_pickerInput"),
+      label = "Select defining cohort:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Settings"),
     shiny::numericInput(
@@ -110,43 +125,43 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
     #
-    # render selectDatabases_pickerInput with database names
+    # update selectDatabases_pickerInput with database names
     #
-    output$selectDatabases_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
+      shiny::req(r_connectionHandlers$databasesHandlers)
+
       databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
 
-      shinyWidgets::pickerInput(
-        inputId = ns("selectDatabases_pickerInput"),
-        label = "Select database where to match cohorts:",
+      shinyWidgets::updatePickerInput(
+        inputId = "selectDatabases_pickerInput",
         choices = databaseIdNamesList,
-        selected = databaseIdNamesList[1],
-        multiple = FALSE)
+        selected = databaseIdNamesList[1]
+      )
     })
 
     #
-    # render selectTargetCohort_pickerInput with cohort names in selectDatabases_pickerInput database
+    # update selectTargetCohort_pickerInput with cohort names in selectDatabases_pickerInput database
     #
-    output$selectTargetCohort_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectDatabases_pickerInput)
 
       cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortIdAndNames()
       cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
-      cohortIdAndNamesList <- c(list(`----` = as.character(NA)), cohortIdAndNamesList)
 
-      shiny::selectInput(
-        inputId = ns("selectTargetCohort_pickerInput"),
-        label = "Select cohort to find matches from:",
+      shinyWidgets::updatePickerInput(
+        inputId = "selectTargetCohort_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = cohortIdAndNamesList[["----"]],
-        multiple = FALSE)
+        selected = character(0)
+      )
     })
 
 
     #
-    # render matchToCohortId_pickerInput with cohort names not in selectTargetCohort_pickerInput
+    # update matchToCohortId_pickerInput with cohort names not in selectTargetCohort_pickerInput
     #
-    output$selectMatchCohort_pickerInput_uiOutput <- shiny::renderUI({
+    shiny::observe({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectDatabases_pickerInput)
       shiny::req(input$selectTargetCohort_pickerInput)
 
@@ -159,14 +174,13 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       }else{
         cohortIdAndNamesList <- list()
       }
-      cohortIdAndNamesList <- c(list(`----` = as.character(NA)), cohortIdAndNamesList)
 
-      shiny::selectInput(
-        inputId = ns("selectMatchCohort_pickerInput"),
-        label = "Select defining cohort:",
+
+      shinyWidgets::updatePickerInput(
+        inputId = "selectMatchCohort_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = cohortIdAndNamesList[["----"]],
-        multiple = FALSE)
+        selected = character(0)
+      )
     })
 
     #

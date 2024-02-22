@@ -21,12 +21,13 @@ app_ui <- function(request) {
           shiny::h5(" Cohorts"),
           shinydashboard::menuItem("Import Cohorts", tabName = "importCohorts", icon = shiny::icon("address-card")),
           shinydashboard::menuItem("Match Cohorts", tabName = "matchCohorts", icon = shiny::icon("connectdevelop")),
-          shinydashboard::menuItem("Subset Cohorts", tabName = "subsetCohorts", icon = shiny::icon("person-digging")),
-          shinydashboard::menuItem("Match Cohorts", tabName = "matchCohorts", icon = shiny::icon("person-digging")),
+          shinydashboard::menuItem("Subset Cohorts", tabName = "subsetCohorts", icon = shiny::icon("")),
+          shinydashboard::menuItem("Export Cohorts", tabName = "exportsCohorts", icon = shiny::icon("")),
           shiny::h5(" Analyses"),
-          shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("person-digging")),
-          shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("person-digging")),
-          shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("person-digging")),
+          shinydashboard::menuItem("CohortsDiagnostics", tabName = "cohortDiagnostics", icon = shiny::icon("stethoscope")),
+          shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("")),
+          shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("")),
+          shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("")),
           shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road"))
         )
       ),
@@ -76,6 +77,77 @@ app_ui <- function(request) {
               mod_matchCohorts_ui("matchCohorts")
             )
           ),
+          ## TAB Subset Cohorts
+          shinydashboard::tabItem(
+            tabName = "subsetCohorts",
+            ### Cohorts workbench
+            shinydashboard::box(
+              title = "Cohorts workbench ",
+              status = "primary", solidHeader = TRUE, width = 12,
+              mod_cohortWorkbench_ui("cohortWorkbench_subsetCohorts")
+            ),
+            ### Import Cohorts
+            shinydashboard::box(
+              title = shiny::tagList(shiny::icon("connectdevelop"), "Subset Cohorts:"),
+              solidHeader = TRUE, width = 12,
+              shiny::tags$h3("Not implemented yet"),
+              shiny::tags$h3("will allow to subset cohorts, based on sex, age, or other cohort patients ")
+            )
+          ),
+          ## TAB Exports Cohorts
+          shinydashboard::tabItem(
+            tabName = "exportsCohorts",
+            ### Cohorts workbench
+            shinydashboard::box(
+              title = "Cohorts workbench ",
+              status = "primary", solidHeader = TRUE, width = 12,
+              mod_cohortWorkbench_ui("cohortWorkbench_exportsCohorts")
+            ),
+            ### Import Cohorts
+            shinydashboard::box(
+              title = shiny::tagList(shiny::icon("connectdevelop"), "Exports Cohorts:"),
+              solidHeader = TRUE, width = 12,
+              shiny::tags$h3("Not implemented yet"),
+              shiny::tags$h3("will allow to export cohort definitions or cohorts as a cohortData file")
+            )
+          ),
+          ##
+          ## ANALYSIS
+          ##
+
+          ## TAB cohortDiagnostics
+          shinydashboard::tabItem(
+            tabName = "cohortDiagnostics",
+            ### Cohorts workbench
+            shinydashboard::box(
+              title = "Cohorts workbench ",
+              status = "primary", solidHeader = TRUE, width = 12,
+              mod_cohortWorkbench_ui("cohortWorkbench_cohortDiagnostics")
+            ),
+            ### Import Cohorts
+            shinydashboard::box(
+              title = shiny::tagList(shiny::icon("stethoscope"), "Cohorts Diagnostics:"),
+              solidHeader = TRUE, width = 12,
+              mod_cohortDiagnostics_ui("cohortDiagnostics")
+            )
+          ),
+          ## TAB cohortsOverlap
+          shinydashboard::tabItem(
+            tabName = "cohortsOverlap",
+            ### Cohorts workbench
+            shinydashboard::box(
+              title = "Cohorts workbench ",
+              status = "primary", solidHeader = TRUE, width = 12,
+              mod_cohortWorkbench_ui("cohortWorkbench_cohortsOverlap")
+            ),
+            ### Import Cohorts
+            shinydashboard::box(
+              title = shiny::tagList(shiny::icon("connectdevelop"), "Cohorts Overlap:"),
+              solidHeader = TRUE, width = 12,
+              shiny::tags$h3("Not implemented yet"),
+              shiny::tags$h3("will allow to compare cohorts for overlap")
+            )
+          ),
           ## TAB cohortsIncidence
           shinydashboard::tabItem(
             tabName = "cohortsIncidence",
@@ -90,6 +162,23 @@ app_ui <- function(request) {
               title = shiny::tagList(shiny::icon("connectdevelop"), "Cohorts Incidence:"),
               solidHeader = TRUE, width = 12,
               mod_cohortsIncidence_ui("cohortsIncidence")
+            )
+          ),
+          ## TAB CodeWAS
+          shinydashboard::tabItem(
+            tabName = "CodeWAS",
+            ### Cohorts workbench
+            shinydashboard::box(
+              title = "Cohorts workbench ",
+              status = "primary", solidHeader = TRUE, width = 12,
+              mod_cohortWorkbench_ui("cohortWorkbench_CodeWAS")
+            ),
+            ### Import Cohorts
+            shinydashboard::box(
+              title = shiny::tagList(shiny::icon("connectdevelop"), "CodeWAS:"),
+              solidHeader = TRUE, width = 12,
+              shiny::tags$h3("Not implemented yet"),
+              shiny::tags$h3("will allow to copute codewas")
             )
           ),
           ## TAB timeCodeWAS
