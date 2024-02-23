@@ -81,7 +81,7 @@ EXPOSE 8888
 ENV CO2_CONFIG_FILE "/tmp/co2_config.yml"
 ENV CO2_DATABASES_CONFIG_FILE "/tmp/co2_databases_config.yml"
 ENTRYPOINT  ["/usr/local/bin/R", "-e", \
-             CohortOperations2::run_app(\
+             "CohortOperations2::run_app(\
                 Sys.getenv('CO2_CONFIG_FILE'), \
                 Sys.getenv('CO2_DATABASES_CONFIG_FILE'), \
                 options = list(host='0.0.0.0', port=8888)\
