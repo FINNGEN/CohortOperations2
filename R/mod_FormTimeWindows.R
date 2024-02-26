@@ -4,7 +4,7 @@ mod_formTimeWindows_ui <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
     shiny::tags$h4("Time windows"),
-    shiny::tags$div(style = "margin-left: 50px; margin-right: 100px; min-width: 600px;",
+    shiny::tags$div(style = "margin-left: 30px; margin-right: 50px; min-width: 600px;",
                     # shiny::tags$div(id=ns('inputList')),
                     # shiny::actionButton(ns('addBtn'), 'Add Window'),
                     shiny::br(),
@@ -36,7 +36,7 @@ mod_formTimeWindows_ui <- function(id) {
                         3, offset = 0,  style="margin-top:25px; margin-bottom:-20px;",
                         shinyWidgets::awesomeCheckbox(
                           inputId = ns("zero_window"),
-                          label = "Add day 0-0 window",
+                          label = "Add [0,0] window",
                           status = "primary",
                           value = TRUE
                         )
@@ -55,6 +55,11 @@ mod_formTimeWindows_ui <- function(id) {
                         shiny::tags$h5("Window sizes"),
                         shiny::tableOutput(ns("slider_distance"))
                       )
+                    ),
+                    shiny::fixedRow(
+                      shiny::column(12, offset = 0, style = "margin-top: 10px;",
+                                   shiny::tags$h5("Time windows"),
+                                   shiny::verbatimTextOutput(ns("the_window_output")))
                     ),
                     shiny::br(),
                     shiny::actionButton(ns("slider_help_button"), "Help"),
@@ -141,7 +146,7 @@ mod_formTimeWindows_server <- function(id, session) {
     output$slider_help <- shiny::renderText({
       paste(
         "You can move the slider thumbs by dragging or by using the arrow keys.",
-        "The 'Day 0-0 window' is a special case, and is included by default.",
+        "The 'Day [0-0] window' is a special case, and is included by default.",
         sep = "\n"
       )
     })
@@ -150,24 +155,46 @@ mod_formTimeWindows_server <- function(id, session) {
       shinyjs::toggle(id = "slider_help")
     })
 
+    output$the_window_output <- renderText({
+      req(input$the_slider)
+      breaks <- as.vector(input$the_slider)
+      if(input$zero_window && !0 %in% breaks) breaks <- c(0, breaks)
+      result <- c()
+      for(value in breaks) {
+        if(value == 0) result <- c(result, value, value + 1, value - 1, 0)
+        if(value < 0) result <- c(result, value, value - 1)
+        if(value > 0) result <- c(result, value, value + 1)
+      }
+      result <- sort(result)[-c(1, length(result))]
+      output <- ""
+      for(i in seq(1, length(result), 2)) {
+        output <- paste(output, paste("[", result[i], ", ", result[i + 1], "]", sep = ""), sep = "  ")
+      }
+      toString(output)
+    })
+
     #
     # reactive for the time windows
     #
     shiny::reactive({
-      shiny::req(input$the_slider)
+      req(input$the_slider)
       breaks <- as.vector(input$the_slider)
-
-      if(input$zero_window){
-        list(
-          temporalStartDays = c(0, breaks[1:(length(breaks) - 1)]),
-          temporalEndDays = c(0, breaks[2:length(breaks)])
-        )
-      } else {
-        list(
-          temporalStartDays = breaks[1:(length(breaks) - 1)],
-          temporalEndDays = breaks[2:length(breaks)]
-        )
+      if(input$zero_window && !0 %in% breaks) breaks <- c(0, breaks)
+      result <- c()
+      for(value in breaks) {
+        if(value == 0) result <- c(result, value, value + 1, value - 1, 0)
+        if(value < 0) result <- c(result, value, value - 1)
+        if(value > 0) result <- c(result, value, value + 1)
       }
+      result <- sort(result)[-c(1, length(result))]
+      startDays <- c()
+      endDays <- c()
+      for(i in seq(1, length(result), 2)) {
+        startDays <- c(startDays, result[i])
+        endDays <- c(endDays, result[i + 1])
+      }
+
+      list(temporalStartDays = startDays, temporalEndDays = endDays)
     })
 
 
