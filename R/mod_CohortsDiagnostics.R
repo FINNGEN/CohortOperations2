@@ -207,24 +207,38 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
             )
           }
 
-          ParallelLogger::logInfo("Merging results")
-          tmpdirTimeMergedResults <- file.path(tmpdirTime, "mergedResults")
-          dir.create(tmpdirTimeMergedResults)
+          ParallelLogger::logInfo("Results to csv")
+          tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
+          dir.create(tmpdirTimeAnalysisResultsCsv)
           HadesExtras::CohortDiagnostics_mergeCsvResults(
             pathToResultFolders = pathToResultFolders,
-            pathToMergedRestulsFolder = tmpdirTimeMergedResults
+            pathToMergedRestulsFolder = tmpdirTimeAnalysisResultsCsv
           )
 
-          yaml::write_yaml(analysisSettings, file.path(tmpdirTimeMergedResults, "analysisSettings.yaml"))
+          yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsCsv, "analysisSettings.yaml"))
 
-          # zip all files
-          analysisResultsZipPath <- file.path(tmpdirTime, "analysisResults.zip")
-          zip::zipr(zipfile = analysisResultsZipPath, files = list.files(tmpdirTimeMergedResults, full.names = TRUE, recursive = TRUE))
+          analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResultsCsv.zip")
+          zip::zipr(zipfile = analysisResultsZipCsvPath, files = list.files(tmpdirTimeAnalysisResultsCsv, full.names = TRUE, recursive = TRUE))
+
+          ParallelLogger::logInfo("Results to sqlite")
+          tmpdirTimeAnalysisResultsSqlite <- file.path(tmpdirTime, "analysisResultsSqlite")
+          dir.create(tmpdirTimeAnalysisResultsSqlite)
+
+          CohortDiagnostics::createMergedResultsFile(
+            dataFolder = tmpdirTime,
+            sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
+            overwrite = TRUE
+          )
+
+          yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsSqlite, "analysisSettings.yaml"))
+
+          analysisResultsZipSqlitePath <- file.path(tmpdirTime, "analysisResultsSqlite.zip")
+          zip::zipr(zipfile = analysisResultsZipSqlitePath, files = list.files(tmpdirTimeAnalysisResultsSqlite, full.names = TRUE, recursive = TRUE))
 
           ParallelLogger::logInfo("End cohortDiagnostics")
 
 
-        return(analysisResultsZipPath)
+        return(tmpdirTime)
       },
     .r_l = .r_l,
     logger = shiny::getShinyOption("logger"))
@@ -265,7 +279,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       content = function(fname){
 
         if(rf_results()$success){
-          file.copy(rf_results()$result, fname)
+          file.copy(file.path(rf_results()$result, "analysisResultsCsv.zip"), fname)
         }
 
         return(fname)
@@ -277,8 +291,11 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url
-      url <- paste0(shiny::getShinyOption("cohortOperationsConfig")$urlCohortOperationsViewer, rf_results()$result)
-      browseURL(url)
+      url <- paste0(shiny::getShinyOption("cohortOperationsConfig")$urlCohortOperationsViewer,
+                    file.path(rf_results()$result, "analysisResultsSqlite.zip"))
+
+      # run js code in client
+      shinyjs::runjs(paste0("window.open('", url, "')"))
 
     })
 
