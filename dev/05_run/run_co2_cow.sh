@@ -14,8 +14,10 @@ display_usage() {
 cleanup() {
     echo "Stopping the Docker container co2..."
     docker stop co2 >/dev/null 2>&1
+    docker rm co2 >/dev/null 2>&1
     echo "Stopping the Docker container cow..."
     docker stop cow >/dev/null 2>&1
+    docker rm cow >/dev/null 2>&1
     echo "Script interrupted. Exiting..."
     exit 1
 }
@@ -150,6 +152,14 @@ DF11:
       cohortTableName: co2_d11_"$SESSION_MANAGER_ID"
 
 " > /tmp/co2_databases_config.yml
+
+# Stop and remove the existing container, if it exists
+echo "Stopping the existing Docker container co2..."
+docker stop co2 >/dev/null 2>&1
+docker rm co2 >/dev/null 2>&1
+echo "Stopping the existing Docker container cow..."
+docker stop cow >/dev/null 2>&1
+docker rm cow >/dev/null 2>&1
 
 docker run -d -p $co2_port:8888 -v /tmp:/tmp  \
     -e CO2_CONFIG_FILE="/tmp/co2_config.yml"  -e CO2_DATABASES_CONFIG_FILE="/tmp/co2_databases_config.yml" \
