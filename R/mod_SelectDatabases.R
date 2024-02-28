@@ -40,7 +40,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
       databasesConfigChecks <- fct_checkdatabasesConfig(databasesConfig)
 
       if (isFALSE(databasesConfigChecks)) {
-        shinyWidgets::sweetAlert(
+        shinyWidgets::sendSweetAlert(
           session = session,
           title = "Error reading the settings file.",
           text = databasesConfigChecks,

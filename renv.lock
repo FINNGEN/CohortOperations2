@@ -93,7 +93,7 @@
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "ohdsi",
+      "RemoteUsername": "OHDSI",
       "RemoteRepo": "CohortGenerator",
       "RemoteRef": "main",
       "RemoteSha": "78757f1b191a395cf9dcff0d5bbe2b9fa4aa163e",
@@ -115,7 +115,7 @@
         "rlang",
         "stringi"
       ],
-      "Hash": "12b26b68b771bbe771c627452aefe8b5"
+      "Hash": "1ba14745ec29dc17a7226cd079e93d8b"
     },
     "DBI": {
       "Package": "DBI",
@@ -168,6 +168,24 @@
       ],
       "Hash": "1ef65614602c6534a6c666e872c3b647"
     },
+    "Eunomia": {
+      "Package": "Eunomia",
+      "Version": "1.0.2",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteUsername": "ohdsi",
+      "RemoteRepo": "Eunomia",
+      "RemoteRef": "main",
+      "RemoteSha": "87f9d0f518e9e9b27c08c80916b8bd88be6fc45a",
+      "RemoteHost": "api.github.com",
+      "Requirements": [
+        "DatabaseConnector",
+        "RSQLite",
+        "SqlRender",
+        "readr"
+      ],
+      "Hash": "17f422f453b70180acc7efde08654795"
+    },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
       "Version": "3.3.2",
@@ -208,13 +226,18 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "development",
-      "RemoteSha": "9795d9616df010a299cfa596b0ef2ca0ddc7420d",
-      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia",
+      "RemoteSha": "30acccd34b5dac38ad080a1a51d938b54e0ee5ed",
       "Requirements": [
+        "CohortDiagnostics",
+        "CohortGenerator",
         "DBI",
+        "DatabaseConnector",
+        "Eunomia",
+        "FeatureExtraction",
         "ParallelLogger",
         "R6",
         "RJSONIO",
+        "ResultModelManager",
         "SqlRender",
         "apexcharter",
         "bigrquery",
@@ -235,7 +258,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "9b802b8c1c2eb02d8eb9c9d3c2b19a7c"
+      "Hash": "bdda6b4dd15c807e4e7a1b44f86be2bb"
     },
     "MASS": {
       "Package": "MASS",
