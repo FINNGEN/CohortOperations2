@@ -15,6 +15,7 @@ Imports:
     CohortDiagnostics,
     CohortGenerator,
     dplyr,
+    Eunomia,
     FeatureExtraction,
     future,
     HadesExtras,

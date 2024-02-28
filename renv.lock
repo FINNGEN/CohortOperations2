@@ -168,24 +168,6 @@
       ],
       "Hash": "1ef65614602c6534a6c666e872c3b647"
     },
-    "Eunomia": {
-      "Package": "Eunomia",
-      "Version": "1.0.2",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteUsername": "ohdsi",
-      "RemoteRepo": "Eunomia",
-      "RemoteRef": "main",
-      "RemoteSha": "87f9d0f518e9e9b27c08c80916b8bd88be6fc45a",
-      "RemoteHost": "api.github.com",
-      "Requirements": [
-        "DatabaseConnector",
-        "RSQLite",
-        "SqlRender",
-        "readr"
-      ],
-      "Hash": "17f422f453b70180acc7efde08654795"
-    },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
       "Version": "3.3.2",
@@ -222,22 +204,17 @@
       "Version": "0.0.0.9002",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
-      "RemoteRef": "master",
-      "RemoteSha": "c93fc5283bd1025f8e768e9f5c486f73d4981300",
-      "RemoteHost": "api.github.com",
+      "RemoteRef": "development",
+      "RemoteSha": "9795d9616df010a299cfa596b0ef2ca0ddc7420d",
+      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia",
       "Requirements": [
-        "CohortGenerator",
         "DBI",
-        "DatabaseConnector",
-        "Eunomia",
-        "FeatureExtraction",
         "ParallelLogger",
         "R6",
         "RJSONIO",
-        "ROhdsiWebApi",
-        "ResultModelManager",
         "SqlRender",
         "apexcharter",
         "bigrquery",
@@ -245,7 +222,6 @@
         "dbplyr",
         "digest",
         "dplyr",
-        "here",
         "htmltools",
         "lubridate",
         "purrr",
@@ -257,10 +233,9 @@
         "tibble",
         "tidyr",
         "tippy",
-        "validate",
-        "yaml"
+        "validate"
       ],
-      "Hash": "42d580b1182599a74c8638f7300e90dd"
+      "Hash": "9b802b8c1c2eb02d8eb9c9d3c2b19a7c"
     },
     "MASS": {
       "Package": "MASS",
@@ -345,14 +320,9 @@
     },
     "ParallelLogger": {
       "Package": "ParallelLogger",
-      "Version": "3.3.1",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "ParallelLogger",
-      "RemoteUsername": "ohdsi",
-      "RemoteRef": "develop",
-      "RemoteSha": "8325c94ad77649a3de373aaa6f53eb31d0ba1f3e",
+      "Version": "3.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "jsonlite",
@@ -361,7 +331,7 @@
         "utils",
         "xml2"
       ],
-      "Hash": "e6424e5addb16dc9d68bc3b98b9cc767"
+      "Hash": "fd636fc067099b75b8ad17e9104b10f3"
     },
     "R6": {
       "Package": "R6",
@@ -392,35 +362,6 @@
         "methods"
       ],
       "Hash": "2f89abc0f88c647d3386c672632f4baf"
-    },
-    "ROhdsiWebApi": {
-      "Package": "ROhdsiWebApi",
-      "Version": "1.3.3",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "ohdsi",
-      "RemoteRepo": "ROhdsiWebApi",
-      "RemoteRef": "main",
-      "RemoteSha": "455c81633de6d68dcd675ddb31f471c66e8fa332",
-      "Requirements": [
-        "R",
-        "RJSONIO",
-        "SqlRender",
-        "checkmate",
-        "dplyr",
-        "httr",
-        "lubridate",
-        "openxlsx",
-        "purrr",
-        "readr",
-        "rlang",
-        "scales",
-        "stringr",
-        "tibble",
-        "tidyr"
-      ],
-      "Hash": "26ba2fb6768a9fb7660c24a58fc5ceba"
     },
     "RSQLite": {
       "Package": "RSQLite",
@@ -1617,23 +1558,6 @@
         "askpass"
       ],
       "Hash": "2a0dc8c6adfb6f032e4d4af82d258ab5"
-    },
-    "openxlsx": {
-      "Package": "openxlsx",
-      "Version": "4.2.5.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "Rcpp",
-        "grDevices",
-        "methods",
-        "stats",
-        "stringi",
-        "utils",
-        "zip"
-      ],
-      "Hash": "c03b4c18d42da881fb8e15a085c2b9d6"
     },
     "parallelly": {
       "Package": "parallelly",
