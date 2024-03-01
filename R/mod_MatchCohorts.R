@@ -19,7 +19,7 @@ mod_matchCohorts_ui <- function(id) {
     shiny::tags$h4("Database"),
     shinyWidgets::pickerInput(
       inputId = ns("selectDatabases_pickerInput"),
-      label = "Select database where to match cohorts:",
+      label = "Database (where to find matches from):",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
@@ -27,13 +27,13 @@ mod_matchCohorts_ui <- function(id) {
     shiny::tags$h4("Cohorts"),
     shinyWidgets::pickerInput(
       inputId = ns("selectTargetCohort_pickerInput"),
-      label = "Select cohort to find matches from:",
+      label = "Controls cohort (where to find matches from):",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
     shinyWidgets::pickerInput(
       inputId = ns("selectMatchCohort_pickerInput"),
-      label = "Select defining cohort:",
+      label = "Cases cohort (defining cohort):",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
@@ -41,26 +41,26 @@ mod_matchCohorts_ui <- function(id) {
     shiny::tags$h4("Settings"),
     shiny::numericInput(
       inputId = ns("matchRatio_numericInput"),
-      label = "Matching Ratio",
+      label = "Matching ratio for controls",
       value = 10,
       min = 1,
       max = 1000
     ),
     shinyWidgets::prettySwitch(
       inputId = ns("matchSex_switch"),
-      label = "Match Sex",
+      label = "Match sex",
       status = "primary",
       value = TRUE
     ),
     shinyWidgets::prettySwitch(
       inputId = ns("matchBirthYear_switch"),
-      label = "Match Birth Day",
+      label = "Match birth year",
       status = "primary",
       value = TRUE
     ),
     shinyWidgets::prettySwitch(
       inputId = ns("matchCohortStartDateWithInDuration_switch"),
-      label = "Match Cohort Start Date With In Duration",
+      label = "Match cohort start date within duration",
       status = "primary",
       value = FALSE
     ),
@@ -69,7 +69,7 @@ mod_matchCohorts_ui <- function(id) {
       label = "Patients in new cohort to have cohort start date as in",
       choices = list(
         `Target cohort` = "keep",
-        `Matchin cohort` = "asMatch"
+        `Matched control cohort` = "asMatch"
       ),
       individual = TRUE,
       checkIcon = list(
@@ -83,7 +83,7 @@ mod_matchCohorts_ui <- function(id) {
       label = "Patients in new cohort to have cohort end date as in",
       choices = list(
         `Target cohort` = "keep",
-        `Matchin cohort` = "asMatch"
+        `Matched control cohort` = "asMatch"
       ),
       individual = TRUE,
       checkIcon = list(
@@ -97,7 +97,7 @@ mod_matchCohorts_ui <- function(id) {
     shiny::tags$h4("Summary"),
     shiny::textOutput(ns("newCohortName_text")),
     shiny::tags$br(),
-    shiny::actionButton(ns("create_actionButton"), "Create Match Cohort")
+    shiny::actionButton(ns("create_actionButton"), "Create matching cohort")
 
   )
 }
