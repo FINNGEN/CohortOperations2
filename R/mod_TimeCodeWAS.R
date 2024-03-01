@@ -262,7 +262,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         ParallelLogger::logInfo("Results to csv")
         yaml::write_yaml(tmpdirTimeAnalysisResultsCsv, file.path(tmpdirTime, "analysisSettings.yaml"))
 
-        analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResults.zip")
+        analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResultsCsv.zip")
         zip::zipr(zipfile = analysisResultsZipCsvPath, files = list.files(tmpdirTimeAnalysisResultsCsv, full.names = TRUE, recursive = TRUE))
 
         ParallelLogger::logInfo("Results to sqlite")
@@ -322,7 +322,6 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     output$download_actionButton <- shiny::downloadHandler(
       filename = function(){"analysisName_timeCodeWAS.zip"},
       content = function(fname){
-
         if(rf_results()$success){
           file.copy(file.path(rf_results()$result, "analysisResultsCsv.zip"), fname)
         }
