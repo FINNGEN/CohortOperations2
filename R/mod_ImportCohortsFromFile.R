@@ -300,6 +300,8 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
       shiny::req(r$cohortData)
       shiny::req(input$selectDatabases_pickerInput)
 
+      sweetAlert_spinner("Importing cohorts")
+
       selectedCohortNames <- r$cohortData |>
         dplyr::distinct(cohort_name) |>
         dplyr::arrange(cohort_name) |>
@@ -325,6 +327,8 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
         cohortIdOffset = cohortIdOffset,
         skipCohortDataCheck = TRUE
       )
+
+      remove_sweetAlert_spinner()
 
     })
 
