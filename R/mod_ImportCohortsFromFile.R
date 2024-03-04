@@ -108,7 +108,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
                                  inputId = ns("cohort_name"),
                                  label = "Column for cohort name",
                                  choices = c("", r$original_colnames),
-                                 selected = isolate(input$cohort_name),
+                                 selected = ifelse("cohort_name" %in% r$original_colnames, "cohort_name", ""),
                                  inline = FALSE,
                                  width = '300px'
                                ))),
@@ -125,7 +125,8 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
                                  inputId = ns("person_source_value"),
                                  label = "Column for person identifier",
                                  choices = c("", r$original_colnames),
-                                 selected = ifelse("finngenid" %in% r$original_colnames, "finngenid", ""),
+                                 selected = ifelse("finngenid" %in% r$original_colnames, "finngenid",
+                                                   ifelse("person_source_value" %in% r$original_colnames, "person_source_value", "")),
                                  inline = FALSE,
                                  width = '300px'
                                )))
@@ -135,7 +136,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
                                  inputId = ns("cohort_start_date"),
                                  label = "Column for cohort start date",
                                  choices = c("", r$original_colnames),
-                                 selected = isolate(input$cohort_start_date),
+                                 selected = ifelse("cohort_start_date" %in% r$original_colnames, "cohort_start_date", ""),
                                  inline = FALSE,
                                  width = '300px'
                                )))
@@ -145,7 +146,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
                                  inputId = ns("cohort_end_date"),
                                  label = "Column for cohort end date",
                                  choices = c("", r$original_colnames),
-                                 selected = isolate(input$cohort_end_date),
+                                 selected = ifelse("cohort_end_date" %in% r$original_colnames, "cohort_end_date", ""),
                                  inline = FALSE,
                                  width = '300px'
                                )))
@@ -221,11 +222,9 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
         dplyr::select(dplyr::sym(cohort_name), dplyr::sym(person_source_value), dplyr::sym(cohort_start_date), dplyr::sym(cohort_end_date))
       names(cohortData) <- c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date")
 
-      # check the cohort_start_date and cohort_end_date are Dates
-      if(!lubridate::is.Date(cohortData$cohort_start_date) | !lubridate::is.Date(cohortData$cohort_end_date)){
-        showModal(assignmentDialog(failed = TRUE, "The cohort start and end dates must be in Date format!"))
-        return()
-      }
+      # force date columns to be Dates
+      cohortData$cohort_start_date <- as.Date(cohortData$cohort_start_date)
+      cohortData$cohort_end_date <- as.Date(cohortData$cohort_end_date)
 
       # we are done
       r$cohortDataUploaded <- cohortData
@@ -344,8 +343,6 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
     })
 
   })
-
-
 }
 
 
