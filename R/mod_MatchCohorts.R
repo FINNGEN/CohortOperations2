@@ -17,56 +17,62 @@ mod_matchCohorts_ui <- function(id) {
     shinyjs::useShinyjs(),
     #
     shiny::tags$h4("Database"),
+    shiny::tags$h5("Select database where to work:"),
+    shiny::tags$h6("(Only cohort in the same database can be matched)"),
     shinyWidgets::pickerInput(
       inputId = ns("selectDatabases_pickerInput"),
-      label = "Database (where to find matches from):",
+      label = NULL,
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
+    shiny::tags$h5("Create a new cohort, matching subjects from target cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectTargetCohort_pickerInput"),
-      label = "Controls cohort (where to find matches from):",
+      label = NULL,
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
+    shiny::tags$h5("with same characteristic as in matching cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectMatchCohort_pickerInput"),
-      label = "Cases cohort (defining cohort):",
+      label = NULL,
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Settings"),
+    shiny::tags$h5("Match"),
     shiny::numericInput(
-      inputId = ns("matchRatio_numericInput"),
-      label = "Matching ratio for controls",
+      label = NULL,
       value = 10,
       min = 1,
       max = 1000
     ),
+    shiny::tags$h5("subjects for each subject in matching cohort,"),
+    shiny::tags$h5(" with"),
     shinyWidgets::prettySwitch(
       inputId = ns("matchSex_switch"),
-      label = "Match sex",
+      label = "Same Sex",
       status = "primary",
       value = TRUE
     ),
     shinyWidgets::prettySwitch(
       inputId = ns("matchBirthYear_switch"),
-      label = "Match birth year",
+      label = "Same Birth Year",
       status = "primary",
       value = TRUE
     ),
     shinyWidgets::prettySwitch(
       inputId = ns("matchCohortStartDateWithInDuration_switch"),
-      label = "Match cohort start date within duration",
+      label = "Observation period includes matching cohort start date",
       status = "primary",
       value = FALSE
     ),
     shinyWidgets::radioGroupButtons(
       inputId = ns("newCohortStartDate_option"),
-      label = "Patients in new cohort to have cohort start date as in",
+      label = "Subjects in the new cohort to have cohort start date as in",
       choices = list(
         `Target cohort` = "keep",
         `Matched control cohort` = "asMatch"
