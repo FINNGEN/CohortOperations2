@@ -54,7 +54,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
     # render selectDatabases_pickerInput
     #
     shiny::observe({
-      # r_connectionHandlers$databasesHandlers
+      shiny::req(r_connectionHandlers$databasesHandlers)
 
       databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
 
