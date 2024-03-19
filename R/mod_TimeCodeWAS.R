@@ -56,6 +56,7 @@ mod_timeCodeWAS_ui <- function(id) {
       options = list(`actions-box` = TRUE),
       multiple = TRUE),
     htmltools::hr(),
+    shiny::tags$h4("Time windows"),
     mod_formTimeWindows_ui(ns("selectRanges")),
     shiny::tags$br(),
     #
