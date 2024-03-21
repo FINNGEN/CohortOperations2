@@ -160,7 +160,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
         ),
         size = "l",
         if (failed)
-          div(tags$b(message, style = "color: red;")),
+          div(tags$br(), tags$b(message, style = "color: red;"), tags$br()),
       )
     }
 
@@ -183,16 +183,16 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
 
       # check if there are duplicate assignments
       if(length(all_names) != length(unique(all_names))){
-        showModal(assignmentDialog(failed = TRUE, "You have assigned the same name to multiple columns!"))
+        showModal(assignmentDialog(failed = TRUE, "You have assigned the same name to multiple columns"))
         return()
       }
       # cohort name is required
       if(cohort_name == "" & default_cohort_name == ""){
-        showModal(assignmentDialog(failed = TRUE, "You must assign a cohort name, either a column or a default one!"))
+        showModal(assignmentDialog(failed = TRUE, "You must assign a cohort name, either a column or a default one"))
         return()
       }
       if(cohort_name != "" & default_cohort_name != ""){
-        showModal(assignmentDialog(failed = TRUE, "You can give either a cohort column or a default name, not both!"))
+        showModal(assignmentDialog(failed = TRUE, "You can give either a cohort column or a default name, not both"))
         return()
       }
       if(cohort_name == "" & default_cohort_name != ""){
@@ -202,7 +202,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
 
       # is everything defined
       if((cohort_name == "" & default_cohort_name == "") | person_source_value == ""){
-        showModal(assignmentDialog(failed = TRUE, "You must assign at least a person identifier and a cohort name!"))
+        showModal(assignmentDialog(failed = TRUE, "You must assign at least a person identifier and a cohort name"))
         return()
       }
 
@@ -223,7 +223,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
 
       # check the cohort_start_date and cohort_end_date are Dates
       if(!lubridate::is.Date(cohortData$cohort_start_date) | !lubridate::is.Date(cohortData$cohort_end_date)){
-        showModal(assignmentDialog(failed = TRUE, "The cohort start and end dates must be in Date format!"))
+        showModal(assignmentDialog(failed = TRUE, "The cohort start and end dates must be in Date format"))
         return()
       }
 
