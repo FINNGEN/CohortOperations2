@@ -55,11 +55,16 @@ app_ui <- function(request) {
             shinydashboard::tabBox(
               title = shiny::tagList(shiny::icon("upload"), "Import Cohorts:"),
               id = "import_files", width = 12, side="right",
-              selected = "from File",
+              selected = "from Atlas",
               #### panel FILE
               shiny::tabPanel(
                 "from File",
                 mod_importCohortsFromFile_ui("importCohortsFromFile")
+              ),
+              #### panel ATLAS
+              shiny::tabPanel(
+                "from Atlas",
+                mod_importCohortsFromAtlas_ui("importCohortsFromAtlas")
               )
             )
           ),

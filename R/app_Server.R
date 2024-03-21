@@ -14,7 +14,7 @@ app_server <- function(input, output, session) {
   # not all modules used all, they modules check the list has at least the ones they need
   # they are produced only by mod_select_configuration and consumed by the modules
   r_connectionHandlers <- shiny::reactiveValues(
-    cohortTableHandler = NULL
+    databasesHandlers = NULL
   )
 
   # produced by modules related to cohort editing
@@ -28,6 +28,7 @@ app_server <- function(input, output, session) {
 
   mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_connectionHandlers, r_workbench)
   mod_importCohortsFromFile_server("importCohortsFromFile", r_connectionHandlers, r_workbench)
+  mod_importCohortsFromAtlas_server("importCohortsFromAtlas", r_connectionHandlers, r_workbench)
 
   mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_connectionHandlers, r_workbench)
   mod_matchCohorts_server("matchCohorts", r_connectionHandlers, r_workbench)
