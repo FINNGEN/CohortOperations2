@@ -232,10 +232,10 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     rf_results <- modalWithLog_server(
       id = "sss",
       .f = function(
-          cohortTableHandler,
-          analysisSettings,
-          sqlRenderTempEmulationSchema
-        ){
+    cohortTableHandler,
+    analysisSettings,
+    sqlRenderTempEmulationSchema
+      ){
         # needs to be set in the future
         options(sqlRenderTempEmulationSchema=sqlRenderTempEmulationSchema)
         #
@@ -262,7 +262,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         ParallelLogger::logInfo("Results to csv")
         yaml::write_yaml(tmpdirTimeAnalysisResultsCsv, file.path(tmpdirTime, "analysisSettings.yaml"))
 
-        analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResults.zip")
+        analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResultsCsv.zip")
         zip::zipr(zipfile = analysisResultsZipCsvPath, files = list.files(tmpdirTimeAnalysisResultsCsv, full.names = TRUE, recursive = TRUE))
 
         ParallelLogger::logInfo("Results to sqlite")
@@ -285,8 +285,8 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
         return(tmpdirTime)
       },
-      .r_l = .r_l,
-      logger = shiny::getShinyOption("logger"))
+    .r_l = .r_l,
+    logger = shiny::getShinyOption("logger"))
 
 
     #
@@ -296,11 +296,23 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       rf_results()$result
       shiny::req(rf_results)
 
+      resultMessage  <- NULL
       if(rf_results()$success){
+        #parse running muntes to a string with munutes and seconds
+        runningTimeMinsSecs <- paste0(
+          floor(rf_results()$runningTimeMins), " minutes and ",
+          round((rf_results()$runningTimeMins-floor(rf_results()$runningTimeMins))*60), " seconds"
+        )
+        resultMessage <- paste0("✅ Success\n",
+                                "🕒 Running time: ", runningTimeMinsSecs, "\n",
+                                "📂 Results in: ", rf_results()$result)
         shiny::removeModal()
+      }else{
+        resultMessage <- paste0("❌ Error\n",
+                                "📄 Message: ", rf_results()$result)
       }
 
-      rf_results()$result
+      resultMessage
     })
 
     #
@@ -322,7 +334,6 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     output$download_actionButton <- shiny::downloadHandler(
       filename = function(){"analysisName_timeCodeWAS.zip"},
       content = function(fname){
-
         if(rf_results()$success){
           file.copy(file.path(rf_results()$result, "analysisResultsCsv.zip"), fname)
         }

@@ -50,17 +50,23 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
           ParallelLogger::registerLogger(logger)
           ParallelLogger::logInfo("Launching ")
           #run
+          startTime <- Sys.time()
           result <- do.call(.f, .l)
+          endTime <- Sys.time()
+          runningTimeMins <- as.numeric(endTime - startTime, units = "mins")
+
           result <- list(
             success = TRUE,
-            result = result
+            result = result,
+            runningTimeMins = runningTimeMins
           )
-          #
+
         }, error = function(e){
           ParallelLogger::logError("Error in future in modalWithLog_server", e)
           result <<- list(
             success = FALSE,
-            result = e$message
+            result = e$message,
+            runningTimeMins = NULL
           )
         })
 
