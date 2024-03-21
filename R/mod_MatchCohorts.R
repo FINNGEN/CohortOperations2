@@ -45,6 +45,7 @@ mod_matchCohorts_ui <- function(id) {
     shiny::tags$h4("Settings"),
     shiny::tags$h5("Match"),
     shiny::numericInput(
+      inputId = ns("matchRatio_numericInput"),
       label = NULL,
       value = 10,
       min = 1,
