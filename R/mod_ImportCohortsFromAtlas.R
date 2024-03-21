@@ -67,7 +67,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
 
       atlasCohortsTable <- NULL
       tryCatch({
-        atlasCohortsTable <- ROhdsiWebApi::getCohortDefinitionsMetaData(webApiUrl)
+        atlasCohortsTable <- ROhdsiWebApi::getCohortDefinitionsMetaData(webApiUrl) |>
+        dplyr::arrange(dplyr::desc(id))
       }, error = function(e) {
         atlasCohortsTable <<- paste("Error connecting to Atlas. Check that Atlas is working.")
       })
@@ -77,7 +78,6 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       r$atlasCohortsTable <- atlasCohortsTable
 
       atlasCohortsTable |>
-        dplyr::arrange(id) |>
         dplyr::select(cohort_id = id, cohort_name = name)  |>
         reactable::reactable(
           selection = "multiple",
@@ -103,7 +103,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
 
       selectedCohortIds <- r$atlasCohortsTable |>
         dplyr::slice(r_selectedIndex()) |>
-        dplyr::pull(cohort_id)
+        dplyr::pull(id)
 
       cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
         baseUrl = webApiUrl,

@@ -40,6 +40,8 @@ app$appOptions$logger  <- logger
 app
 
 
+# test with 1778211, 1778212, 1778213
+
 # connectionStatus_reactable ----------------------------------------------
 # devtools::load_all(".")
 #
