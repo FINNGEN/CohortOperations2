@@ -22,7 +22,7 @@ mod_importCohortsFromAtlas_ui <- function(id) {
   )
 }
 
-mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbench) {
+mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbench, filterCohortsRegex='*') {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -68,18 +68,27 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       atlasCohortsTable <- NULL
       tryCatch({
         atlasCohortsTable <- ROhdsiWebApi::getCohortDefinitionsMetaData(webApiUrl) |>
-        dplyr::arrange(dplyr::desc(id))
+        dplyr::filter(grepl(filterCohortsRegex, name)) |>
+        dplyr::arrange(dplyr::desc(id)) |>
+        dplyr::select(id, name, description)
       }, error = function(e) {
         atlasCohortsTable <<- paste("Error connecting to Atlas. Check that Atlas is working.")
       })
 
-      shiny::validate(need(!is.character(atlasCohortsTable), atlasCohortsTable))
+      shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
 
       r$atlasCohortsTable <- atlasCohortsTable
 
+      colums <- list(
+        id = reactable::colDef(name = "Cohort ID", show = (filterCohortsRegex == '*') ),
+        name = reactable::colDef(name = "Cohort Name"),
+        description = reactable::colDef(name = "Description")
+
+      )
+
       atlasCohortsTable |>
-        dplyr::select(cohort_id = id, cohort_name = name)  |>
         reactable::reactable(
+          columns = colums,
           selection = "multiple",
           onClick = "select",
           searchable = TRUE

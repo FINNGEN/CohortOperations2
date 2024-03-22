@@ -70,9 +70,8 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
         cohortDatabaseSchema = cohortDatabaseSchema
       )
 
-      if (logTibble$logTibble$type[1] == " ERROR" | logTibble$logTibble$type[2] == " ERROR") {
-          return(paste("Error connecting to Endpoint table."))
-      }
+      thereIsCohortTables <- (logTibble$logTibble$type[1] == "ERROR" | logTibble$logTibble$type[2] == "ERROR")
+      shiny::validate(shiny::need(!thereIsCohortTables, "Error connecting to Endpoint table."))
 
       cohortDefinitionTable <- HadesExtras::getCohortNamesFromCohortDefinitionTable(
         connection = connection,

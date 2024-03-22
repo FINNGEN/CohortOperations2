@@ -65,6 +65,16 @@ app_ui <- function(request) {
               shiny::tabPanel(
                 "from Atlas",
                 mod_importCohortsFromAtlas_ui("importCohortsFromAtlas")
+              ),
+              #### panel ENDPOINTs
+              shiny::tabPanel(
+                "from Endpoints",
+                mod_importCohortsFromCohortsTable_ui("importCohortsFromEndpoints")
+              ),
+              #### panel Library
+              shiny::tabPanel(
+                "from Library",
+                mod_importCohortsFromAtlas_ui("importCohortsFromLibrary")
               )
             )
           ),
