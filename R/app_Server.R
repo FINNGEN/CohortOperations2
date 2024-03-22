@@ -29,10 +29,14 @@ app_server <- function(input, output, session) {
   mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_connectionHandlers, r_workbench)
   mod_importCohortsFromFile_server("importCohortsFromFile", r_connectionHandlers, r_workbench)
   mod_importCohortsFromAtlas_server("importCohortsFromAtlas", r_connectionHandlers, r_workbench)
+  mod_importCohortsFromCohortsTable_server("importCohortsFromEndpoints", r_connectionHandlers, r_workbench)
+  mod_importCohortsFromAtlas_server("importCohortsFromLibrary", r_connectionHandlers, r_workbench, filterCohortsRegex = ".*\\[CohortLibrary]")
 
   mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_connectionHandlers, r_workbench)
   mod_matchCohorts_server("matchCohorts", r_connectionHandlers, r_workbench)
 
+  mod_cohortWorkbench_server("cohortWorkbench_operateCohorts", r_connectionHandlers, r_workbench)
+  mod_operateCohorts_server("operateCohorts", r_connectionHandlers, r_workbench)
 
   mod_cohortWorkbench_server("cohortWorkbench_cohortDiagnostics", r_connectionHandlers, r_workbench)
   mod_cohortDiagnostics_server("cohortDiagnostics", r_connectionHandlers, r_workbench)

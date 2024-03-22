@@ -5,7 +5,7 @@ source(testthat::test_path("helper.R"))
 
 logger <- setup_ModalWithLog()
 
-databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = FALSE)
+databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = FALSE, withCohortTableCohorts = TRUE)
 
 cohortsSummaryDatabases <- fct_getCohortsSummariesFromDatabasesHandlers(databasesHandlers)
 
@@ -23,10 +23,10 @@ devtools::load_all(".")
 app <- shiny::shinyApp(
   shiny::fluidPage(
     mod_cohortWorkbench_ui("test"),
-    mod_importCohortsFromAtlas_ui("test")
+    mod_importCohortsFromCohortsTable_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromAtlas_server("test", r_connectionHandlers, r_workbench, filterCohortsRegex='PENIS')
+    mod_importCohortsFromCohortsTable_server("test", r_connectionHandlers, r_workbench)
     mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
   },
   options = list(launch.browser=TRUE)

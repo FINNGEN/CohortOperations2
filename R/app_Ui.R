@@ -20,14 +20,14 @@ app_ui <- function(request) {
           shinydashboard::menuItem("Databases connection", tabName = "selectDatabases", icon = shiny::icon("database")),
           shiny::h5(" Cohorts"),
           shinydashboard::menuItem("Import Cohorts", tabName = "importCohorts", icon = shiny::icon("address-card")),
+          shinydashboard::menuItem("Operate Cohorts", tabName = "OperateCohorts", icon = shiny::icon("calculator")),
           shinydashboard::menuItem("Match Cohorts", tabName = "matchCohorts", icon = shiny::icon("connectdevelop")),
-          shinydashboard::menuItem("Subset Cohorts", tabName = "subsetCohorts", icon = shiny::icon("")),
-          shinydashboard::menuItem("Export Cohorts", tabName = "exportsCohorts", icon = shiny::icon("")),
+          #shinydashboard::menuItem("Export Cohorts", tabName = "exportsCohorts", icon = shiny::icon("")),
           shiny::h5(" Analyses"),
           shinydashboard::menuItem("CohortsDiagnostics", tabName = "cohortDiagnostics", icon = shiny::icon("stethoscope")),
-          shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("")),
-          shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("")),
-          shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("")),
+          #shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("")),
+          #shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("")),
+          #shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("")),
           shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road")),
           shiny::h5(" About"),
           shinydashboard::menuItem("About", tabName = "about", icon = shiny::icon("info"))
@@ -65,6 +65,16 @@ app_ui <- function(request) {
               shiny::tabPanel(
                 "from Atlas",
                 mod_importCohortsFromAtlas_ui("importCohortsFromAtlas")
+              ),
+              #### panel ENDPOINTs
+              shiny::tabPanel(
+                "from Endpoints",
+                mod_importCohortsFromCohortsTable_ui("importCohortsFromEndpoints")
+              ),
+              #### panel Library
+              shiny::tabPanel(
+                "from Library",
+                mod_importCohortsFromAtlas_ui("importCohortsFromLibrary")
               )
             )
           ),
@@ -84,21 +94,20 @@ app_ui <- function(request) {
               mod_matchCohorts_ui("matchCohorts")
             )
           ),
-          ## TAB Subset Cohorts
+          ## TAB Operate Cohorts
           shinydashboard::tabItem(
-            tabName = "subsetCohorts",
+            tabName = "OperateCohorts",
             ### Cohorts workbench
             shinydashboard::box(
               title = "Cohorts workbench ",
               status = "primary", solidHeader = TRUE, width = 12,
-              mod_cohortWorkbench_ui("cohortWorkbench_subsetCohorts")
+              mod_cohortWorkbench_ui("cohortWorkbench_operateCohorts")
             ),
             ### Import Cohorts
             shinydashboard::box(
-              title = shiny::tagList(shiny::icon("connectdevelop"), "Subset Cohorts:"),
+              title = shiny::tagList(shiny::icon("calculator"), "Operate Cohorts:"),
               solidHeader = TRUE, width = 12,
-              shiny::tags$h3("Not implemented yet"),
-              shiny::tags$h3("will allow to subset cohorts, based on sex, age, or other cohort patients ")
+              mod_operateCohorts_ui("operateCohorts")
             )
           ),
           ## TAB Exports Cohorts

@@ -1,5 +1,5 @@
 
-mod_importCohortsFromAtlas_ui <- function(id) {
+mod_importCohortsFromCohortsTable_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
     mod_appendCohort_ui(),
@@ -13,7 +13,6 @@ mod_importCohortsFromAtlas_ui <- function(id) {
       multiple = FALSE),
     #
     htmltools::hr(),
-    shiny::actionButton(ns("refreshDatabases_actionButton"), "Refresh Cohort List"),
     reactable::reactableOutput(ns("cohorts_reactable")) |>  ui_load_spinner(),
     htmltools::hr(),
     shiny::actionButton(ns("import_actionButton"), "Import Selected")
@@ -22,17 +21,16 @@ mod_importCohortsFromAtlas_ui <- function(id) {
   )
 }
 
-mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbench, filterCohortsRegex='*') {
+mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r_workbench) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    webApiUrl <- shiny::getShinyOption("cohortOperationsConfig")$webApiUrl
 
     #
     # reactive variables
     #
     r <- shiny::reactiveValues(
-      atlasCohortsTable = NULL
+      cohortDefinitionTable = NULL
     )
 
     r_toAdd <- shiny::reactiveValues(
@@ -60,35 +58,37 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
     # render cohorts_reactable
     #
     output$cohorts_reactable <- reactable::renderReactable({
-      # trigger update by
-      input$refreshDatabases_actionButton
-      #
       shiny::req(r_connectionHandlers$databasesHandlers)
+      shiny::req(input$selectDatabases_pickerInput)
 
-      atlasCohortsTable <- NULL
-      tryCatch({
-        atlasCohortsTable <- ROhdsiWebApi::getCohortDefinitionsMetaData(webApiUrl) |>
-        dplyr::filter(grepl(filterCohortsRegex, name)) |>
-        dplyr::arrange(dplyr::desc(id)) |>
-        dplyr::select(id, name, description)
-      }, error = function(e) {
-        atlasCohortsTable <<- paste("Error connecting to Atlas. Check that Atlas is working.")
-      })
+      # get connection
+      connection  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$connectionHandler$getConnection()
+      cohortDatabaseSchema  <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$cdmDatabaseSchema
 
-      shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
-
-      r$atlasCohortsTable <- atlasCohortsTable
-
-      colums <- list(
-        id = reactable::colDef(name = "Cohort ID", show = (filterCohortsRegex == '*') ),
-        name = reactable::colDef(name = "Cohort Name"),
-        description = reactable::colDef(name = "Description")
-
+      logTibble <- HadesExtras::checkCohortDefinitionTables(
+        connection = connection,
+        cohortDatabaseSchema = cohortDatabaseSchema
       )
 
-      atlasCohortsTable |>
+      thereIsCohortTables <- (logTibble$logTibble$type[1] == "ERROR" | logTibble$logTibble$type[2] == "ERROR")
+      shiny::validate(shiny::need(!thereIsCohortTables, "Error connecting to Endpoint table."))
+
+      cohortDefinitionTable <- HadesExtras::getCohortNamesFromCohortDefinitionTable(
+        connection = connection,
+        cohortDatabaseSchema = cohortDatabaseSchema
+      ) |> dplyr::arrange(cohort_definition_name)
+
+      r$cohortDefinitionTable <- cohortDefinitionTable
+
+      columns <- list(
+        cohort_definition_id = reactable::colDef( show = FALSE),
+        cohort_definition_name = reactable::colDef(name = "Endpoint Name"),
+        cohort_definition_description = reactable::colDef(name = "Endpoint Description")
+      )
+
+      cohortDefinitionTable |>
         reactable::reactable(
-          columns = colums,
+          columns = columns,
           selection = "multiple",
           onClick = "select",
           searchable = TRUE
@@ -110,13 +110,20 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
 
       sweetAlert_spinner("Processing cohorts")
 
-      selectedCohortIds <- r$atlasCohortsTable |>
-        dplyr::slice(r_selectedIndex()) |>
-        dplyr::pull(id)
+      # get connection
+     connection  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$connectionHandler$getConnection()
+    cohortDatabaseSchema  <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$cdmDatabaseSchema
 
-      cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
-        baseUrl = webApiUrl,
-        cohortIds = selectedCohortIds
+      cohortDefinitionTable <- r$cohortDefinitionTable
+      selectedCohortIds <- cohortDefinitionTable |>
+        dplyr::slice(r_selectedIndex()) |>
+        dplyr::pull(cohort_definition_id)
+
+      cohortDefinitionSet  <- HadesExtras::cohortTableToCohortDefinitionSettings(
+        cohortDatabaseSchema = cohortDatabaseSchema,
+        cohortDefinitionTable = cohortDefinitionTable,
+        cohortDefinitionIds = selectedCohortIds,
+        cohortIdOffset = 0L
       )
 
       r_toAdd$databaseName <- input$selectDatabases_pickerInput
