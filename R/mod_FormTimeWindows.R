@@ -3,7 +3,6 @@
 mod_formTimeWindows_ui <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
-    shiny::tags$h4("Time windows"),
     shiny::tags$div(style = "margin-left: 30px; margin-right: 50px; min-width: 600px;",
                     # shiny::tags$div(id=ns('inputList')),
                     # shiny::actionButton(ns('addBtn'), 'Add Window'),

@@ -14,19 +14,82 @@ mod_cohortDiagnostics_ui <- function(id) {
       multiple = TRUE,
       options = list(`actions-box` = TRUE)
     ),
-    htmltools::hr(),
     #
+    htmltools::hr(),
     shiny::tags$h4("Settings"),
     shiny::numericInput(
       inputId = ns("minCellCount_numericInput"),
       label = "Min Cell Count",
+      width = "100px",
       value = 1,
       min = 1,
       max = 1000
     ),
-    # TODO : add more setting for cohortDiagnostics
+    shiny::checkboxInput(
+      inputId = ns("runInclusionStatistics_switch"),
+      label = "Run Inclusion Statistics",
+      value = FALSE
+    ),
+    shiny::checkboxInput(
+      inputId = ns("runIncludedSourceConcepts_switch"),
+      label = "Run Included Source Concepts",
+      value = FALSE
+    ),
+    shiny::checkboxInput(
+      inputId = ns("runOrphanConcepts_switch"),
+      label = "Run Orphan Concepts",
+      value = FALSE
+    ),
+    shiny::checkboxInput(
+      inputId = ns("runVisitContext_switch"),
+      label = "Run Visit Context",
+      value = FALSE
+    ),
+    shiny::checkboxInput(
+      inputId = ns("runIncidenceRate_switch"),
+      label = "Run Incidence Rate",
+      value = TRUE
+    ),
+    shiny::checkboxInput(
+      inputId = ns("runCohortRelationship_switch"),
+      label = "Run Cohort Relationship",
+      value = FALSE
+    ),
+    shiny::checkboxInput(
+      inputId = ns("runTemporalCohortCharacterization_switch"),
+      label = "Run Temporal Cohort Characterization",
+      value = FALSE
+    ),
     htmltools::hr(),
-    htmltools::h4("TODO : add more setting for cohortDiagnostics"),
+    #
+    shinyWidgets::pickerInput(
+      inputId = ns("selectCovariates"),
+      label = "Select covariates:",
+      choices = list(
+        Conditions = list(
+          `Conditions` = "useConditionOccurrence",
+          `Conditions in Primary Inpatient` = "useConditionOccurrencePrimaryInpatient",
+          `Conditions SNOMED Group` = "useConditionEraGroupOverlap"
+        ),
+        Drugs = list(
+          `Drugs` = "useDrugExposure",
+          `Drugs ATC Group` = "useDrugEraGroupOverlap"
+        ),
+        Procedures = list(
+          `Procedures` = "useProcedureOccurrence"
+        ),
+        Others = list(
+          `Device Exposure` = "useDeviceExposure",
+          `Measurement` = "useMeasurement",
+          `Observation` = "useObservation"
+        )
+      ),
+      selected = c("useConditionOccurrence", "useDrugExposure", "useProcedureOccurrence", "useDeviceExposure", "useMeasurement", "useObservation"),
+      options = list(`actions-box` = TRUE),
+      multiple = TRUE),
+    htmltools::hr(),
+    shiny::tags$h4("Time windows"),
+    mod_formTimeWindows_ui(ns("time_windows")),
     #
     htmltools::hr(),
     shiny::tags$h4("Summary"),
@@ -49,11 +112,10 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-
-
     #
     # reactive variables
     #
+    r_ranges <- mod_formTimeWindows_server("time_windows")
 
     r <- shiny::reactiveValues(
       analysisSettings = NULL
@@ -102,6 +164,13 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       shiny::req(input$selectCohort_pickerInput)
       shiny::req(input$selectCohort_pickerInput!="NA")
       shiny::req(input$minCellCount_numericInput)
+      shiny::req(!is.null(input$runInclusionStatistics_switch))
+      shiny::req(!is.null(input$runIncludedSourceConcepts_switch))
+      shiny::req(!is.null(input$runOrphanConcepts_switch))
+      shiny::req(!is.null(input$runVisitContext_switch))
+      shiny::req(!is.null(input$runIncidenceRate_switch))
+      shiny::req(!is.null(input$runCohortRelationship_switch))
+      shiny::req(!is.null(input$runTemporalCohortCharacterization_switch))
 
       # convert vector of strings databaseId-cohortId to tibble databaseId and cohortIds
       databaseIdsCohortIdsTibble<- data.frame(
@@ -117,11 +186,27 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       analysisSettings <- list(
         analysisType = "cohortDiagnostics",
         databaseIdsCohorsIdsList = databaseIdsCohorsIdsList,
-        minCellCount = input$minCellCount_numericInput
+        minCellCount = input$minCellCount_numericInput,
+        runInclusionStatistics = input$runInclusionStatistics_switch,
+        runIncludedSourceConcepts = input$runIncludedSourceConcepts_switch,
+        runOrphanConcepts = input$runOrphanConcepts_switch,
+        runVisitContext = input$runVisitContext_switch,
+        runIncidenceRate = input$runIncidenceRate_switch,
+        runCohortRelationship = input$runCohortRelationship_switch,
+        runTemporalCohortCharacterization = input$runTemporalCohortCharacterization_switch,
+        runBreakdownIndexEvents = FALSE, # always FALSE, at the moment
+        runTimeSeries = FALSE, # always FALSE, at the moment
+        temporalCovariateSettings = list(
+          temporalStartDays = r_ranges()$temporalStartDays,
+          temporalEndDays =   r_ranges()$temporalEndDays
+        )
       )
 
-      r$analysisSettings <- analysisSettings
+      for(covaraiteSetting in input$selectCovariates){
+        analysisSettings$temporalCovariateSettings[[covaraiteSetting]] <- TRUE
+      }
 
+      r$analysisSettings <- analysisSettings
     })
 
     #
@@ -181,7 +266,9 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
             exportFolder  <-  tmpdirTimeDatabase
             pathToResultFolders <- c(pathToResultFolders, exportFolder)
 
-            CohortDiagnostics:: executeDiagnostics(
+            temporalCovariateSettings <- do.call(FeatureExtraction::createTemporalCovariateSettings, analysisSettings$temporalCovariateSettings)
+
+            CohortDiagnostics::executeDiagnostics(
               cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
               exportFolder = exportFolder,
               databaseId = cohortTableHandler$databaseName,
@@ -193,15 +280,19 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
               cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
               vocabularyDatabaseSchema = cohortTableHandler$vocabularyDatabaseSchema,
               cohortIds = analysisSettings$databaseIdsCohorsIdsList[[databaseId]],
-              # runInclusionStatistics = FALSE,
-              # runIncludedSourceConcepts = FALSE,
-              # runOrphanConcepts = FALSE,
-              # runTimeSeries = FALSE,
-              # runVisitContext = FALSE,
-              # runBreakdownIndexEvents = FALSE,
-              # runIncidenceRate = TRUE,
-              # runCohortRelationship = FALSE,
-              # runTemporalCohortCharacterization = FALSE,
+              # switches
+              runInclusionStatistics = analysisSettings$runInclusionStatistics,
+              runIncludedSourceConcepts = analysisSettings$runIncludedSourceConcepts,
+              runOrphanConcepts = analysisSettings$runOrphanConcepts,
+              runVisitContext = analysisSettings$runVisitContext,
+              runIncidenceRate = analysisSettings$runIncidenceRate,
+              runCohortRelationship = analysisSettings$runCohortRelationship,
+              runTemporalCohortCharacterization = analysisSettings$runTemporalCohortCharacterization,
+              runBreakdownIndexEvents = analysisSettings$runBreakdownIndexEvents,
+              runTimeSeries = analysisSettings$runTimeSeries,
+              #
+              temporalCovariateSettings = temporalCovariateSettings,
+              #
               minCellCount = analysisSettings$minCellCount,
               incremental = FALSE
             )
