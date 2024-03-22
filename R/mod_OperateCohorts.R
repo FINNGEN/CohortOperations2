@@ -28,6 +28,7 @@ mod_operateCohorts_ui <- function(id) {
     htmltools::hr(),
     shiny::tags$h4("Operation"),
     shiny::textInput(inputId = ns("operationString_textInput"), label = "Operation String"),
+    mod_dragAndDrop_ui("dragAndDrop"),
     #
     htmltools::hr(),
     shiny::tags$h4("Summary"),
@@ -55,6 +56,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       cohortDefinitionSet = NULL
     )
 
+    operation_string <- mod_dragAndDrop_server("dragAndDrop", session, c("COHORT1", "COHORT2", "COHORT3", "COHORT4", "COHORT5"))
 
     #
     # update selectDatabases_pickerInput with database names

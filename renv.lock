@@ -92,11 +92,11 @@
       "Version": "0.8.1",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "CohortGenerator",
       "RemoteRef": "main",
       "RemoteSha": "78757f1b191a395cf9dcff0d5bbe2b9fa4aa163e",
+      "RemoteHost": "api.github.com",
       "Remotes": "ohdsi/CirceR, ohdsi/Eunomia, ohdsi/ROhdsiWebApi",
       "Requirements": [
         "DatabaseConnector",
@@ -178,11 +178,11 @@
       "Version": "1.0.2",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "Eunomia",
       "RemoteRef": "main",
       "RemoteSha": "87f9d0f518e9e9b27c08c80916b8bd88be6fc45a",
-      "RemoteHost": "api.github.com",
       "Requirements": [
         "DatabaseConnector",
         "RSQLite",
@@ -2274,6 +2274,21 @@
         "utils"
       ],
       "Hash": "e418b532e9bb4eb22a714b9a9f1acee7"
+    },
+    "shinyjqui": {
+      "Package": "shinyjqui",
+      "Version": "0.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "htmltools",
+        "htmlwidgets",
+        "jsonlite",
+        "rlang",
+        "shiny"
+      ],
+      "Hash": "66d511cebf8d16c7f421bb60d618bbde"
     },
     "shinyjs": {
       "Package": "shinyjs",
