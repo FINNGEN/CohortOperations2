@@ -35,6 +35,8 @@ app_server <- function(input, output, session) {
   mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_connectionHandlers, r_workbench)
   mod_matchCohorts_server("matchCohorts", r_connectionHandlers, r_workbench)
 
+  mod_cohortWorkbench_server("cohortWorkbench_operateCohorts", r_connectionHandlers, r_workbench)
+  mod_operateCohorts_server("operateCohorts", r_connectionHandlers, r_workbench)
 
   mod_cohortWorkbench_server("cohortWorkbench_cohortDiagnostics", r_connectionHandlers, r_workbench)
   mod_cohortDiagnostics_server("cohortDiagnostics", r_connectionHandlers, r_workbench)
