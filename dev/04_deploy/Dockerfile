@@ -2,7 +2,7 @@
 FROM --platform=linux/amd64 rocker/rstudio:4.3.0
 
 # install OS dependencies including java and python 3
-RUN apt-get update && apt-get install -y openjdk-11-jdk liblzma-dev libbz2-dev libncurses5-dev curl python3-dev python3.venv git \
+RUN apt-get update && apt-get install -y openjdk-8-jdk liblzma-dev libbz2-dev libncurses5-dev curl python3-dev python3.venv git \
     # rjava
     libssl-dev libcurl4-openssl-dev  libpcre2-dev libicu-dev \
     # xml2

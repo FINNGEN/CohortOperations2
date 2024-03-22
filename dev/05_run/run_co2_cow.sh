@@ -104,6 +104,7 @@ docker pull eu.gcr.io/finngen-sandbox-v3-containers/cow:$docker_image_tag
 # create config files
 echo "
 urlCohortOperationsViewer: http://127.0.0.1:9998/?pathToResultsZip=
+webApiUrl: https://ohdsi-webapi.app.finngen.fi/WebAPI
 " > /tmp/co2_config.yml
 
 echo "
