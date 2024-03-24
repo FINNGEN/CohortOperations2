@@ -5,24 +5,26 @@ mod_dragAndDrop_ui <- function(id) {
   shiny::tagList(
     shinyjs::useShinyjs(),
     shiny::uiOutput(ns("operation_expression")),
-    # shiny::textOutput(ns("dest_boxes")),
+    shiny::textOutput(ns("dest_boxes")),
   )}
 
 
-mod_dragAndDrop_server <- function(id, session, cohort_list) {
+mod_dragAndDrop_server <- function(id, cohort_list) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    cohort_list <- c("COHORT1", "COHORT2", "COHORT3", "COHORT4", "COHORT5")
+    if (!is.null(cohort_list)) {
+      cohortData <- cohort_list()
+    } else {
+      cohortData <- NULL
+    }
 
     output$operation_expression <- shiny::renderUI({
-
       htmltools::tagList(
         shinydashboard::box(
           title = "Expression defining the cohort",
           width = 12,
           background = "light-blue",
-          shiny::textOutput(ns("select_patients_start_text")),
           shinyjqui::orderInput(
             inputId = ns("dest_boxes"),
             width = "100%",
@@ -36,7 +38,7 @@ mod_dragAndDrop_server <- function(id, session, cohort_list) {
             inputId = ns("source_boxes_cohorts"),
             width = "100%",
             label = "COHORTS",
-            items = cohort_list,
+            items = if(!is.null(cohortData)) cohortData$cohortName,
             as_source = TRUE, connect = ns("dest_boxes")
           ),
           shinyjqui::orderInput(
@@ -50,13 +52,23 @@ mod_dragAndDrop_server <- function(id, session, cohort_list) {
             as_source = TRUE, connect = ns("dest_boxes")
           )
         )
+
       )
     })
 
-    output$dest_boxes <- shiny::renderPrint({
+    #
+    # calculates cohort operation expression (just for testing)
+    #
+    output$dest_boxes <- shiny::renderText({
       req(!is.null(input$dest_boxes))
+      req(!is.null(cohortData))
 
-      input$dest_boxes
+      operation_expression <- input$dest_boxes
+      for(i in 1:nrow(cohortData)) {
+        operation_expression[which(operation_expression == cohortData$cohortName[i])] <- cohortData$shortName[i]
+      }
+
+      paste(operation_expression, collapse = "")
     })
   })
 
@@ -65,12 +77,15 @@ mod_dragAndDrop_server <- function(id, session, cohort_list) {
   # calculates cohort operation expression
   #
   shiny::reactive({
+    req(!is.null(input$dest_boxes))
+    req(!is.null(cohortData))
 
-    operation_expression <- NULL
-    if (!is.null(input$dest_boxes)) {
-      operation_expression <- stringr::str_c(input$dest_boxes, collapse = "")
+    operation_expression <- input$dest_boxes
+    for(i in 1:nrow(cohortData)) {
+      operation_expression[which(operation_expression == cohortData$cohortName[i])] <- cohortData$shortName[i]
     }
-    operation_expression
+
+    paste(operation_expression, collapse = "")
   })
 
 

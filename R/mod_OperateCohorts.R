@@ -17,8 +17,8 @@ mod_operateCohorts_ui <- function(id) {
     shinyjs::useShinyjs(),
     #
     shiny::tags$h4("Database"),
-    shiny::tags$h5("Select database where to work:"),
-    shiny::tags$h6("(Only cohort in the same database can be matched)"),
+    # shiny::tags$h5("Select database where to work:"),
+    # shiny::tags$h6("(Only cohort in the same database can be matched)"),
     shinyWidgets::pickerInput(
       inputId = ns("selectDatabases_pickerInput"),
       label = NULL,
@@ -27,8 +27,8 @@ mod_operateCohorts_ui <- function(id) {
       multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Operation"),
-    shiny::textInput(inputId = ns("operationString_textInput"), label = "Operation String"),
-    mod_dragAndDrop_ui("dragAndDrop"),
+    # shiny::textInput(inputId = ns("operationString_textInput"), label = "Operation String"),
+    mod_dragAndDrop_ui(ns("dragAndDrop")),
     #
     htmltools::hr(),
     shiny::tags$h4("Summary"),
@@ -56,7 +56,18 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       cohortDefinitionSet = NULL
     )
 
-    operation_string <- mod_dragAndDrop_server("dragAndDrop", session, c("COHORT1", "COHORT2", "COHORT3", "COHORT4", "COHORT5"))
+    r_cohort_list <- shiny::reactive({
+      req(r_workbench$cohortsSummaryDatabases$cohortName)
+
+      r_workbench$cohortsSummaryDatabases |> dplyr::select(cohortId, cohortName, shortName)
+    })
+
+    shiny::observe({
+      shiny::req(r_workbench$cohortsSummaryDatabases$cohortName)
+      shiny::req(r_cohort_list())
+
+      mod_dragAndDrop_server("dragAndDrop", r_cohort_list)
+    })
 
     #
     # update selectDatabases_pickerInput with database names
@@ -71,8 +82,8 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
         choices = databaseIdNamesList,
         selected = databaseIdNamesList[1]
       )
-    })
 
+    })
 
     #
     # when string changes
