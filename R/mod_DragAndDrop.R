@@ -46,9 +46,9 @@ mod_dragAndDrop_server <- function(id, cohort_list) {
             width = "100%",
             label = "OPERATORS",
             items = c(`(`="(", `)`=")",
-                      ` if they are also in `="&",
-                      ` if they are not in `="&!",
-                      ` or in ` = "|"),
+                      ` if they are also in `="Ip",
+                      ` if they are not in `="Mp",
+                      ` or in ` = "Upd"),
             as_source = TRUE, connect = ns("dest_boxes")
           )
         )
