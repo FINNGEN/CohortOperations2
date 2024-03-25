@@ -58,11 +58,11 @@
       "Version": "3.2.5",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteUsername": "OHDSI",
-      "RemoteRepo": "CohortDiagnostics",
-      "RemoteRef": "main",
-      "RemoteSha": "03c40ab06832a329f2c904fbd686a0596ea9af6f",
       "RemoteHost": "api.github.com",
+      "RemoteUsername": "javier-gracia-tabuenca-tuni",
+      "RemoteRepo": "CohortDiagnostics",
+      "RemoteRef": "fix-error-with-no-conceptset-cohorts",
+      "RemoteSha": "df2e73dc4310a7701d8b577f9c3d9b9762fefee1",
       "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "Requirements": [
         "Andromeda",
@@ -85,7 +85,7 @@
         "stringr",
         "tidyr"
       ],
-      "Hash": "027b5f8c9e35940bdd582ab9f80ba14e"
+      "Hash": "30b8869aea5b0e822240bed4f7ca481e"
     },
     "CohortGenerator": {
       "Package": "CohortGenerator",
@@ -231,7 +231,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "master",
-      "RemoteSha": "3b432710f5ce3e53f23aaa561985325c6092657f",
+      "RemoteSha": "1a30eeb869c4f5210213d838bca8edcb4147b27a",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -264,7 +264,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "33bb802739ebb3284422482bdad9ea75"
+      "Hash": "5d97b69b29ffe563a654a2e99a999622"
     },
     "MASS": {
       "Package": "MASS",
