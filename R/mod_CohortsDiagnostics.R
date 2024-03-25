@@ -87,9 +87,33 @@ mod_cohortDiagnostics_ui <- function(id) {
       selected = c("useConditionOccurrence", "useDrugExposure", "useProcedureOccurrence", "useDeviceExposure", "useMeasurement", "useObservation"),
       options = list(`actions-box` = TRUE),
       multiple = TRUE),
+    #
+    shinyWidgets::pickerInput(
+      inputId = ns("selectSourceCovariates"),
+      label = "Select source covariates:",
+      choices = list(
+        Conditions = list(
+          `Conditions` = "useConditionOccurrenceSourceConcept"
+        ),
+        Drugs = list(
+          `Drugs` = "useDrugExposureSourceConcept"
+        ),
+        Procedures = list(
+          `Procedures` = "useProcedureOccurrenceSourceConcept"
+        ),
+        Others = list(
+            `Device Exposure` = "useDeviceExposureSourceConcept",
+            `Measurement` = "useMeasurementSourceConcept",
+            `Observation` = "useObservationSourceConcept"
+        )
+      ),
+      selected = c("useConditionOccurrenceSourceConcept", "useDrugExposureSourceConcept", "useProcedureOccurrenceSourceConcept", "useDeviceExposureSourceConcept", "useMeasurementSourceConcept", "useObservationSourceConcept"),
+      options = list(`actions-box` = TRUE),
+      multiple = TRUE),
+    #
     htmltools::hr(),
     shiny::tags$h4("Time windows"),
-    mod_formTimeWindows_ui(ns("time_windows")),
+    mod_temporalRanges_ui(ns("time_windows")),
     #
     htmltools::hr(),
     shiny::tags$h4("Summary"),
@@ -115,7 +139,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
     #
     # reactive variables
     #
-    r_ranges <- mod_formTimeWindows_server("time_windows")
+    r_ranges <- mod_temporalRanges_server("time_windows")
 
     r <- shiny::reactiveValues(
       analysisSettings = NULL
@@ -183,6 +207,45 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
         databaseIdsCohorsIdsList[[databaseId]] <- databaseIdsCohortIdsTibble |> dplyr::filter(databaseId == !!databaseId) |> dplyr::pull(cohortId)
       }
 
+      covariateSettings  <- NULL
+      # standard covariate settings
+      if(length(input$selectCovariates) != 0){
+        covariateSettings <- FeatureExtraction::createTemporalCovariateSettings(
+          useConditionOccurrence = 'useConditionOccurrence' %in% input$selectCovariates,
+          useConditionOccurrencePrimaryInpatient = 'useConditionOccurrencePrimaryInpatient' %in% input$selectCovariates,
+          useConditionEraGroupOverlap = 'useConditionEraGroupOverlap' %in% input$selectCovariates,
+          useDrugExposure = 'useDrugExposure' %in% input$selectCovariates,
+          useDrugEraGroupOverlap = 'useDrugEraGroupOverlap' %in% input$selectCovariates,
+          useProcedureOccurrence = 'useProcedureOccurrence' %in% input$selectCovariates,
+          useDeviceExposure = 'useDeviceExposure' %in% input$selectCovariates,
+          useMeasurement = 'useMeasurement' %in% input$selectCovariates,
+          useObservation = 'useObservation' %in% input$selectCovariates,
+          temporalStartDays = r_ranges()$temporalStartDays,
+          temporalEndDays =   r_ranges()$temporalEndDays
+        )
+      }
+
+      # source covariate settings
+        sourceCovariateSettings <- NULL
+      if(length(input$selectSourceCovariates) != 0){
+        sourceCovariateSettings <- HadesExtras::FeatureExtraction_createTemporalSourceCovariateSettings(
+          useConditionOccurrenceSourceConcept = 'useConditionOccurrenceSourceConcept' %in% input$selectSourceCovariates,
+          useDrugExposureSourceConcept = 'useDrugExposureSourceConcept' %in% input$selectSourceCovariates,
+          useProcedureOccurrenceSourceConcept = 'useProcedureOccurrenceSourceConcept' %in% input$selectSourceCovariates,
+          useDeviceExposureSourceConcept = 'useDeviceExposureSourceConcept' %in% input$selectSourceCovariates,
+          useMeasurementSourceConcept = 'useMeasurementSourceConcept' %in% input$selectSourceCovariates,
+          useObservationSourceConcept = 'useObservationSourceConcept' %in% input$selectSourceCovariates,
+          temporalStartDays = r_ranges()$temporalStartDays,
+          temporalEndDays =   r_ranges()$temporalEndDays
+        )
+      }
+
+      allCovariateSettings <- list(
+        if(!is.null(covariateSettings)) covariateSettings,
+        if(!is.null(sourceCovariateSettings)) sourceCovariateSettings
+      )
+
+
       analysisSettings <- list(
         analysisType = "cohortDiagnostics",
         databaseIdsCohorsIdsList = databaseIdsCohorsIdsList,
@@ -196,15 +259,8 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
         runTemporalCohortCharacterization = input$runTemporalCohortCharacterization_switch,
         runBreakdownIndexEvents = FALSE, # always FALSE, at the moment
         runTimeSeries = FALSE, # always FALSE, at the moment
-        temporalCovariateSettings = list(
-          temporalStartDays = r_ranges()$temporalStartDays,
-          temporalEndDays =   r_ranges()$temporalEndDays
-        )
+        temporalCovariateSettings = allCovariateSettings
       )
-
-      for(covaraiteSetting in input$selectCovariates){
-        analysisSettings$temporalCovariateSettings[[covaraiteSetting]] <- TRUE
-      }
 
       r$analysisSettings <- analysisSettings
     })
@@ -247,86 +303,84 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
     analysisSettings,
     sqlRenderTempEmulationSchema
       ){
-          # needs to be set in the future
-          options(sqlRenderTempEmulationSchema=sqlRenderTempEmulationSchema)
-          #
-          ParallelLogger::logInfo("Create tmp folder")
-          tmpdirTime <- file.path(tempdir(), format(Sys.time(), "%Y%m%d_%H%M%S"))
-          dir.create(tmpdirTime)
-          ParallelLogger::logInfo(tmpdirTime)
-          #
-          ParallelLogger::logInfo("Start cohortDiagnostics")
-          pathToResultFolders <- c()
-          for(databaseId in names(analysisSettings$databaseIdsCohorsIdsList)){
-            tmpdirTimeDatabase <- file.path(tmpdirTime, databaseId)
-            dir.create(tmpdirTimeDatabase)
+        # needs to be set in the future
+        options(sqlRenderTempEmulationSchema=sqlRenderTempEmulationSchema)
+        #
+        ParallelLogger::logInfo("Create tmp folder")
+        tmpdirTime <- file.path(tempdir(), format(Sys.time(), "%Y%m%d_%H%M%S"))
+        dir.create(tmpdirTime)
+        ParallelLogger::logInfo(tmpdirTime)
+        #
+        ParallelLogger::logInfo("Start cohortDiagnostics")
+        pathToResultFolders <- c()
+        for(databaseId in names(analysisSettings$databaseIdsCohorsIdsList)){
+          tmpdirTimeDatabase <- file.path(tmpdirTime, databaseId)
+          dir.create(tmpdirTimeDatabase)
 
-            ParallelLogger::logInfo("databaseId = ", databaseId)
-            cohortTableHandler <-databasesHandlers[[databaseId]]$cohortTableHandler
-            exportFolder  <-  tmpdirTimeDatabase
-            pathToResultFolders <- c(pathToResultFolders, exportFolder)
+          ParallelLogger::logInfo("databaseId = ", databaseId)
+          cohortTableHandler <-databasesHandlers[[databaseId]]$cohortTableHandler
+          exportFolder  <-  tmpdirTimeDatabase
+          pathToResultFolders <- c(pathToResultFolders, exportFolder)
 
-            temporalCovariateSettings <- do.call(FeatureExtraction::createTemporalCovariateSettings, analysisSettings$temporalCovariateSettings)
-
-            CohortDiagnostics::executeDiagnostics(
-              cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
-              exportFolder = exportFolder,
-              databaseId = cohortTableHandler$databaseName,
-              cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
-              databaseName = cohortTableHandler$databaseName,
-              databaseDescription = cohortTableHandler$databaseName,
-              connection = cohortTableHandler$connectionHandler$getConnection(),
-              cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
-              cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
-              vocabularyDatabaseSchema = cohortTableHandler$vocabularyDatabaseSchema,
-              cohortIds = analysisSettings$databaseIdsCohorsIdsList[[databaseId]],
-              # switches
-              runInclusionStatistics = analysisSettings$runInclusionStatistics,
-              runIncludedSourceConcepts = analysisSettings$runIncludedSourceConcepts,
-              runOrphanConcepts = analysisSettings$runOrphanConcepts,
-              runVisitContext = analysisSettings$runVisitContext,
-              runIncidenceRate = analysisSettings$runIncidenceRate,
-              runCohortRelationship = analysisSettings$runCohortRelationship,
-              runTemporalCohortCharacterization = analysisSettings$runTemporalCohortCharacterization,
-              runBreakdownIndexEvents = analysisSettings$runBreakdownIndexEvents,
-              runTimeSeries = analysisSettings$runTimeSeries,
-              #
-              temporalCovariateSettings = temporalCovariateSettings,
-              #
-              minCellCount = analysisSettings$minCellCount,
-              incremental = FALSE
-            )
-          }
-
-          ParallelLogger::logInfo("Results to csv")
-          tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
-          dir.create(tmpdirTimeAnalysisResultsCsv)
-          HadesExtras::CohortDiagnostics_mergeCsvResults(
-            pathToResultFolders = pathToResultFolders,
-            pathToMergedRestulsFolder = tmpdirTimeAnalysisResultsCsv
+          CohortDiagnostics::executeDiagnostics(
+            cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
+            exportFolder = exportFolder,
+            databaseId = cohortTableHandler$databaseName,
+            cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
+            databaseName = cohortTableHandler$databaseName,
+            databaseDescription = cohortTableHandler$databaseName,
+            connection = cohortTableHandler$connectionHandler$getConnection(),
+            cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
+            cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
+            vocabularyDatabaseSchema = cohortTableHandler$vocabularyDatabaseSchema,
+            cohortIds = analysisSettings$databaseIdsCohorsIdsList[[databaseId]],
+            # switches
+            runInclusionStatistics = analysisSettings$runInclusionStatistics,
+            runIncludedSourceConcepts = analysisSettings$runIncludedSourceConcepts,
+            runOrphanConcepts = analysisSettings$runOrphanConcepts,
+            runVisitContext = analysisSettings$runVisitContext,
+            runIncidenceRate = analysisSettings$runIncidenceRate,
+            runCohortRelationship = analysisSettings$runCohortRelationship,
+            runTemporalCohortCharacterization = analysisSettings$runTemporalCohortCharacterization,
+            runBreakdownIndexEvents = analysisSettings$runBreakdownIndexEvents,
+            runTimeSeries = analysisSettings$runTimeSeries,
+            #
+            temporalCovariateSettings = analysisSettings$temporalCovariateSettings,
+            #
+            minCellCount = analysisSettings$minCellCount,
+            incremental = FALSE
           )
+        }
 
-          yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsCsv, "analysisSettings.yaml"))
+        ParallelLogger::logInfo("Results to csv")
+        tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
+        dir.create(tmpdirTimeAnalysisResultsCsv)
+        HadesExtras::CohortDiagnostics_mergeCsvResults(
+          pathToResultFolders = pathToResultFolders,
+          pathToMergedRestulsFolder = tmpdirTimeAnalysisResultsCsv
+        )
 
-          analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResultsCsv.zip")
-          zip::zipr(zipfile = analysisResultsZipCsvPath, files = list.files(tmpdirTimeAnalysisResultsCsv, full.names = TRUE, recursive = TRUE))
+        yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsCsv, "analysisSettings.yaml"))
 
-          ParallelLogger::logInfo("Results to sqlite")
-          tmpdirTimeAnalysisResultsSqlite <- file.path(tmpdirTime, "analysisResultsSqlite")
-          dir.create(tmpdirTimeAnalysisResultsSqlite)
+        analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResultsCsv.zip")
+        zip::zipr(zipfile = analysisResultsZipCsvPath, files = list.files(tmpdirTimeAnalysisResultsCsv, full.names = TRUE, recursive = TRUE))
 
-          CohortDiagnostics::createMergedResultsFile(
-            dataFolder = tmpdirTime,
-            sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
-            overwrite = TRUE
-          )
+        ParallelLogger::logInfo("Results to sqlite")
+        tmpdirTimeAnalysisResultsSqlite <- file.path(tmpdirTime, "analysisResultsSqlite")
+        dir.create(tmpdirTimeAnalysisResultsSqlite)
 
-          yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsSqlite, "analysisSettings.yaml"))
+        CohortDiagnostics::createMergedResultsFile(
+          dataFolder = tmpdirTime,
+          sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
+          overwrite = TRUE
+        )
 
-          analysisResultsZipSqlitePath <- file.path(tmpdirTime, "analysisResultsSqlite.zip")
-          zip::zipr(zipfile = analysisResultsZipSqlitePath, files = list.files(tmpdirTimeAnalysisResultsSqlite, full.names = TRUE, recursive = TRUE))
+        yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsSqlite, "analysisSettings.yaml"))
 
-          ParallelLogger::logInfo("End cohortDiagnostics")
+        analysisResultsZipSqlitePath <- file.path(tmpdirTime, "analysisResultsSqlite.zip")
+        zip::zipr(zipfile = analysisResultsZipSqlitePath, files = list.files(tmpdirTimeAnalysisResultsSqlite, full.names = TRUE, recursive = TRUE))
+
+        ParallelLogger::logInfo("End cohortDiagnostics")
 
 
         return(tmpdirTime)
@@ -405,13 +459,6 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
 
   })
 }
-
-
-
-
-
-
-
 
 
 
