@@ -34,7 +34,8 @@ Imports:
     HadesExtras,
     CohortGenerator,
     FeatureExtraction,
-    CohortDiagnostics
+    CohortDiagnostics, 
+    shinyjqui
 Remotes: 
     OHDSI/DatabaseConnector,
     OHDSI/FeatureExtraction,

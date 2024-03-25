@@ -27,13 +27,14 @@ mod_operateCohorts_ui <- function(id) {
       multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Operation"),
-    shiny::textInput(inputId = ns("operationString_textInput"), label = "Operation String"),
+    #shiny::textInput(inputId = ns("operationString_textInput"), label = "Operation String"),
+    mod_dragAndDrop_ui(ns("dragAndDrop")),
     #
     htmltools::hr(),
-    shiny::tags$h4("Summary"),
+    shiny::tags$h4("New cohort name"),
     shiny::textOutput(ns("newCohortName_text")),
     shiny::tags$br(),
-    shiny::actionButton(ns("create_actionButton"), "Create matching cohort")
+    shiny::actionButton(ns("create_actionButton"), "Create new cohort")
 
   )
 }
@@ -73,14 +74,19 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
     #
-    # when string changes
+    # get operation string from dragAndDrop module
     #
-    shiny::observeEvent(input$operationString_textInput, {
-      shiny::req(input$selectDatabases_pickerInput)
+    rf_operationString <- mod_dragAndDrop_server("dragAndDrop", r_workbench)
+
+    #
+    # when operation string changes check if it is valid
+    #
+    shiny::observe({
+      shiny::req(rf_operationString())
 
       error <- NULL
       tryCatch({
-        HadesExtras::operationStringToSQL(input$operationString_textInput)
+        HadesExtras::operationStringToSQL(rf_operationString())
       }, error = function(e){
         error <<- e$message
       })
@@ -91,11 +97,11 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
     #
-    # create temporal cohortDefinitionSet and render name
+    # if operation string is valid create temporal cohortDefinitionSet and render name
     #
     shiny::observe({
       shiny::req(input$selectDatabases_pickerInput)
-      shiny::req(input$operationString_textInput)
+      shiny::req(rf_operationString())
       shiny::req(is.null(r$operationStringError))
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
@@ -111,13 +117,13 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
         definitionId = nextSubsetDefinitionId,
         subsetOperators = list(
           HadesExtras::createOperationSubset(
-            operationString = input$operationString_textInput
+            operationString = rf_operationString()
           )
         )
       )
 
-      # TEMP::get first integer From string in input$operationString_textInput
-      targetCohortIds <- as.integer(stringr::str_extract(input$operationString_textInput, "\\d+"))
+      # TEMP::get first integer From operation string
+      targetCohortIds <- as.integer(stringr::str_extract(rf_operationString(), "\\d+"))
 
 
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
@@ -139,12 +145,12 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     output$newCohortName_text <- shiny::renderText({
       if(!is.null(r$operationStringError)){
-        r$operationStringError
+        paste("❌", r$operationStringError)
       }else{
         if(!shiny::isTruthy(r$cohortDefinitionSet)){
           "----"
         }else{
-          r$cohortDefinitionSet$cohortName
+          paste("✅", r$cohortDefinitionSet$cohortName)
         }
       }
     })
