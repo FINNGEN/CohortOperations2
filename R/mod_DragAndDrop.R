@@ -5,7 +5,7 @@ mod_dragAndDrop_ui <- function(id) {
   shiny::tagList(
     shinyjs::useShinyjs(),
     shiny::uiOutput(ns("operation_expression")),
-    shiny::textOutput(ns("dest_boxes")),
+#    shiny::textOutput(ns("dest_boxes")),
   )}
 
 
@@ -38,7 +38,7 @@ mod_dragAndDrop_server <- function(id, cohort_list) {
             inputId = ns("source_boxes_cohorts"),
             width = "100%",
             label = "COHORTS",
-            items = if(!is.null(cohortData)) cohortData$cohortName,
+            items = if(!is.null(cohortData)) cohortData$shortName,
             as_source = TRUE, connect = ns("dest_boxes")
           ),
           shinyjqui::orderInput(
@@ -65,7 +65,7 @@ mod_dragAndDrop_server <- function(id, cohort_list) {
 
       operation_expression <- input$dest_boxes
       for(i in 1:nrow(cohortData)) {
-        operation_expression[which(operation_expression == cohortData$cohortName[i])] <- cohortData$shortName[i]
+        operation_expression[which(operation_expression == cohortData$shortName[i])] <- i
       }
 
       paste(operation_expression, collapse = "")
@@ -82,7 +82,7 @@ mod_dragAndDrop_server <- function(id, cohort_list) {
 
     operation_expression <- input$dest_boxes
     for(i in 1:nrow(cohortData)) {
-      operation_expression[which(operation_expression == cohortData$cohortName[i])] <- cohortData$shortName[i]
+      operation_expression[which(operation_expression == cohortData$shortName[i])] <- i
     }
 
     paste(operation_expression, collapse = "")
