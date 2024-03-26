@@ -2,8 +2,8 @@
 .mod_timeRange_ui <- function(id, startRange=c(0,0)) {
   ns <- shiny::NS(id)
 
-  min <- -99999
-  max <- 99999
+  min <- -50000
+  max <- 50000
 
   shiny::div(
     id = id,

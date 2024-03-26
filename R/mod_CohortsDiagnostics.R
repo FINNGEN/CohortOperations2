@@ -66,6 +66,14 @@ mod_cohortDiagnostics_ui <- function(id) {
       inputId = ns("selectCovariates"),
       label = "Select covariates:",
       choices = list(
+        Demographic = list(
+          `Gender` = "useDemographicsGender",
+          `Age at cohort start` = "useDemographicsAge",
+          `Age decile at cohort start` = "useDemographicsAgeGroup",
+          `Year at cohort start` = "useDemographicsIndexYear",
+          `Days with observation before cohort start` = "useDemographicsPriorObservationTime",
+          `Days with observation after cohort start` = "useDemographicsPostObservationTime"
+        ),
         Conditions = list(
           `Conditions` = "useConditionOccurrence",
           `Conditions in Primary Inpatient` = "useConditionOccurrencePrimaryInpatient",
@@ -139,7 +147,8 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
     #
     # reactive variables
     #
-    r_ranges <- mod_temporalRanges_server("time_windows")
+    startRanges = list(c(-50000,50000), c(0,0), c(-50000,-1), c(1,50000))
+    r_ranges <- mod_temporalRanges_server("time_windows", startRanges = startRanges)
 
     r <- shiny::reactiveValues(
       analysisSettings = NULL
@@ -211,6 +220,12 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       # standard covariate settings
       if(length(input$selectCovariates) != 0){
         covariateSettings <- FeatureExtraction::createTemporalCovariateSettings(
+          useDemographicsGender = 'useDemographicsGender' %in% input$selectCovariates,
+          useDemographicsAge = 'useDemographicsAge' %in% input$selectCovariates,
+          useDemographicsAgeGroup = 'useDemographicsAgeGroup' %in% input$selectCovariates,
+          useDemographicsIndexYear = 'useDemographicsIndexYear' %in% input$selectCovariates,
+          useDemographicsPriorObservationTime = 'useDemographicsPriorObservationTime' %in% input$selectCovariates,
+          useDemographicsPostObservationTime = 'useDemographicsPostObservationTime' %in% input$selectCovariates,
           useConditionOccurrence = 'useConditionOccurrence' %in% input$selectCovariates,
           useConditionOccurrencePrimaryInpatient = 'useConditionOccurrencePrimaryInpatient' %in% input$selectCovariates,
           useConditionEraGroupOverlap = 'useConditionEraGroupOverlap' %in% input$selectCovariates,
