@@ -21,7 +21,7 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
 
 
   # set options
-  options(shiny.maxRequestSize = 314572800)
+  options(shiny.maxRequestSize = 1000000000)
 
   # deactivate https request
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
