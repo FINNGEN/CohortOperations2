@@ -76,6 +76,8 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
 
       databasesHandlers <- fct_databasesConfigToDatabasesHandlers(selecteddatabasesConfig, loadConnectionChecksLevel)
       r_connectionHandlers$databasesHandlers <- databasesHandlers
+      # TEMP, trigger garbage collector to delete the old handlers
+      gc()
 
       remove_sweetAlert_spinner()
 
