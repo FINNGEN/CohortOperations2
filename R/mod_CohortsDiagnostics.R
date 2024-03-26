@@ -92,7 +92,11 @@ mod_cohortDiagnostics_ui <- function(id) {
           `Observation` = "useObservation"
         )
       ),
-      selected = c("useConditionOccurrence", "useDrugExposure", "useProcedureOccurrence", "useDeviceExposure", "useMeasurement", "useObservation"),
+      selected = c(
+        "useDemographicsGender", "useDemographicsAge", "useDemographicsAgeGroup", "useDemographicsIndexYear",
+        "useDemographicsPriorObservationTime", "useDemographicsPostObservationTime",
+        "useConditionOccurrence", "useDrugExposure", "useProcedureOccurrence", "useDeviceExposure", "useMeasurement", "useObservation"
+        ),
       options = list(`actions-box` = TRUE),
       multiple = TRUE),
     #
@@ -188,6 +192,23 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
     shiny::observe({
       condition <- !is.null(input$selectCohort_pickerInput)
       shinyjs::toggleState("run_actionButton", condition = condition )
+      shinyjs::toggleState("minCellCount_numericInput", condition = condition )
+      shinyjs::toggleState("runInclusionStatistics_switch", condition = condition )
+      shinyjs::toggleState("runIncludedSourceConcepts_switch", condition = condition )
+      shinyjs::toggleState("runOrphanConcepts_switch", condition = condition )
+      shinyjs::toggleState("runVisitContext_switch", condition = condition )
+      shinyjs::toggleState("runIncidenceRate_switch", condition = condition )
+      #shinyjs::toggleState("runCohortRelationship_switch", condition = condition )
+      shinyjs::toggleState("runTemporalCohortCharacterization_switch", condition = condition )
+    })
+
+    #
+    # activate covariates if runTemporalCohortCharacterization
+    #
+    shiny::observe({
+      condition <- input$runTemporalCohortCharacterization_switch
+      shinyjs::toggleState("selectCovariates", condition = condition )
+      shinyjs::toggleState("selectSourceCovariates", condition = condition )
     })
 
     #
