@@ -291,7 +291,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
         runOrphanConcepts = input$runOrphanConcepts_switch,
         runVisitContext = input$runVisitContext_switch,
         runIncidenceRate = input$runIncidenceRate_switch,
-        #runCohortRelationship = input$runCohortRelationship_switch,
+        runCohortRelationship =  FALSE,
         runTemporalCohortCharacterization = input$runTemporalCohortCharacterization_switch,
         runBreakdownIndexEvents = FALSE, # always FALSE, at the moment
         runTimeSeries = FALSE, # always FALSE, at the moment
