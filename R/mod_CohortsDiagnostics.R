@@ -27,7 +27,7 @@ mod_cohortDiagnostics_ui <- function(id) {
     ),
     shiny::checkboxInput(
       inputId = ns("runInclusionStatistics_switch"),
-      label = "Run Inclusion Statistics",
+      label = "Run Inclusion Statistics (for Atlas cohorts, calculates attrition plot)",
       value = FALSE
     ),
     shiny::checkboxInput(
@@ -37,12 +37,12 @@ mod_cohortDiagnostics_ui <- function(id) {
     ),
     shiny::checkboxInput(
       inputId = ns("runOrphanConcepts_switch"),
-      label = "Run Orphan Concepts",
+      label = "Run Orphan Concepts (for Atlas cohorts, suggest concepts to add to cohort definition)",
       value = FALSE
     ),
     shiny::checkboxInput(
       inputId = ns("runVisitContext_switch"),
-      label = "Run Visit Context",
+      label = "Run Visit Context (Visit types around the cohort start)",
       value = FALSE
     ),
     shiny::checkboxInput(
@@ -50,14 +50,14 @@ mod_cohortDiagnostics_ui <- function(id) {
       label = "Run Incidence Rate",
       value = TRUE
     ),
-    shiny::checkboxInput(
-      inputId = ns("runCohortRelationship_switch"),
-      label = "Run Cohort Relationship",
-      value = FALSE
-    ),
+    # shiny::checkboxInput(
+    #   inputId = ns("runCohortRelationship_switch"),
+    #   label = "Run Cohort Relationship",
+    #   value = FALSE
+    # ),
     shiny::checkboxInput(
       inputId = ns("runTemporalCohortCharacterization_switch"),
-      label = "Run Temporal Cohort Characterization",
+      label = "Run Temporal Cohort Characterization (Find covarates in time windows)",
       value = FALSE
     ),
     htmltools::hr(),
@@ -202,7 +202,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       shiny::req(!is.null(input$runOrphanConcepts_switch))
       shiny::req(!is.null(input$runVisitContext_switch))
       shiny::req(!is.null(input$runIncidenceRate_switch))
-      shiny::req(!is.null(input$runCohortRelationship_switch))
+      #shiny::req(!is.null(input$runCohortRelationship_switch))
       shiny::req(!is.null(input$runTemporalCohortCharacterization_switch))
 
       # convert vector of strings databaseId-cohortId to tibble databaseId and cohortIds
@@ -270,7 +270,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
         runOrphanConcepts = input$runOrphanConcepts_switch,
         runVisitContext = input$runVisitContext_switch,
         runIncidenceRate = input$runIncidenceRate_switch,
-        runCohortRelationship = input$runCohortRelationship_switch,
+        #runCohortRelationship = input$runCohortRelationship_switch,
         runTemporalCohortCharacterization = input$runTemporalCohortCharacterization_switch,
         runBreakdownIndexEvents = FALSE, # always FALSE, at the moment
         runTimeSeries = FALSE, # always FALSE, at the moment
