@@ -125,7 +125,6 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       # TEMP::get first integer From operation string
       targetCohortIds <- as.integer(stringr::str_extract(rf_operationString(), "\\d+"))
 
-
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
         cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet |> dplyr::mutate(cohortId=as.double(cohortId)),# TEMP FIX
         cohortSubsetDefintion = subsetDef,
