@@ -56,6 +56,7 @@ mod_timeCodeWAS_ui <- function(id) {
       options = list(`actions-box` = TRUE),
       multiple = TRUE),
     htmltools::hr(),
+    shiny::tags$h4("Time windows"),
     mod_formTimeWindows_ui(ns("selectRanges")),
     shiny::tags$br(),
     #
@@ -232,10 +233,10 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     rf_results <- modalWithLog_server(
       id = "sss",
       .f = function(
-          cohortTableHandler,
-          analysisSettings,
-          sqlRenderTempEmulationSchema
-        ){
+    cohortTableHandler,
+    analysisSettings,
+    sqlRenderTempEmulationSchema
+      ){
         # needs to be set in the future
         options(sqlRenderTempEmulationSchema=sqlRenderTempEmulationSchema)
         #
@@ -247,8 +248,11 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         ParallelLogger::logInfo("Start timeCodeWasCounts")
         temporalCovariateSettings <- do.call(FeatureExtraction::createTemporalCovariateSettings, analysisSettings$temporalCovariateSettings)
         #browser()
+        tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
+        dir.create(tmpdirTimeAnalysisResultsCsv)
+
         HadesExtras::executeTimeCodeWAS(
-          exportFolder = tmpdirTime,
+          exportFolder = tmpdirTimeAnalysisResultsCsv,
           cohortTableHandler = cohortTableHandler,
           cohortIdCases = as.integer(analysisSettings$cohortIdCases),
           cohortIdControls = as.integer(analysisSettings$cohortIdControls),
@@ -256,19 +260,34 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           minCellCount = analysisSettings$minCellCount
         )
 
-        ParallelLogger::logInfo("Merging results")
-        yaml::write_yaml(analysisSettings, file.path(tmpdirTime, "analysisSettings.yaml"))
+        ParallelLogger::logInfo("Results to csv")
+        yaml::write_yaml(tmpdirTimeAnalysisResultsCsv, file.path(tmpdirTime, "analysisSettings.yaml"))
 
-        # zip all files
-        analysisResultsZipPath <- file.path(tmpdirTime, "analysisResults.zip")
-        zip::zipr(zipfile = analysisResultsZipPath, files = list.files(tmpdirTime, full.names = TRUE, recursive = TRUE))
+        analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResultsCsv.zip")
+        zip::zipr(zipfile = analysisResultsZipCsvPath, files = list.files(tmpdirTimeAnalysisResultsCsv, full.names = TRUE, recursive = TRUE))
+
+        ParallelLogger::logInfo("Results to sqlite")
+        tmpdirTimeAnalysisResultsSqlite <- file.path(tmpdirTime, "analysisResultsSqlite")
+        dir.create(tmpdirTimeAnalysisResultsSqlite)
+
+        HadesExtras::csvFilesToSqlite(
+          dataFolder = tmpdirTimeAnalysisResultsCsv,
+          sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
+          overwrite = TRUE
+        )
+
+        yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsSqlite, "analysisSettings.yaml"))
+
+        analysisResultsZipSqlitePath <- file.path(tmpdirTime, "analysisResultsSqlite.zip")
+        zip::zipr(zipfile = analysisResultsZipSqlitePath, files = list.files(tmpdirTimeAnalysisResultsSqlite, full.names = TRUE, recursive = TRUE))
+
 
         ParallelLogger::logInfo("End timeCodeWasCounts")
 
-        return(analysisResultsZipPath)
+        return(tmpdirTime)
       },
-      .r_l = .r_l,
-      logger = shiny::getShinyOption("logger"))
+    .r_l = .r_l,
+    logger = shiny::getShinyOption("logger"))
 
 
     #
@@ -278,11 +297,23 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       rf_results()$result
       shiny::req(rf_results)
 
+      resultMessage  <- NULL
       if(rf_results()$success){
+        #parse running muntes to a string with munutes and seconds
+        runningTimeMinsSecs <- paste0(
+          floor(rf_results()$runningTimeMins), " minutes and ",
+          round((rf_results()$runningTimeMins-floor(rf_results()$runningTimeMins))*60), " seconds"
+        )
+        resultMessage <- paste0("✅ Success\n",
+                                "🕒 Running time: ", runningTimeMinsSecs, "\n",
+                                "📂 Results in: ", rf_results()$result)
         shiny::removeModal()
+      }else{
+        resultMessage <- paste0("❌ Error\n",
+                                "📄 Message: ", rf_results()$result)
       }
 
-      rf_results()$result
+      resultMessage
     })
 
     #
@@ -304,9 +335,8 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     output$download_actionButton <- shiny::downloadHandler(
       filename = function(){"analysisName_timeCodeWAS.zip"},
       content = function(fname){
-
         if(rf_results()$success){
-          file.copy(rf_results()$result, fname)
+          file.copy(file.path(rf_results()$result, "analysisResultsCsv.zip"), fname)
         }
 
         return(fname)
@@ -318,9 +348,11 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url
-      url <- paste0(shiny::getShinyOption("cohortOperationsConfig")$urlCohortOperationsViewer, rf_results()$result)
-      browseURL(url)
+      url <- paste0(shiny::getShinyOption("cohortOperationsConfig")$urlCohortOperationsViewer,
+                    file.path(rf_results()$result, "analysisResultsSqlite.zip"))
 
+      # run js code in client
+      shinyjs::runjs(paste0("window.open('", url, "')"))
     })
 
 

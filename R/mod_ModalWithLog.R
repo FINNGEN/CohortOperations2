@@ -41,6 +41,7 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
     shiny::observeEvent(.r_l$.l,{
       .l = .r_l$.l
       ParallelLogger::logInfo("Launching future in modalWithLog_server id = ", id)
+      sweetAlert_spinner("Starting analysis")
       #browser()
       future::future({
         # run function
@@ -50,17 +51,23 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
           ParallelLogger::registerLogger(logger)
           ParallelLogger::logInfo("Launching ")
           #run
+          startTime <- Sys.time()
           result <- do.call(.f, .l)
+          endTime <- Sys.time()
+          runningTimeMins <- as.numeric(endTime - startTime, units = "mins")
+
           result <- list(
             success = TRUE,
-            result = result
+            result = result,
+            runningTimeMins = runningTimeMins
           )
-          #
+
         }, error = function(e){
           ParallelLogger::logError("Error in future in modalWithLog_server", e)
           result <<- list(
             success = FALSE,
-            result = e$message
+            result = e$message,
+            runningTimeMins = NULL
           )
         })
 
@@ -69,6 +76,8 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
         # set interrupter
         inter$execInterrupts()
       })
+
+      remove_sweetAlert_spinner()
 
       shiny::showModal(shiny::modalDialog(
         shiny::tagList(

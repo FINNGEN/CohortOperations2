@@ -21,7 +21,10 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
 
 
   # set options
-  options(shiny.maxRequestSize = 314572800)
+  options(shiny.maxRequestSize = 1000000000)
+
+  # deactivate https request
+  httr::set_config(httr::config(ssl_verifypeer = FALSE))
 
   # set up logger
   logger <- setup_ModalWithLog()
@@ -36,6 +39,9 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
     app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
     app$appOptions$databasesConfig  <- databasesConfig
     app$appOptions$logger  <- logger
+
+    app$appOptions$pathToNews  <- here::here("NEWS.md")
+    app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
 
     return(app)
 }

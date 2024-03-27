@@ -40,7 +40,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
       databasesConfigChecks <- fct_checkdatabasesConfig(databasesConfig)
 
       if (isFALSE(databasesConfigChecks)) {
-        shinyWidgets::sweetAlert(
+        shinyWidgets::sendSweetAlert(
           session = session,
           title = "Error reading the settings file.",
           text = databasesConfigChecks,
@@ -63,7 +63,9 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
 
 
     shiny::observeEvent(c(input$selectDatabases_pickerInput, input$allChecks_checkbox), {
+      shiny::req(input$selectDatabases_pickerInput)
 
+      remove_sweetAlert_spinner()
       sweetAlert_spinner("Connecting to databases")
 
       selecteddatabasesConfig <- databasesConfig[input$selectDatabases_pickerInput]
@@ -75,6 +77,8 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
 
       databasesHandlers <- fct_databasesConfigToDatabasesHandlers(selecteddatabasesConfig, loadConnectionChecksLevel)
       r_connectionHandlers$databasesHandlers <- databasesHandlers
+      # TEMP, trigger garbage collector to delete the old handlers
+      gc()
 
       remove_sweetAlert_spinner()
 

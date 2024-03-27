@@ -62,7 +62,7 @@
       "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRepo": "CohortDiagnostics",
       "RemoteRef": "fix-error-with-no-conceptset-cohorts",
-      "RemoteSha": "df2e73dc4310a7701d8b577f9c3d9b9762fefee1",
+      "RemoteSha": "46d72aaf678307b7d3200e19aea5aa193e730697",
       "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "Requirements": [
         "Andromeda",
@@ -85,7 +85,7 @@
         "stringr",
         "tidyr"
       ],
-      "Hash": "30b8869aea5b0e822240bed4f7ca481e"
+      "Hash": "18cc287e167ab11f8caa0f686e3d0f0c"
     },
     "CohortGenerator": {
       "Package": "CohortGenerator",
@@ -93,7 +93,7 @@
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "ohdsi",
+      "RemoteUsername": "OHDSI",
       "RemoteRepo": "CohortGenerator",
       "RemoteRef": "main",
       "RemoteSha": "78757f1b191a395cf9dcff0d5bbe2b9fa4aa163e",
@@ -115,7 +115,7 @@
         "rlang",
         "stringi"
       ],
-      "Hash": "12b26b68b771bbe771c627452aefe8b5"
+      "Hash": "1ba14745ec29dc17a7226cd079e93d8b"
     },
     "DBI": {
       "Package": "DBI",
@@ -148,8 +148,13 @@
     "DatabaseConnector": {
       "Package": "DatabaseConnector",
       "Version": "6.3.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "OHDSI",
+      "RemoteRepo": "DatabaseConnector",
+      "RemoteRef": "main",
+      "RemoteSha": "bee58a314996123b59e08bd489bf712e14391c4f",
       "Requirements": [
         "DBI",
         "R",
@@ -166,14 +171,14 @@
         "urltools",
         "utils"
       ],
-      "Hash": "1ef65614602c6534a6c666e872c3b647"
+      "Hash": "8d66bf120b0c2ffc0d8ed1809a37ea2d"
     },
     "Eunomia": {
       "Package": "Eunomia",
       "Version": "1.0.2",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteUsername": "ohdsi",
+      "RemoteUsername": "OHDSI",
       "RemoteRepo": "Eunomia",
       "RemoteRef": "main",
       "RemoteSha": "87f9d0f518e9e9b27c08c80916b8bd88be6fc45a",
@@ -184,18 +189,18 @@
         "SqlRender",
         "readr"
       ],
-      "Hash": "17f422f453b70180acc7efde08654795"
+      "Hash": "de9f725e7cc8372dee210fd77c75425b"
     },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
-      "Version": "3.3.2",
+      "Version": "3.4.0",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteUsername": "ohdsi",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "OHDSI",
       "RemoteRepo": "FeatureExtraction",
       "RemoteRef": "main",
-      "RemoteSha": "6a7e90a76d28e74ab50604a97a6066e38a594d74",
-      "RemoteHost": "api.github.com",
+      "RemoteSha": "bb0213e64198b98e8fe80c3e964d308952779515",
       "Remotes": "ohdsi/Eunomia",
       "Requirements": [
         "Andromeda",
@@ -215,19 +220,21 @@
         "readr",
         "rlang"
       ],
-      "Hash": "73a717cbc778735805b3b620550b6b72"
+      "Hash": "78cb529bf6c38f1c74192ebc515b4ba0"
     },
     "HadesExtras": {
       "Package": "HadesExtras",
       "Version": "0.0.0.9002",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "master",
-      "RemoteSha": "c93fc5283bd1025f8e768e9f5c486f73d4981300",
-      "RemoteHost": "api.github.com",
+      "RemoteSha": "4b7fe17df2b022be553618ef9c510baff569d1f9",
+      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
+        "CohortDiagnostics",
         "CohortGenerator",
         "DBI",
         "DatabaseConnector",
@@ -236,7 +243,6 @@
         "ParallelLogger",
         "R6",
         "RJSONIO",
-        "ROhdsiWebApi",
         "ResultModelManager",
         "SqlRender",
         "apexcharter",
@@ -245,7 +251,6 @@
         "dbplyr",
         "digest",
         "dplyr",
-        "here",
         "htmltools",
         "lubridate",
         "purrr",
@@ -257,10 +262,9 @@
         "tibble",
         "tidyr",
         "tippy",
-        "validate",
-        "yaml"
+        "validate"
       ],
-      "Hash": "42d580b1182599a74c8638f7300e90dd"
+      "Hash": "7f3a4a37598448570766885b15cd3a50"
     },
     "MASS": {
       "Package": "MASS",
@@ -345,14 +349,9 @@
     },
     "ParallelLogger": {
       "Package": "ParallelLogger",
-      "Version": "3.3.1",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "ParallelLogger",
-      "RemoteUsername": "ohdsi",
-      "RemoteRef": "develop",
-      "RemoteSha": "8325c94ad77649a3de373aaa6f53eb31d0ba1f3e",
+      "Version": "3.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "jsonlite",
@@ -361,7 +360,7 @@
         "utils",
         "xml2"
       ],
-      "Hash": "e6424e5addb16dc9d68bc3b98b9cc767"
+      "Hash": "fd636fc067099b75b8ad17e9104b10f3"
     },
     "R6": {
       "Package": "R6",
@@ -457,11 +456,11 @@
       "Version": "0.5.6",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "ohdsi",
+      "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
       "RemoteSha": "58100690f36000bfa7f8058bc6584780b11311d5",
+      "RemoteHost": "api.github.com",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -479,7 +478,7 @@
         "rlang",
         "zip"
       ],
-      "Hash": "0241ba6042820206fa03c94060861700"
+      "Hash": "04dd85f6ac8234623c66b6a64db389d6"
     },
     "SqlRender": {
       "Package": "SqlRender",
@@ -761,10 +760,10 @@
     },
     "commonmark": {
       "Package": "commonmark",
-      "Version": "1.9.0",
+      "Version": "1.9.1",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "d691c61bff84bd63c383874d2d0c3307"
+      "Hash": "5d8225445acb167abf7797de48b2ee3c"
     },
     "cowplot": {
       "Package": "cowplot",
@@ -2051,7 +2050,7 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.25",
+      "Version": "2.26",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2064,14 +2063,13 @@
         "jsonlite",
         "knitr",
         "methods",
-        "stringr",
         "tinytex",
         "tools",
         "utils",
         "xfun",
         "yaml"
       ],
-      "Hash": "d65e35823c817f09f4de424fcdfa812a"
+      "Hash": "9b148e7f95d33aac01f31282d49e4f44"
     },
     "roxygen2": {
       "Package": "roxygen2",
@@ -2111,10 +2109,10 @@
     },
     "rstudioapi": {
       "Package": "rstudioapi",
-      "Version": "0.14",
+      "Version": "0.15.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "690bd2acc42a9166ce34845884459320"
+      "Hash": "5564500e25cffad9e22244ced1379887"
     },
     "rversions": {
       "Package": "rversions",
@@ -2276,6 +2274,21 @@
         "utils"
       ],
       "Hash": "e418b532e9bb4eb22a714b9a9f1acee7"
+    },
+    "shinyjqui": {
+      "Package": "shinyjqui",
+      "Version": "0.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "htmltools",
+        "htmlwidgets",
+        "jsonlite",
+        "rlang",
+        "shiny"
+      ],
+      "Hash": "66d511cebf8d16c7f421bb60d618bbde"
     },
     "shinyjs": {
       "Package": "shinyjs",

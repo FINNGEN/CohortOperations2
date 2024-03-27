@@ -9,15 +9,11 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Language: en
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Imports: 
     checkmate,
-    CohortDiagnostics,
-    CohortGenerator,
-    dplyr,
-    FeatureExtraction,
+    dplyr, 
     future,
-    HadesExtras,
     htmltools,
     ipc,
     lubridate,
@@ -32,11 +28,30 @@ Imports:
     shinyWidgets,
     tibble,
     yaml,
-    zip
+    here,
+    stringr,
+    zip, 
+    HadesExtras,
+    CohortGenerator,
+    FeatureExtraction,
+    CohortDiagnostics, 
+    shinyjqui
+Remotes: 
+    OHDSI/DatabaseConnector,
+    OHDSI/FeatureExtraction,
+    OHDSI/CohortGenerator,
+    OHDSI/ResultModelManager,
+    OHDSI/Eunomia,
+    javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts,
+    FINNGEN/HadesExtras
 Suggests: 
+    gert,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    DatabaseConnector,
+    Eunomia,
+    ResultModelManager
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 

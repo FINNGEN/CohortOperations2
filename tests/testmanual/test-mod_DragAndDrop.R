@@ -1,11 +1,8 @@
-
-
 # build parameters --------------------------------------------------------------
 devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-logger <- setup_ModalWithLog()
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 
@@ -22,20 +19,18 @@ r_workbench <- shiny::reactiveValues(
 # run module --------------------------------------------------------------
 devtools::load_all(".")
 
-app <- shiny::shinyApp(
+shiny::shinyApp(
   shiny::fluidPage(
     mod_cohortWorkbench_ui("test"),
-    mod_timeCodeWAS_ui("test")
+    mod_dragAndDrop_ui("test", testing = TRUE)
   ),
   function(input,output,session){
     mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
-    mod_timeCodeWAS_server("test", r_connectionHandlers, r_workbench)
+   mod_dragAndDrop_server("test", r_workbench)
   },
   options = list(launch.browser=TRUE)
 )
 
-app$appOptions$logger  <- logger
-app
 
 
 # connectionStatus_reactable ----------------------------------------------
