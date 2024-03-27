@@ -75,7 +75,7 @@ mod_dragAndDrop_server <- function(id, r_workbench) {
 
       operation_expression <- input$dest_boxes
       for(i in 1:nrow(cohortData)) {
-        operation_expression[which(operation_expression == cohortData$shortName[i])] <- i
+        operation_expression[which(operation_expression == cohortData$shortName[i])] <- cohortData$cohortId[i]
       }
 
       paste(operation_expression, collapse = "")
