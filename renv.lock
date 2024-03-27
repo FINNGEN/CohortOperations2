@@ -58,11 +58,11 @@
       "Version": "3.2.5",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteUsername": "OHDSI",
-      "RemoteRepo": "CohortDiagnostics",
-      "RemoteRef": "main",
-      "RemoteSha": "03c40ab06832a329f2c904fbd686a0596ea9af6f",
       "RemoteHost": "api.github.com",
+      "RemoteUsername": "javier-gracia-tabuenca-tuni",
+      "RemoteRepo": "CohortDiagnostics",
+      "RemoteRef": "fix-error-with-no-conceptset-cohorts",
+      "RemoteSha": "46d72aaf678307b7d3200e19aea5aa193e730697",
       "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "Requirements": [
         "Andromeda",
@@ -85,7 +85,7 @@
         "stringr",
         "tidyr"
       ],
-      "Hash": "027b5f8c9e35940bdd582ab9f80ba14e"
+      "Hash": "18cc287e167ab11f8caa0f686e3d0f0c"
     },
     "CohortGenerator": {
       "Package": "CohortGenerator",
@@ -231,7 +231,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "master",
-      "RemoteSha": "3b432710f5ce3e53f23aaa561985325c6092657f",
+      "RemoteSha": "4b7fe17df2b022be553618ef9c510baff569d1f9",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -264,7 +264,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "33bb802739ebb3284422482bdad9ea75"
+      "Hash": "7f3a4a37598448570766885b15cd3a50"
     },
     "MASS": {
       "Package": "MASS",
@@ -2274,6 +2274,21 @@
         "utils"
       ],
       "Hash": "e418b532e9bb4eb22a714b9a9f1acee7"
+    },
+    "shinyjqui": {
+      "Package": "shinyjqui",
+      "Version": "0.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "htmltools",
+        "htmlwidgets",
+        "jsonlite",
+        "rlang",
+        "shiny"
+      ],
+      "Hash": "66d511cebf8d16c7f421bb60d618bbde"
     },
     "shinyjs": {
       "Package": "shinyjs",

@@ -23,6 +23,9 @@ app_server <- function(input, output, session) {
     cohortsSummaryDatabases = HadesExtras::createEmptyCohortsSummary()
   )
 
+  shiny::observe({
+    sweetAlert_spinner("Starting application")
+  })
 
   mod_selectDatabases_server("selectDatabases", databasesConfig, r_connectionHandlers)
 
