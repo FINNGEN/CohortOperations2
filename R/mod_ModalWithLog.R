@@ -30,7 +30,6 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
     queue <- ipc::shinyQueue()
     queue$consumer$start(100) # Execute signals every 100 milliseconds
     inter <- ipc::AsyncInterruptor$new()
-
     # set up modal
     autoUpdate <- shiny::reactiveTimer(logUpdateSeconds*1000)
 
@@ -42,7 +41,7 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
       .l = .r_l$.l
       ParallelLogger::logInfo("Launching future in modalWithLog_server id = ", id)
       sweetAlert_spinner("Starting analysis")
-      #browser()
+
       future::future({
         # run function
         result <- NULL

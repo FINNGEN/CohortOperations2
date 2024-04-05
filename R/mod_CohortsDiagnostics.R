@@ -471,7 +471,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       content = function(fname){
 
         if(rf_results()$success){
-          file.copy(file.path(rf_results()$result, "analysisResultsCsv.zip"), fname)
+          file.copy(file.path(rf_results()$result, "analysisResultsSqlite.zip"), fname)
         }
 
         return(fname)

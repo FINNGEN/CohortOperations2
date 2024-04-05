@@ -336,7 +336,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       filename = function(){"analysisName_timeCodeWAS.zip"},
       content = function(fname){
         if(rf_results()$success){
-          file.copy(file.path(rf_results()$result, "analysisResultsCsv.zip"), fname)
+          file.copy(file.path(rf_results()$result, "analysisResultsSqlite.zip"), fname)
         }
 
         return(fname)
