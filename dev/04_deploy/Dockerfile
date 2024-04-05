@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=linux/amd64 rocker/rstudio:4.3.0
+FROM --platform=linux/amd64 rocker/rstudio:4.2.3
 
 # install OS dependencies including java and python 3
 RUN apt-get update && apt-get install -y openjdk-8-jdk liblzma-dev libbz2-dev libncurses5-dev curl python3-dev python3.venv git \

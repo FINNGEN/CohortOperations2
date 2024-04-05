@@ -49,7 +49,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    DatabaseConnector,
+    OhdsiShinyModules,
     Eunomia,
     ResultModelManager
 VignetteBuilder: knitr
