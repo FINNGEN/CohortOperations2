@@ -31,6 +31,10 @@ mod_operateCohorts_ui <- function(id) {
     mod_dragAndDrop_ui(ns("dragAndDrop")),
     #
     htmltools::hr(),
+    htmltools::div(style = "width: 100%; height: 300px; overflow: auto; margin: 20px; padding: 0px;",
+      upsetjs::upsetjsOutput(ns("upsetjs1"), width = "90%", height = "300px"),
+    ),
+    htmltools::hr(),
     shiny::tags$h4("New cohort name"),
     shiny::textOutput(ns("newCohortName_text")),
     shiny::tags$br(),
@@ -152,6 +156,43 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
           paste("✅", r$cohortDefinitionSet$cohortName)
         }
       }
+    })
+
+    #
+    # create upset plot
+    #
+    # upset plot ####
+
+    output$upsetjs1 <- upsetjs::renderUpsetjs({
+
+      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
+
+      browser()
+
+      cohortOverlap <- cohortTableHandler$getCohortsOverlap()
+
+
+      dfInput <- tibble::tribble(
+        ~one, ~two, ~three,
+        1, 1, 1,
+        1, 1, 0,
+        1, 0, 0,
+        0, 1, 0,
+        1, 1, 1,
+        0, 0, 1,
+        1, 0, 1,
+        1, 0, 1,
+        0, 0, 1,
+        0, 1, 1,
+        1, 0, 0,
+        1, 0, 1,
+        1, 0, 1
+      )
+
+      upsetjs::upsetjs() |>
+        upsetjs::fromDataFrame(dfInput) |>
+        upsetjs::chartLayout(width.ratios = c(0.3, 0.1, 0.6)) |> # column proportions:  size, names, intersections (sum = 1.0)
+        upsetjs::interactiveChart()
     })
 
     #
