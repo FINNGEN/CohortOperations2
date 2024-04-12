@@ -1,3 +1,3 @@
-# CohortOperations2 0.0.0.9000
+# CohortOperations2 0.2.1
 
-* Added a `NEWS.md` file to track changes to the package.
+- Fixed operations with Atlas cohorts
