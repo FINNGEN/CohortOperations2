@@ -26,13 +26,16 @@ mod_operateCohorts_ui <- function(id) {
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
-    shiny::tags$h4("Operation"),
+    shiny::tags$h4("Operation - expression defining the cohort"),
     #shiny::textInput(inputId = ns("operationString_textInput"), label = "Operation String"),
-    mod_dragAndDrop_ui(ns("dragAndDrop")),
+    htmltools::div(style = "width: 90%; height: 260; overflow: auto; margin-left: 30px; padding: 10px;",
+      mod_dragAndDrop_ui(ns("dragAndDrop"))
+    ),
     #
     htmltools::hr(),
-    htmltools::div(style = "width: 100%; height: 300px; overflow: auto; margin: 20px; padding: 0px;",
-      upsetjs::upsetjsOutput(ns("upsetjs1"), width = "90%", height = "300px"),
+    shiny::tags$h4("Cohort intersections - UpSet plot"),
+    htmltools::div(style = "width: 90%; height: 300; overflow: auto; margin-left: 30px; padding: 10px;",
+      upsetjs::upsetjsOutput(ns("upsetjs1"), width = "80%", height = "250px"),
     ),
     htmltools::hr(),
     shiny::tags$h4("New cohort name"),
@@ -161,38 +164,77 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # create upset plot
     #
-    # upset plot ####
 
-    output$upsetjs1 <- upsetjs::renderUpsetjs({
+    # helper function to convert cohortOverlap to upsetjs expression
 
-      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
+    .cohortOverlap_to_upset_input <- function(cohortOverlap) {
 
-      browser()
+      # cardinalities
+      cohort_cardinalities <- cohortOverlap |>
+        dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, numberOfSubjects, 0)))  |>
+        dplyr::summarise(across(everything(), sum)) |>
+        dplyr::select(-numberOfSubjects) |>
+        as.list()
 
-      cohortOverlap <- cohortTableHandler$getCohortsOverlap()
+      # intersections (does not work as intended)
+      cohort_intersections <- cohortOverlap |>
+        dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, as.character(dplyr::cur_column()), "")))  |>
+        tidyr::unite("names", -numberOfSubjects, sep = "&") |>
+        dplyr::mutate(names = stringr::str_replace(names, "&&&", "&")) |>
+        dplyr::mutate(names = stringr::str_replace(names, "&&", "&")) |>
+        dplyr::mutate(names = stringr::str_replace(names, "^&", "")) |>
+        dplyr::mutate(names = stringr::str_replace(names, "&$", "")) |>
+        dplyr::filter(stringr::str_detect(names, "&")) |>
+        dplyr::group_by(names) |>
+        dplyr::summarise(numberOfSubjects = sum(numberOfSubjects))
 
-
-      dfInput <- tibble::tribble(
-        ~one, ~two, ~three,
-        1, 1, 1,
-        1, 1, 0,
-        1, 0, 0,
-        0, 1, 0,
-        1, 1, 1,
-        0, 0, 1,
-        1, 0, 1,
-        1, 0, 1,
-        0, 0, 1,
-        0, 1, 1,
-        1, 0, 0,
-        1, 0, 1,
-        1, 0, 1
+      cohort_intersections <- setNames(
+        as.list(cohort_intersections$numberOfSubjects),
+        as.list(cohort_intersections$names)
       )
 
-      upsetjs::upsetjs() |>
-        upsetjs::fromDataFrame(dfInput) |>
-        upsetjs::chartLayout(width.ratios = c(0.3, 0.1, 0.6)) |> # column proportions:  size, names, intersections (sum = 1.0)
-        upsetjs::interactiveChart()
+      result <- c(cohort_cardinalities, cohort_intersections)
+
+      return(result)
+    }
+
+    # render upset plot
+    output$upsetjs1 <- upsetjs::renderUpsetjs({
+
+      if(!is.null(r$operationStringError)){
+        return(NULL)
+      } else {
+        if(shiny::isTruthy(r$cohortDefinitionSet)){
+
+          s <- rf_operationString()
+          cohortsInOperation <- as.character(stringr::str_extract_all(s, "\\d+")[[1]])
+          cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
+          cohortOverlap <- cohortTableHandler$getCohortsOverlap()
+
+          expression <- s |>
+            stringr::str_replace_all("\\d+", "`\\0`") |>
+            stringr::str_replace_all("Upd", "|") |>
+            stringr::str_replace_all("Mp", "&!") |>
+            stringr::str_replace_all("Ip", "&")
+
+          cohortOverlap <- cohortOverlap |>
+            dplyr::select(-dplyr::any_of('newset')) |>
+            dplyr::mutate(newset = eval(parse(text = expression)))
+
+          cohortOverlap <- cohortOverlap |>
+            dplyr::select(numberOfSubjects, one_of(cohortsInOperation), newset)
+
+          upsetjs::upsetjs() |> upsetjs::fromExpression(.cohortOverlap_to_upset_input(cohortOverlap)) |>
+            upsetjs::chartLabels(
+              title = "",
+              description = "Cardinalities",
+              combination.name = "Intersection",
+              set.name = "Size"
+            ) |>
+            upsetjs::setSelection("newset") |>
+            upsetjs::interactiveChart()
+        }
+      }
     })
 
     #

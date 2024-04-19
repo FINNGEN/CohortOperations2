@@ -27,7 +27,7 @@ mod_dragAndDrop_server <- function(id, r_workbench) {
 
       htmltools::tagList(
         shinydashboard::box(
-          title = "Expression defining the cohort",
+          title = "",
           width = 12,
           background = "light-blue",
           shinyjqui::orderInput(

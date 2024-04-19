@@ -226,13 +226,13 @@
       "Package": "HadesExtras",
       "Version": "0.0.0.9002",
       "Source": "GitHub",
+      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
-      "RemoteRef": "master",
-      "RemoteSha": "bc5b401a3e980146b515bf0fd2f4585576c9b425",
-      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
+      "RemoteUsername": "FINNGEN",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "9127fa7a7fb57a782d764a0da9805d66b39b00ff",
       "Requirements": [
         "CohortDiagnostics",
         "CohortGenerator",
@@ -264,7 +264,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "3e5244f10d6504c6e8e524f998bf7fe1"
+      "Hash": "31de3b2bb8b0e0c1323861c339703072"
     },
     "MASS": {
       "Package": "MASS",
