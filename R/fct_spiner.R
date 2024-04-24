@@ -36,7 +36,27 @@ sweetAlert_spinner <- function(message, wait_time_sec = NULL, ...) {
     title = NULL,
     text = shiny::tags$div(
       message,
-      ui_load_spinner(shiny::plotOutput(outputId = "plot", width = "100px", height = "100px"), proxy.height = "90px")
+      ui_load_spinner(shiny::plotOutput(outputId = "plot", width = "100px", height = "100px"), proxy.height = "90px"),
+      shiny::HTML(
+        "<div id='updatedText'>
+            <script>
+                function updateText() {
+                    fetch('http://127.0.0.1:9999/log/log.txt')
+                    .then(response => response.text())
+                    .then(data => {
+                        // Update the text in the HTML element
+                        document.getElementById('updatedText').textContent = data.split('\n').slice(-10).join('<br>');
+                    });
+                }
+
+                // Update text every 5 seconds
+                setInterval(updateText, 5000);
+
+                // Call updateText initially to update the text when the page loads
+                updateText();
+            </script>
+        </div>"
+      )
       # attendantBar("progress-bar", hidden = TRUE, max=1000)
     ),
     html = TRUE,
@@ -44,7 +64,7 @@ sweetAlert_spinner <- function(message, wait_time_sec = NULL, ...) {
     btn_labels = NA,
     closeOnClickOutside = FALSE,
     showCloseButton = FALSE,
-    width = "250px",
+    width = "550px",
     ...
   )
 
