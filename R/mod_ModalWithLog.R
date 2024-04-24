@@ -1,24 +1,4 @@
 
-setup_ModalWithLog <- function(
-    logFileName = tempfile(fileext = ".co2log.txt")
-) {
-  # setup  ------------------------------------------------------------------
-  # init future
-  future::plan(future::multisession, workers = 2)
-
-  # init loger
-  logger <- ParallelLogger::createLogger(
-    appenders = list(ParallelLogger::createFileAppender(
-      fileName = logFileName,
-      layout = ParallelLogger::layoutSimple))
-  )
-  ParallelLogger::clearLoggers()
-  ParallelLogger::registerLogger(logger)
-  ParallelLogger::logTrace("Start logging")
-
-  return(logger)
-}
-
 
 
 

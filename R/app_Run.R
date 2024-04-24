@@ -19,15 +19,34 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   checkmate::assertList(databasesConfig, names = "named")
 
 
-
-  # set options
+  # set shiny to accept large uploads
   options(shiny.maxRequestSize = 1000000000)
 
   # deactivate https request
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
 
+  # set up futures
+  future::plan(future::multisession, workers = 2)
+
   # set up logger
-  logger <- setup_ModalWithLog()
+  logger <- ParallelLogger::createLogger(
+    appenders = list(
+      # console for collecting logs
+      ParallelLogger::createConsoleAppe3nder(
+        layout = .layoutParallelWithName
+      ),
+      # file for showing on app
+      ParallelLogger::createFileAppender(
+      fileName = logFileName,
+      layout = ParallelLogger::layoutSimple
+      )
+    )
+  )
+  ParallelLogger::clearLoggers()
+  ParallelLogger::registerLogger(logger)
+  ParallelLogger::logTrace("Start logging")
+
+
 
     app  <- shiny::shinyApp(
         ui = app_ui,
@@ -45,3 +64,12 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
 
     return(app)
 }
+
+
+
+
+.layoutParallelWithName <- function(level, message) {
+  message <- paste0("[CO2] ", message)
+  ParallelLogger::layoutParallel(level, message)
+}
+
