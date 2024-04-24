@@ -35,7 +35,7 @@ mod_operateCohorts_ui <- function(id) {
     htmltools::hr(),
     shiny::tags$h4("Cohort intersections - UpSet plot"),
     htmltools::div(style = "width: 90%; height: 300; overflow: auto; margin-left: 30px; padding: 10px;",
-      upsetjs::upsetjsOutput(ns("upsetjs1"), width = "80%", height = "250px"),
+      shiny::plotOutput(ns("upsetjs1"), width = "80%", height = "250px"),
     ),
     htmltools::hr(),
     shiny::tags$h4("New cohort name"),
@@ -165,41 +165,8 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # create upset plot
     #
 
-    # helper function to convert cohortOverlap to upsetjs expression
-
-    .cohortOverlap_to_upset_input <- function(cohortOverlap) {
-
-      # cardinalities
-      cohort_cardinalities <- cohortOverlap |>
-        dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, numberOfSubjects, 0)))  |>
-        dplyr::summarise(across(everything(), sum)) |>
-        dplyr::select(-numberOfSubjects) |>
-        as.list()
-
-      # intersections (does not work as intended)
-      cohort_intersections <- cohortOverlap |>
-        dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, as.character(dplyr::cur_column()), "")))  |>
-        tidyr::unite("names", -numberOfSubjects, sep = "&") |>
-        dplyr::mutate(names = stringr::str_replace(names, "&&&", "&")) |>
-        dplyr::mutate(names = stringr::str_replace(names, "&&", "&")) |>
-        dplyr::mutate(names = stringr::str_replace(names, "^&", "")) |>
-        dplyr::mutate(names = stringr::str_replace(names, "&$", "")) |>
-        dplyr::filter(stringr::str_detect(names, "&")) |>
-        dplyr::group_by(names) |>
-        dplyr::summarise(numberOfSubjects = sum(numberOfSubjects))
-
-      cohort_intersections <- setNames(
-        as.list(cohort_intersections$numberOfSubjects),
-        as.list(cohort_intersections$names)
-      )
-
-      result <- c(cohort_cardinalities, cohort_intersections)
-
-      return(result)
-    }
-
     # render upset plot
-    output$upsetjs1 <- upsetjs::renderUpsetjs({
+    output$upsetjs1 <- shiny::renderPlot({
 
       if(!is.null(r$operationStringError)){
         return(NULL)
@@ -224,15 +191,13 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortOverlap <- cohortOverlap |>
             dplyr::select(numberOfSubjects, one_of(cohortsInOperation), newset)
 
-          upsetjs::upsetjs() |> upsetjs::fromExpression(.cohortOverlap_to_upset_input(cohortOverlap)) |>
-            upsetjs::chartLabels(
-              title = "",
-              description = "Cardinalities",
-              combination.name = "Intersection",
-              set.name = "Size"
-            ) |>
-            upsetjs::setSelection("newset") |>
-            upsetjs::interactiveChart()
+
+          # make the rows distinct keeping the total number of subjects
+          cohortOverlap <- cohortOverlap |>
+            dplyr::group_by_if(is.logical) |>
+            dplyr::summarise(numberOfSubjects = sum(numberOfSubjects), .groups = "drop")
+
+          .plot_upset_cohortsOverlap(cohortOverlap)
         }
       }
     })
@@ -276,16 +241,76 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 }
 
 
+# helper function to convert cohortOverlap to upsetjs expression
+
+.cohortOverlap_to_upset_input <- function(cohortOverlap) {
+
+  # cardinalities
+  cohort_cardinalities <- cohortOverlap |>
+    dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, numberOfSubjects, 0)))  |>
+    dplyr::summarise(across(everything(), sum)) |>
+    dplyr::select(-numberOfSubjects) |>
+    as.list()
+
+  # intersections (does not work as intended)
+  cohort_intersections <- cohortOverlap |>
+    dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, as.character(dplyr::cur_column()), "")))  |>
+    tidyr::unite("names", -numberOfSubjects, sep = "&") |>
+    dplyr::mutate(names = stringr::str_replace(names, "&&&", "&")) |>
+    dplyr::mutate(names = stringr::str_replace(names, "&&", "&")) |>
+    dplyr::mutate(names = stringr::str_replace(names, "^&", "")) |>
+    dplyr::mutate(names = stringr::str_replace(names, "&$", "")) |>
+    dplyr::filter(stringr::str_detect(names, "&")) |>
+    dplyr::group_by(names) |>
+    dplyr::summarise(numberOfSubjects = sum(numberOfSubjects))
+
+  cohort_intersections <- setNames(
+    as.list(cohort_intersections$numberOfSubjects),
+    as.list(cohort_intersections$names)
+  )
+
+  result <- c(cohort_cardinalities, cohort_intersections)
+
+  return(result)
+}
 
 
 
 
 
+.plot_upset_cohortsOverlap <- function(cohortOverlap) {
+
+  cohortNames <- cohortOverlap |> dplyr::select(-numberOfSubjects) |> colnames()  |> setdiff("newset")
+
+  cohortOverlapPlot  <- cohortOverlap |>
+     # convert true false to cohort names
+    dplyr::mutate(dplyr::across(dplyr::all_of(cohortNames), ~ifelse(., as.character(dplyr::cur_column()), '')))  |>
+    # join cohort names
+    dplyr::mutate(cohort_vector = stringr::str_c( !!!rlang::syms(cohortNames), sep = " ")) |>
+    # string to vector
+    dplyr::mutate(cohort_vector = stringr::str_split(cohort_vector, " "))
 
 
 
+  ###
+  ## function
+  ###
+  g <- cohortOverlapPlot %>%
+    dplyr::mutate(newset = forcats::as_factor(!newset)) %>%
+    #
+    ggplot2::ggplot(ggplot2::aes(x=cohort_vector, y=numberOfSubjects, fill=newset, label = numberOfSubjects)) +
+    ggplot2::geom_bar(stat = "identity") +
+    # upset x
+    ggupset::scale_x_upset() +
+    # style
+    ggplot2::guides(fill = "none") +
+    ggplot2::geom_text( nudge_y = 10) +
+    ggplot2::scale_fill_grey(drop = FALSE) +
+    ggplot2::labs(x = "Cohort Sets", y = "N patients")+
+    ggplot2::theme_light()
 
-
+  return(g)
+}
 
 
 
