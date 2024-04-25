@@ -103,6 +103,10 @@ docker pull eu.gcr.io/finngen-sandbox-v3-containers/cow:$docker_image_tag
 
 # create config files
 echo "
+atlasUrl: https://atlas.app.finngen.fi/
+" > /tmp/cow_config.yml
+
+echo "
 urlCohortOperationsViewer: http://127.0.0.1:9998/?pathToResultsZip=
 webApiUrl: https://ohdsi-webapi.app.finngen.fi/WebAPI
 " > /tmp/co2_config.yml
@@ -168,6 +172,7 @@ docker run -d -p $co2_port:8888 -v /tmp:/tmp  \
     eu.gcr.io/finngen-sandbox-v3-containers/co2:$co2_docker_image_tag
 
 docker run -d -p $cow_port:8888 -v /tmp:/tmp  \
+    -e COW_CONFIG_FILE="/tmp/cow_config.yml" \
     --name cow  \
     eu.gcr.io/finngen-sandbox-v3-containers/cow:$cow_docker_image_tag
 

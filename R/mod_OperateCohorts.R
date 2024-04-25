@@ -151,15 +151,18 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # Render temporal name
     #
     output$newCohortName_text <- shiny::renderText({
+      stringToShow <- "----"
       if(!is.null(r$operationStringError)){
-        paste("❌", r$operationStringError)
+        stringToShow <- paste("❌", r$operationStringError)
       }else{
-        if(!shiny::isTruthy(r$cohortDefinitionSet)){
-          "----"
-        }else{
-          paste("✅", r$cohortDefinitionSet$cohortName)
+        if(shiny::isTruthy(r$cohortDefinitionSet)){
+          stringToShow <- paste("✅", r$cohortDefinitionSet$cohortName)
         }
       }
+
+      ParallelLogger::logInfo("[Operate cohorts] Operation: ", stringToShow)
+
+      stringToShow
     })
 
     #
@@ -219,6 +222,10 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       ## copy selected to
       r_toAdd$databaseName <- input$selectDatabases_pickerInput
       r_toAdd$cohortDefinitionSet <-  r$cohortDefinitionSet
+
+      ParallelLogger::logInfo("[Operate cohorts] Creating cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+                              " to database", input$selectDatabases_pickerInput)
 
     })
 

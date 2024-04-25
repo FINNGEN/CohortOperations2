@@ -24,6 +24,10 @@ fi
 
 # create config files
 echo "
+atlasUrl: https://atlas.app.finngen.fi/
+" > /tmp/cow_config.yml
+
+echo "
 urlCohortOperationsViewer: http://127.0.0.1:8560/?pathToResultsZip=
 " > /tmp/co2_config.yml
 
@@ -80,6 +84,7 @@ docker run --log-driver syslog -d -p 8559:8888 -v /tmp:/tmp  \
     eu.gcr.io/finngen-sandbox-v3-containers/co2:latest
 
 docker run --log-driver syslog -d -p 8560:8888 -v /tmp:/tmp  \
+    -e COW_CONFIG_FILE="/tmp/cow_config.yml" \
     eu.gcr.io/finngen-sandbox-v3-containers/cow:latest
 
 echo "if the cohort operations does not launch automatically, visit: http://localhost:8556"

@@ -31,12 +31,44 @@ ui_load_spinner <- function(ui_element, ...) {
 #'
 #'
 #' @importFrom shinyWidgets show_alert
-sweetAlert_spinner <- function(message, wait_time_sec = NULL, ...) {
+sweetAlert_spinner <- function(message, logUrl = "/logs/log.txt", updateMiliseconds = 500, ...) {
+
   shinyWidgets::show_alert(
     title = NULL,
     text = shiny::tags$div(
       message,
-      ui_load_spinner(shiny::plotOutput(outputId = "plot", width = "100px", height = "100px"), proxy.height = "90px")
+      ui_load_spinner(shiny::plotOutput(outputId = "plot", width = "100px", height = "100px"), proxy.height = "90px"),
+      shiny::HTML(paste0(
+        "<script>
+          function updateText() {
+              fetch('", logUrl, "')
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error('Network response was not OK', response);
+                  }
+                  return response.text();
+                })
+                .then(text => {
+                  // console.log('Text from URL:', text);
+                  // Do something with the text here
+                  text = String(text);
+                  const lastlines = text.split('\\n').slice(-10).join('<br>');
+
+                  document.getElementById('updatedText').innerHTML = lastlines;
+                })
+                .catch(error => {
+                  console.error('There was a problem fetching the text:', error);
+                });
+          }
+
+          // Update text every 5 seconds
+          setInterval(updateText, ", as.integer(updateMiliseconds),");
+
+          // Call updateText initially to update the text when the page loads
+          updateText();
+        </script>
+        <div id='updatedText' style='border: 1px solid #ccc; padding: 10px; font-family: Arial, sans-serif; text-align: left;'></div>"
+      ))
       # attendantBar("progress-bar", hidden = TRUE, max=1000)
     ),
     html = TRUE,
@@ -44,7 +76,7 @@ sweetAlert_spinner <- function(message, wait_time_sec = NULL, ...) {
     btn_labels = NA,
     closeOnClickOutside = FALSE,
     showCloseButton = FALSE,
-    width = "250px",
+    width = "550px",
     ...
   )
 

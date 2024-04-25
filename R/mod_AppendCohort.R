@@ -62,6 +62,7 @@ mod_appendCohort_server <- function(id, r_connectionHandlers, r_workbench, r_toA
       shiny::req(r_toAdd$cohortDefinitionSet)
 
       sweetAlert_spinner("Processing cohorts")
+      ParallelLogger::logInfo("[Import] Cohorts Replace", r$replaceQuestion)
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[r_toAdd$databaseName]]$cohortTableHandler
       #browser()
