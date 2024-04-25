@@ -26,10 +26,17 @@ mod_operateCohorts_ui <- function(id) {
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
-    shiny::tags$h4("Operation"),
+    shiny::tags$h4("Operation - expression defining the cohort"),
     #shiny::textInput(inputId = ns("operationString_textInput"), label = "Operation String"),
-    mod_dragAndDrop_ui(ns("dragAndDrop")),
+    htmltools::div(style = "width: 90%; height: 260; overflow: auto; margin-left: 30px; padding: 10px;",
+      mod_dragAndDrop_ui(ns("dragAndDrop"))
+    ),
     #
+    htmltools::hr(),
+    shiny::tags$h4("Cohort intersections - UpSet plot"),
+    htmltools::div(style = "width: 90%; height: 300; overflow: auto; margin-left: 30px; padding: 10px;",
+      shiny::plotOutput(ns("upsetPlot"), width = "80%", height = "250px"),
+    ),
     htmltools::hr(),
     shiny::tags$h4("New cohort name"),
     shiny::textOutput(ns("newCohortName_text")),
@@ -125,6 +132,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       # TEMP::get first integer From operation string
       targetCohortIds <- as.integer(stringr::str_extract(rf_operationString(), "\\d+"))
 
+      # two adjacent cohorts crash the following function (malformed input)
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
         cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet |> dplyr::mutate(cohortId=as.double(cohortId)),# TEMP FIX
         cohortSubsetDefintion = subsetDef,
@@ -155,6 +163,46 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       ParallelLogger::logInfo("[Operate cohorts] Operation: ", stringToShow)
 
       stringToShow
+    })
+
+    #
+    # create upset plot
+    #
+    output$upsetPlot <- shiny::renderPlot({
+
+      if(!is.null(r$operationStringError)){
+        return(NULL)
+      } else {
+        if(shiny::isTruthy(r$cohortDefinitionSet)){
+
+          s <- rf_operationString()
+          cohortsInOperation <- as.character(stringr::str_extract_all(s, "\\d+")[[1]])
+          cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
+          cohortOverlap <- cohortTableHandler$getCohortsOverlap()
+
+          expression <- s |>
+            stringr::str_replace_all("\\d+", "`\\0`") |>
+            stringr::str_replace_all("Upd", "|") |>
+            stringr::str_replace_all("Mp", "&!") |>
+            stringr::str_replace_all("Ip", "&")
+
+          trycatch <- tryCatch({
+            cohortOverlap <- cohortOverlap |>
+              dplyr::select(-dplyr::any_of('newset')) |>
+              dplyr::mutate(newset = eval(parse(text = expression))) |>
+              dplyr::select(numberOfSubjects, one_of(cohortsInOperation), newset)
+          }, error = function(e){
+            return(NULL)
+          })
+
+          # make the rows distinct keeping the total number of subjects
+          cohortOverlap <- cohortOverlap |>
+            dplyr::group_by_if(is.logical) |>
+            dplyr::summarise(numberOfSubjects = sum(numberOfSubjects), .groups = "drop")
+
+          .plot_upset_cohortsOverlap(cohortOverlap)
+        }
+      }
     })
 
     #
@@ -192,26 +240,55 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       # this will chain update the rest
       r$cohortDefinitionSet <- NULL
     })
-
-
-
-
   })
 }
 
+.plot_upset_cohortsOverlap <- function(cohortOverlap) {
 
+  # check if newset column is present
+  if(!"newset" %in% colnames(cohortOverlap)){
+    return(NULL)
+  }
 
+  cohortNames <- cohortOverlap |> dplyr::select(-numberOfSubjects) |> colnames()  |> setdiff("newset")
 
+  cohortOverlapPlot  <- cohortOverlap |>
+     # convert true false to cohort names
+    dplyr::mutate(dplyr::across(dplyr::all_of(cohortNames), ~ifelse(., as.character(dplyr::cur_column()), '')))  |>
+    # join cohort names
+    dplyr::mutate(cohort_vector = stringr::str_c( !!!rlang::syms(cohortNames), sep = " ")) |>
+    # string to vector
+    dplyr::mutate(cohort_vector = stringr::str_split(cohort_vector, " "))
 
+  ###
+  ## function
+  ###
 
+  tryCatch({
+    g <- cohortOverlapPlot %>%
+      dplyr::mutate(newset = forcats::as_factor(!newset)) %>%
+      #
+      ggplot2::ggplot(ggplot2::aes(x=cohort_vector, y=numberOfSubjects, fill=newset, label = numberOfSubjects)) +
+      ggplot2::geom_bar(stat = "identity") +
+      # upset x
+      ggupset::scale_x_upset() +
+      # style
+      ggplot2::guides(fill = "none") +
+      ggplot2::geom_text( nudge_y = 60,) +
+      ggplot2::scale_fill_grey(drop = FALSE) +
+      ggplot2::labs(x = "Cohort Sets", y = "N patients")+
+      ggplot2::theme_light() +
+      ggplot2::theme(
+        text = ggplot2::element_text(size = 15)
+      )
+  }, error = function(e){
+    g <- NULL
+  }, warning = function(w){
+    g <- NULL
+  })
 
-
-
-
-
-
-
-
+  return(g)
+}
 
 
 

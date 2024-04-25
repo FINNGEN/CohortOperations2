@@ -233,13 +233,13 @@
       "Package": "HadesExtras",
       "Version": "0.0.0.9002",
       "Source": "GitHub",
+      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
+      "RemoteUsername": "FINNGEN",
       "RemoteRef": "HEAD",
-      "RemoteSha": "65d0ecdd9f54a5ecbf54b3fd62fdcf401d907957",
-      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
+      "RemoteSha": "9127fa7a7fb57a782d764a0da9805d66b39b00ff",
       "Requirements": [
         "CohortDiagnostics",
         "CohortGenerator",
@@ -272,7 +272,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "c0f705eed4626557603269cdaa3b314f"
+      "Hash": "31de3b2bb8b0e0c1323861c339703072"
     },
     "MASS": {
       "Package": "MASS",
@@ -501,11 +501,11 @@
       "Version": "0.5.6",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
       "RemoteSha": "58100690f36000bfa7f8058bc6584780b11311d5",
+      "RemoteHost": "api.github.com",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -1285,21 +1285,21 @@
       ],
       "Hash": "52ef83f93f74833007f193b2d4c159a2"
     },
-    "ggrepel": {
-      "Package": "ggrepel",
-      "Version": "0.9.5",
+    "ggupset": {
+      "Package": "ggupset",
+      "Version": "0.3.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
-        "Rcpp",
         "ggplot2",
         "grid",
+        "gtable",
         "rlang",
         "scales",
-        "withr"
+        "tibble"
       ],
-      "Hash": "cc3361e234c4a5050e29697d675764aa"
+      "Hash": "8e9eb92bf465601c07d17c5e8b75dce1"
     },
     "gh": {
       "Package": "gh",
