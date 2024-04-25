@@ -65,6 +65,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       #
       shiny::req(r_connectionHandlers$databasesHandlers)
 
+      ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Load from url: ", webApiUrl)
+
       atlasCohortsTable <- NULL
       tryCatch({
         atlasCohortsTable <- ROhdsiWebApi::getCohortDefinitionsMetaData(webApiUrl) |>
@@ -75,6 +77,9 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         atlasCohortsTable <<- paste("Error connecting to Atlas. Check that Atlas is working.")
       })
 
+      if (is.character(atlasCohortsTable)) {
+        ParallelLogger::logWarn("[Import from Atlas-", filterCohortsRegex,"] : ", atlasCohortsTable)
+      }
       shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
 
       r$atlasCohortsTable <- atlasCohortsTable
@@ -120,7 +125,11 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       )
 
       r_toAdd$databaseName <- input$selectDatabases_pickerInput
-        r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+      r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+
+      ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+                              " to database", input$selectDatabases_pickerInput)
 
       remove_sweetAlert_spinner()
     })

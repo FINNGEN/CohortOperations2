@@ -71,6 +71,8 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
       shiny::req(r$uploadedFile)
       shiny::req(input$selectDatabases_pickerInput)
 
+      ParallelLogger::logInfo("[Import File] Opening file: ", r$uploadedFile)
+
       ext <- tools::file_ext(r$uploadedFile$datapath)
 
       # passing error to shiny::validate
@@ -89,6 +91,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
       r$cohortDataUploaded <- cohortData
 
       if(!all(c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date") %in% colnames(cohortData))){
+          ParallelLogger::logInfo("[Import File] File needs column remaping ")
           showModal(assignmentDialog())
       } else {
         # we have the correct column names
@@ -299,6 +302,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
       shiny::req(r$cohortData)
       shiny::req(input$selectDatabases_pickerInput)
 
+
       sweetAlert_spinner("Importing cohorts")
 
       selectedCohortNames <- r$cohortData |>
@@ -306,6 +310,8 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
         dplyr::arrange(cohort_name) |>
         dplyr::slice(r_selectedIndex()) |>
         dplyr::pull(cohort_name)
+
+
 
       selectedCohortData <- r$cohortData |>
         dplyr::filter(cohort_name %in% selectedCohortNames)
@@ -326,6 +332,10 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
         cohortIdOffset = cohortIdOffset,
         skipCohortDataCheck = TRUE
       )
+
+      ParallelLogger::logInfo("[Import File] Importing cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+                              " to database", input$selectDatabases_pickerInput)
 
       remove_sweetAlert_spinner()
 
