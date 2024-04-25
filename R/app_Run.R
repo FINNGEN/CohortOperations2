@@ -29,8 +29,8 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   # set up future
   future::plan(future::multisession, workers = 2)
 
- # set up loger
-  folderWithLog <- file.path(tempdir(), "log")
+  # set up loger
+  folderWithLog <- file.path(tempdir(), "logs")
   dir.create(folderWithLog, showWarnings = FALSE)
   logger <- ParallelLogger::createLogger(
     appenders = list(
@@ -47,26 +47,28 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   )
   ParallelLogger::clearLoggers()
   ParallelLogger::registerLogger(logger)
-  ParallelLogger::logTrace("Start logging")
 
-  shiny::addResourcePath("log", folderWithLog)
+  shiny::addResourcePath("logs", folderWithLog)
 
 
-    app  <- shiny::shinyApp(
-        ui = app_ui,
-        server = app_server,
-        ...
-      )
+  # start app
+  app  <- shiny::shinyApp(
+    ui = app_ui,
+    server = app_server,
+    ...
+  )
 
-    # setup shiny options
-    app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
-    app$appOptions$databasesConfig  <- databasesConfig
-    app$appOptions$logger  <- logger
+  # setup shiny options
+  app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
+  app$appOptions$databasesConfig  <- databasesConfig
+  app$appOptions$logger  <- logger
 
-    app$appOptions$pathToNews  <- here::here("NEWS.md")
-    app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
+  app$appOptions$pathToNews  <- here::here("NEWS.md")
+  app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
 
-    return(app)
+  ParallelLogger::logTrace("Start logging on ", app$appOptions$gitInfo)
+
+  return(app)
 }
 
 
