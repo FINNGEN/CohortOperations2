@@ -66,11 +66,10 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   app$appOptions$pathToNews  <- here::here("NEWS.md")
   app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
 
-  ParallelLogger::logTrace("Start logging on ", app$appOptions$gitInfo)
+  ParallelLogger::logInfo("[Start] Start logging on ", app$appOptions$gitInfo)
 
   return(app)
 }
-
 
 
 .layoutParallelWithHeader  <- function(level, message){

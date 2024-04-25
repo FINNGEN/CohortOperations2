@@ -69,6 +69,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
       sweetAlert_spinner("Connecting to databases")
 
       selecteddatabasesConfig <- databasesConfig[input$selectDatabases_pickerInput]
+      ParallelLogger::logInfo("[Databases Connection] Connecting to: ", input$selectDatabases_pickerInput)
 
       loadConnectionChecksLevel <- "allChecks"
       if (!input$allChecks_checkbox) {
@@ -97,6 +98,8 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
         )
       }
 
+
+      ParallelLogger::logInfo("[Databases Connection] Connected to: ", connectionStatusLogs)
       r$connectionStatusLogs <- connectionStatusLogs
 
     })

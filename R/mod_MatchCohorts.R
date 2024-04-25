@@ -259,11 +259,14 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # Render temporal name
     #
     output$newCohortName_text <- shiny::renderText({
+      stringToShow <- "----"
       if(!shiny::isTruthy(r$cohortDefinitionSet)){
-        "----"
-      }else{
-        r$cohortDefinitionSet$cohortName
+        stringToShow <- r$cohortDefinitionSet$cohortName
       }
+
+      ParallelLogger::logInfo("[Match cohorts] Match Settings: ", stringToShow)
+
+      stringToShow
     })
 
 
@@ -276,6 +279,10 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       ## copy selected to
       r_toAdd$databaseName <- input$selectDatabases_pickerInput
       r_toAdd$cohortDefinitionSet <-  r$cohortDefinitionSet
+
+      ParallelLogger::logInfo("[Match cohorts] Creating cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+                              " to database", input$selectDatabases_pickerInput)
 
     })
 
