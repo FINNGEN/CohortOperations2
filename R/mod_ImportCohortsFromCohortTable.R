@@ -61,9 +61,13 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
       shiny::req(r_connectionHandlers$databasesHandlers)
       shiny::req(input$selectDatabases_pickerInput)
 
+      ParallelLogger::logInfo("[Import from Cohort Table] : Getting cohort names from cohort table")
+
       # get connection
       connection  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$connectionHandler$getConnection()
       cohortDatabaseSchema  <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$cdmDatabaseSchema
+
+      ParallelLogger::logInfo("[Import from Cohort Table] : Getting cohort names from cohort table from:", cohortDatabaseSchema)
 
       logTibble <- HadesExtras::checkCohortDefinitionTables(
         connection = connection,
@@ -71,6 +75,10 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
       )
 
       thereIsCohortTables <- (logTibble$logTibble$type[1] == "ERROR" | logTibble$logTibble$type[2] == "ERROR")
+
+      if (thereIsCohortTables) {
+        ParallelLogger::logWarn("[Import from Cohort Table] : Error connecting to Endpoint table.")
+      }
       shiny::validate(shiny::need(!thereIsCohortTables, "Error connecting to Endpoint table."))
 
       cohortDefinitionTable <- HadesExtras::getCohortNamesFromCohortDefinitionTable(
@@ -127,7 +135,11 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
       )
 
       r_toAdd$databaseName <- input$selectDatabases_pickerInput
-        r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+      r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+
+      ParallelLogger::logInfo("[Import from Cohort Table] Importing cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+                              " to database", input$selectDatabases_pickerInput)
 
       remove_sweetAlert_spinner()
     })

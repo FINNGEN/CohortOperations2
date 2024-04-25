@@ -19,12 +19,12 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   checkmate::assertList(databasesConfig, names = "named")
 
 
-  # set shiny to accept large uploads
+  # set shiny to accept large files
   options(shiny.maxRequestSize = 1000000000)
 
-  # deactivate https request
+  # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
-
+  
   # set up futures
   future::plan(future::multisession, workers = 2)
 
@@ -45,26 +45,49 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   ParallelLogger::clearLoggers()
   ParallelLogger::registerLogger(logger)
   ParallelLogger::logTrace("Start logging")
+  
 
-
-
-    app  <- shiny::shinyApp(
-        ui = app_ui,
-        server = app_server,
-        ...
+  # set up loger
+  folderWithLog <- file.path(tempdir(), "logs")
+  dir.create(folderWithLog, showWarnings = FALSE)
+  logger <- ParallelLogger::createLogger(
+    appenders = list(
+      # to console for traking
+      ParallelLogger::createConsoleAppender(
+        layout = .layoutParallelWithHeader
+      ),
+      # to file for showing in app
+      ParallelLogger::createFileAppender(
+        fileName = file.path(folderWithLog, "log.txt"),
+        layout = ParallelLogger::layoutSimple
       )
+    )
+  )
+  ParallelLogger::clearLoggers()
+  ParallelLogger::registerLogger(logger)
 
-    # setup shiny options
-    app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
-    app$appOptions$databasesConfig  <- databasesConfig
-    app$appOptions$logger  <- logger
+  shiny::addResourcePath("logs", folderWithLog)
 
-    app$appOptions$pathToNews  <- here::here("NEWS.md")
-    app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
 
-    return(app)
+  # start app
+  app  <- shiny::shinyApp(
+    ui = app_ui,
+    server = app_server,
+    ...
+  )
+
+  # setup shiny options
+  app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
+  app$appOptions$databasesConfig  <- databasesConfig
+  app$appOptions$logger  <- logger
+
+  app$appOptions$pathToNews  <- here::here("NEWS.md")
+  app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
+
+  ParallelLogger::logInfo("[Start] Start logging on ", app$appOptions$gitInfo)
+
+  return(app)
 }
-
 
 
 
@@ -72,4 +95,3 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   message <- paste0("[CO2] ", message)
   ParallelLogger::layoutParallel(level, message)
 }
-
