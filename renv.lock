@@ -117,6 +117,23 @@
       ],
       "Hash": "1ba14745ec29dc17a7226cd079e93d8b"
     },
+    "CommonDataModel": {
+      "Package": "CommonDataModel",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "DBI",
+        "DatabaseConnector",
+        "SqlRender",
+        "dplyr",
+        "rJava",
+        "readr",
+        "rmarkdown",
+        "stringr"
+      ],
+      "Hash": "d009324efba4c142b431202580eb09d1"
+    },
     "CompQuadForm": {
       "Package": "CompQuadForm",
       "Version": "1.4.3",
@@ -182,21 +199,23 @@
     },
     "Eunomia": {
       "Package": "Eunomia",
-      "Version": "1.0.3",
+      "Version": "2.0.0",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "Eunomia",
       "RemoteRef": "main",
-      "RemoteSha": "0f95ce9bfba8032e91df593538d8e508189db650",
+      "RemoteSha": "79c89443c8fe424e9dc19ea10e80c1d8d36efa0c",
       "Requirements": [
-        "DatabaseConnector",
+        "CommonDataModel",
+        "DBI",
         "RSQLite",
-        "SqlRender",
-        "readr"
+        "arrow",
+        "readr",
+        "rlang"
       ],
-      "Hash": "79abc63979a72347150f5541e2c581ea"
+      "Hash": "c72e350c559c018b299c3c492ed2c837"
     },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
@@ -233,13 +252,13 @@
       "Package": "HadesExtras",
       "Version": "0.0.0.9002",
       "Source": "GitHub",
-      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "HadesExtras",
       "RemoteUsername": "FINNGEN",
+      "RemoteRepo": "HadesExtras",
       "RemoteRef": "HEAD",
-      "RemoteSha": "9127fa7a7fb57a782d764a0da9805d66b39b00ff",
+      "RemoteSha": "65d0ecdd9f54a5ecbf54b3fd62fdcf401d907957",
+      "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
         "CohortGenerator",
@@ -272,7 +291,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "31de3b2bb8b0e0c1323861c339703072"
+      "Hash": "c0f705eed4626557603269cdaa3b314f"
     },
     "MASS": {
       "Package": "MASS",
@@ -501,11 +520,11 @@
       "Version": "0.5.6",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
       "RemoteSha": "58100690f36000bfa7f8058bc6584780b11311d5",
-      "RemoteHost": "api.github.com",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -566,6 +585,28 @@
       ],
       "Hash": "fcdb2e90a85ae606bc19d1fd43db5cc6"
     },
+    "arrow": {
+      "Package": "arrow",
+      "Version": "15.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "assertthat",
+        "bit64",
+        "cpp11",
+        "glue",
+        "methods",
+        "purrr",
+        "rlang",
+        "stats",
+        "tidyselect",
+        "utils",
+        "vctrs"
+      ],
+      "Hash": "85c24dd7844977e4a680ba28f576125c"
+    },
     "askpass": {
       "Package": "askpass",
       "Version": "1.2.0",
@@ -575,6 +616,16 @@
         "sys"
       ],
       "Hash": "cad6cf7f1d5f6e906700b9d3e718c796"
+    },
+    "assertthat": {
+      "Package": "assertthat",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "tools"
+      ],
+      "Hash": "50c838a310445e954bc13f26f26a6ecf"
     },
     "backports": {
       "Package": "backports",
@@ -1284,6 +1335,22 @@
         "withr"
       ],
       "Hash": "52ef83f93f74833007f193b2d4c159a2"
+    },
+    "ggrepel": {
+      "Package": "ggrepel",
+      "Version": "0.9.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "ggplot2",
+        "grid",
+        "rlang",
+        "scales",
+        "withr"
+      ],
+      "Hash": "cc3361e234c4a5050e29697d675764aa"
     },
     "ggupset": {
       "Package": "ggupset",
