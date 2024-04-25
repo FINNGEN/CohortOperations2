@@ -1,6 +1,5 @@
 
 
-
 modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logLines=10) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns

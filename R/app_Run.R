@@ -19,15 +19,33 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   checkmate::assertList(databasesConfig, names = "named")
 
 
-
   # set shiny to accept large files
   options(shiny.maxRequestSize = 1000000000)
 
   # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
-
-  # set up future
+  
+  # set up futures
   future::plan(future::multisession, workers = 2)
+
+  # set up logger
+  logger <- ParallelLogger::createLogger(
+    appenders = list(
+      # console for collecting logs
+      ParallelLogger::createConsoleAppe3nder(
+        layout = .layoutParallelWithName
+      ),
+      # file for showing on app
+      ParallelLogger::createFileAppender(
+      fileName = logFileName,
+      layout = ParallelLogger::layoutSimple
+      )
+    )
+  )
+  ParallelLogger::clearLoggers()
+  ParallelLogger::registerLogger(logger)
+  ParallelLogger::logTrace("Start logging")
+  
 
   # set up loger
   folderWithLog <- file.path(tempdir(), "logs")
@@ -72,9 +90,8 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
 }
 
 
-.layoutParallelWithHeader  <- function(level, message){
+
+.layoutParallelWithName <- function(level, message) {
   message <- paste0("[CO2] ", message)
   ParallelLogger::layoutParallel(level, message)
 }
-
-
