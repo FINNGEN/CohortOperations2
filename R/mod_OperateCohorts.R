@@ -269,7 +269,6 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       ggplot2::guides(fill = "none") +
       ggplot2::geom_text( nudge_y = 60,) +
       ggplot2::scale_fill_grey(drop = FALSE) +
-      # ggplot2::scale_fill_manual(values = c("tomato1", "lightgrey")) +
       ggplot2::labs(x = "Cohort Sets", y = "N patients")+
       ggplot2::theme_light() +
       ggplot2::theme(
