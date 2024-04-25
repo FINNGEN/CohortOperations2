@@ -35,7 +35,7 @@ mod_operateCohorts_ui <- function(id) {
     htmltools::hr(),
     shiny::tags$h4("Cohort intersections - UpSet plot"),
     htmltools::div(style = "width: 90%; height: 300; overflow: auto; margin-left: 30px; padding: 10px;",
-      shiny::plotOutput(ns("upsetjs1"), width = "80%", height = "250px"),
+      shiny::plotOutput(ns("upsetPlot"), width = "80%", height = "250px"),
     ),
     htmltools::hr(),
     shiny::tags$h4("New cohort name"),
@@ -132,6 +132,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       # TEMP::get first integer From operation string
       targetCohortIds <- as.integer(stringr::str_extract(rf_operationString(), "\\d+"))
 
+      # two adjacent cohorts crash the following function (malformed input)
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
         cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet |> dplyr::mutate(cohortId=as.double(cohortId)),# TEMP FIX
         cohortSubsetDefintion = subsetDef,
@@ -164,9 +165,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # create upset plot
     #
-
-    # render upset plot
-    output$upsetjs1 <- shiny::renderPlot({
+    output$upsetPlot <- shiny::renderPlot({
 
       if(!is.null(r$operationStringError)){
         return(NULL)
@@ -184,13 +183,14 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
             stringr::str_replace_all("Mp", "&!") |>
             stringr::str_replace_all("Ip", "&")
 
-          cohortOverlap <- cohortOverlap |>
-            dplyr::select(-dplyr::any_of('newset')) |>
-            dplyr::mutate(newset = eval(parse(text = expression)))
-
-          cohortOverlap <- cohortOverlap |>
-            dplyr::select(numberOfSubjects, one_of(cohortsInOperation), newset)
-
+          trycatch <- tryCatch({
+            cohortOverlap <- cohortOverlap |>
+              dplyr::select(-dplyr::any_of('newset')) |>
+              dplyr::mutate(newset = eval(parse(text = expression))) |>
+              dplyr::select(numberOfSubjects, one_of(cohortsInOperation), newset)
+          }, error = function(e){
+            return(NULL)
+          })
 
           # make the rows distinct keeping the total number of subjects
           cohortOverlap <- cohortOverlap |>
@@ -233,52 +233,15 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       # this will chain update the rest
       r$cohortDefinitionSet <- NULL
     })
-
-
-
-
   })
 }
 
-
-# helper function to convert cohortOverlap to upsetjs expression
-
-.cohortOverlap_to_upset_input <- function(cohortOverlap) {
-
-  # cardinalities
-  cohort_cardinalities <- cohortOverlap |>
-    dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, numberOfSubjects, 0)))  |>
-    dplyr::summarise(across(everything(), sum)) |>
-    dplyr::select(-numberOfSubjects) |>
-    as.list()
-
-  # intersections (does not work as intended)
-  cohort_intersections <- cohortOverlap |>
-    dplyr::mutate(dplyr::across(-numberOfSubjects, ~dplyr::if_else(.x, as.character(dplyr::cur_column()), "")))  |>
-    tidyr::unite("names", -numberOfSubjects, sep = "&") |>
-    dplyr::mutate(names = stringr::str_replace(names, "&&&", "&")) |>
-    dplyr::mutate(names = stringr::str_replace(names, "&&", "&")) |>
-    dplyr::mutate(names = stringr::str_replace(names, "^&", "")) |>
-    dplyr::mutate(names = stringr::str_replace(names, "&$", "")) |>
-    dplyr::filter(stringr::str_detect(names, "&")) |>
-    dplyr::group_by(names) |>
-    dplyr::summarise(numberOfSubjects = sum(numberOfSubjects))
-
-  cohort_intersections <- setNames(
-    as.list(cohort_intersections$numberOfSubjects),
-    as.list(cohort_intersections$names)
-  )
-
-  result <- c(cohort_cardinalities, cohort_intersections)
-
-  return(result)
-}
-
-
-
-
-
 .plot_upset_cohortsOverlap <- function(cohortOverlap) {
+
+  # check if newset column is present
+  if(!"newset" %in% colnames(cohortOverlap)){
+    return(NULL)
+  }
 
   cohortNames <- cohortOverlap |> dplyr::select(-numberOfSubjects) |> colnames()  |> setdiff("newset")
 
@@ -290,29 +253,36 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # string to vector
     dplyr::mutate(cohort_vector = stringr::str_split(cohort_vector, " "))
 
-
-
   ###
   ## function
   ###
-  g <- cohortOverlapPlot %>%
-    dplyr::mutate(newset = forcats::as_factor(!newset)) %>%
-    #
-    ggplot2::ggplot(ggplot2::aes(x=cohort_vector, y=numberOfSubjects, fill=newset, label = numberOfSubjects)) +
-    ggplot2::geom_bar(stat = "identity") +
-    # upset x
-    ggupset::scale_x_upset() +
-    # style
-    ggplot2::guides(fill = "none") +
-    ggplot2::geom_text( nudge_y = 10) +
-    ggplot2::scale_fill_grey(drop = FALSE) +
-    ggplot2::labs(x = "Cohort Sets", y = "N patients")+
-    ggplot2::theme_light()
+
+  tryCatch({
+    g <- cohortOverlapPlot %>%
+      dplyr::mutate(newset = forcats::as_factor(!newset)) %>%
+      #
+      ggplot2::ggplot(ggplot2::aes(x=cohort_vector, y=numberOfSubjects, fill=newset, label = numberOfSubjects)) +
+      ggplot2::geom_bar(stat = "identity") +
+      # upset x
+      ggupset::scale_x_upset() +
+      # style
+      ggplot2::guides(fill = "none") +
+      ggplot2::geom_text( nudge_y = 60,) +
+      ggplot2::scale_fill_grey(drop = FALSE) +
+      # ggplot2::scale_fill_manual(values = c("tomato1", "lightgrey")) +
+      ggplot2::labs(x = "Cohort Sets", y = "N patients")+
+      ggplot2::theme_light() +
+      ggplot2::theme(
+        text = ggplot2::element_text(size = 15)
+      )
+  }, error = function(e){
+    g <- NULL
+  }, warning = function(w){
+    g <- NULL
+  })
 
   return(g)
 }
-
-
 
 
 

@@ -65,7 +65,7 @@ mod_dragAndDrop_server <- function(id, r_workbench) {
     #
     # calculates cohort operation expression
     #
-    rf_operationExpresion <- shiny::reactive({
+    rf_operationExpression <- shiny::reactive({
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$dest_boxes)
       shiny::req(input$dest_boxes != placeholder)
@@ -74,24 +74,25 @@ mod_dragAndDrop_server <- function(id, r_workbench) {
         dplyr::select(cohortId, cohortName, shortName)
 
       operation_expression <- input$dest_boxes
+
       for(i in 1:nrow(cohortData)) {
         operation_expression[which(operation_expression == cohortData$shortName[i])] <- cohortData$cohortId[i]
       }
 
-      paste(operation_expression, collapse = "")
+      paste(operation_expression, collapse = " ")
     })
 
     #
     # calculates cohort operation expression (just for testing)
     #
     output$test_displayOperationString <- shiny::renderText({
-      req(rf_operationExpresion())
-      rf_operationExpresion()
+      req(rf_operationExpression())
+      rf_operationExpression()
     })
 
     #
     # returns the operation expresion
     #
-    return(rf_operationExpresion)
+    return(rf_operationExpression)
   })
 }
