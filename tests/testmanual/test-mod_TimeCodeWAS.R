@@ -5,7 +5,30 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-logger <- setup_ModalWithLog()
+future::plan(future::multisession, workers = 2)
+
+folderWithLog <- file.path(tempdir(), "logs")
+dir.create(folderWithLog, showWarnings = FALSE)
+logger <- ParallelLogger::createLogger(
+  appenders = list(
+    # to console for traking
+    ParallelLogger::createConsoleAppender(
+      layout = .layoutParallelWithHeader
+    ),
+    # to file for showing in app
+    ParallelLogger::createFileAppender(
+      fileName = file.path(folderWithLog, "log.txt"),
+      layout = ParallelLogger::layoutSimple
+    )
+  )
+)
+ParallelLogger::clearLoggers()
+ParallelLogger::registerLogger(logger)
+ParallelLogger::logTrace("Start logging")
+
+shiny::addResourcePath("logs", folderWithLog)
+
+
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 

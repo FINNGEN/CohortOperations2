@@ -73,6 +73,6 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
 
 
 .layoutParallelWithHeader <- function(level, message) {
-  message <- paste0("[CO2] ", message)
+  message <- paste0("[sandbox-co2-log] ", message)
   ParallelLogger::layoutParallel(level, message)
 }

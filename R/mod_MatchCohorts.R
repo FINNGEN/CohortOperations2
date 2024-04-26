@@ -260,7 +260,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     output$newCohortName_text <- shiny::renderText({
       stringToShow <- "----"
-      if(!shiny::isTruthy(r$cohortDefinitionSet)){
+      if(shiny::isTruthy(r$cohortDefinitionSet)){
         stringToShow <- r$cohortDefinitionSet$cohortName
       }
 

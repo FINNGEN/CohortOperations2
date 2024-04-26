@@ -27,7 +27,7 @@ app_ui <- function(request) {
           shinydashboard::menuItem("CohortsDiagnostics", tabName = "cohortDiagnostics", icon = shiny::icon("stethoscope")),
           #shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("")),
           #shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("")),
-          #shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("")),
+          shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("tasks")),
           shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road")),
           shiny::h5(" About"),
           shinydashboard::menuItem("About", tabName = "about", icon = shiny::icon("info"))
@@ -193,8 +193,7 @@ app_ui <- function(request) {
             shinydashboard::box(
               title = shiny::tagList(shiny::icon("connectdevelop"), "CodeWAS:"),
               solidHeader = TRUE, width = 12,
-              shiny::tags$h3("Not implemented yet"),
-              shiny::tags$h3("will allow to copute codewas")
+              mod_codeWAS_ui("codeWAS")
             )
           ),
           ## TAB timeCodeWAS
