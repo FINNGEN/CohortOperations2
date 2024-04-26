@@ -218,6 +218,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         analysisSettings = l,
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
+
+      ParallelLogger::logInfo("[CodeWAS] Run in database:", input$selectDatabases_pickerInput, "with settings:", l)
     })
 
 
@@ -304,6 +306,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
                                 "📄 Message: ", rf_results()$result)
       }
 
+      ParallelLogger::logInfo("[CodeWAS] Ran results:", resultMessage)
+
       resultMessage
     })
 
@@ -329,13 +333,14 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         if(rf_results()$success){
           file.copy(file.path(rf_results()$result, "analysisResultsSqlite.zip"), fname)
         }
-
+        ParallelLogger::logInfo("[CodeWAS] Download:")
         return(fname)
       }
     )
 
 
     shiny::observeEvent(input$view_actionButton, {
+      ParallelLogger::logInfo("[CodeWAS] Open in Viewer:")
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url

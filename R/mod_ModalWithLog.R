@@ -4,6 +4,13 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # get file path
+    for (i in 1:length(logger$appenders)){
+      if(!is.null(logger$appenders[[i]]$fileName)){
+        file_path <- logger$appenders[[i]]$fileName
+      }
+    }
+
     # set up future
     queue <- ipc::shinyQueue()
     queue$consumer$start(100) # Execute signals every 100 milliseconds
@@ -73,7 +80,6 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
     # Update the modal content every second
     output$modalContent <- shiny::renderText({
       autoUpdate()
-      file_path <- logger$appenders[[1]]$fileName
 
       lines <- readLines(file_path)
       last_lines <- tail(lines, logLines)

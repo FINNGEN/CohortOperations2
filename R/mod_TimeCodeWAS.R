@@ -201,17 +201,6 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     })
 
     #
-    # Render temporal name
-    #
-    output$newCohortName_text <- shiny::renderText({
-      if(!shiny::isTruthy(r$analysisSettings)){
-        "----"
-      }else{
-        yaml::as.yaml(r$analysisSettings)
-      }
-    })
-
-    #
     # click to run
     #
     shiny::observeEvent(input$run_actionButton, {
@@ -226,6 +215,8 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         analysisSettings = l,
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
+
+      ParallelLogger::logInfo("[TimeCodeWAS] Run in database:", input$selectDatabases_pickerInput, "with settings:", l)
     })
 
 
@@ -313,6 +304,8 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
                                 "📄 Message: ", rf_results()$result)
       }
 
+      ParallelLogger::logInfo("[TimeCodeWAS] Ran results:", resultMessage)
+
       resultMessage
     })
 
@@ -339,12 +332,15 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           file.copy(file.path(rf_results()$result, "analysisResultsSqlite.zip"), fname)
         }
 
+        ParallelLogger::logInfo("[TimeCodeWAS] Download:")
+
         return(fname)
       }
     )
 
 
     shiny::observeEvent(input$view_actionButton, {
+    ParallelLogger::logInfo("[TimeCodeWAS] Open in Viewer:")
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url
