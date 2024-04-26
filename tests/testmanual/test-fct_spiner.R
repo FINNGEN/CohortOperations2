@@ -1,5 +1,7 @@
 
 # setup  ------------------------------------------------------------------
+
+
 folderWithLog <- file.path(tempdir(), "logs")
 dir.create(folderWithLog, showWarnings = FALSE)
 logger <- ParallelLogger::createLogger(

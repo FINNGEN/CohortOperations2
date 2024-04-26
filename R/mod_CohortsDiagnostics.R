@@ -301,16 +301,6 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
       r$analysisSettings <- analysisSettings
     })
 
-    #
-    # Render temporal name
-    #
-    output$summary_text <- shiny::renderText({
-      if(!shiny::isTruthy(r$analysisSettings)){
-        "----"
-      }else{
-        yaml::as.yaml(r$analysisSettings)
-      }
-    })
 
     #
     # click to run
@@ -328,6 +318,8 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
         analysisSettings = l,
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
+
+      ParallelLogger::logInfo("[CohortDiagnostics] Run in database:", input$selectDatabases_pickerInput, "with settings:", l)
     })
 
 
@@ -448,6 +440,8 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
                                 "📄 Message: ", rf_results()$result)
       }
 
+      ParallelLogger::logInfo("[CohortDiagnostics] Ran results:", resultMessage)
+
       resultMessage
     })
     #
@@ -474,12 +468,15 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
           file.copy(file.path(rf_results()$result, "analysisResultsSqlite.zip"), fname)
         }
 
+        ParallelLogger::logInfo("[CohortDiagnostics] Download:")
+
         return(fname)
       }
     )
 
 
     shiny::observeEvent(input$view_actionButton, {
+      ParallelLogger::logInfo("[CohortDiagnostics] Open in Viewer:")
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url

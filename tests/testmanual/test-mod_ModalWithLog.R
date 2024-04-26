@@ -1,7 +1,25 @@
 
 # setup  ------------------------------------------------------------------
-logger <- setup_ModalWithLog()
+folderWithLog <- file.path(tempdir(), "logs")
+dir.create(folderWithLog, showWarnings = FALSE)
+logger <- ParallelLogger::createLogger(
+  appenders = list(
+    # to console for traking
+    ParallelLogger::createConsoleAppender(
+      layout = .layoutParallelWithHeader
+    ),
+    # to file for showing in app
+    ParallelLogger::createFileAppender(
+      fileName = file.path(folderWithLog, "log.txt"),
+      layout = ParallelLogger::layoutSimple
+    )
+  )
+)
+ParallelLogger::clearLoggers()
+ParallelLogger::registerLogger(logger)
+ParallelLogger::logTrace("Start logging")
 
+shiny::addResourcePath("logs", folderWithLog)
 
 # run ---------------------------------------------------------------------
 devtools::load_all(".")
@@ -65,4 +83,5 @@ server <- function(input, output) {
 }
 
 # Run the application
-shiny::shinyApp(ui = ui, server = server)
+shiny::shinyApp(ui = ui, server = server,
+                options = list(launch.browser=TRUE))

@@ -52,9 +52,12 @@ sweetAlert_spinner <- function(message, logUrl = "/logs/log.txt", updateMiliseco
                   // console.log('Text from URL:', text);
                   // Do something with the text here
                   text = String(text);
-                  const lastlines = text.split('\\n').slice(-10).join('<br>');
+                  const lastlines = text.split('\\n').slice(-10).join('\\n');
 
-                  document.getElementById('updatedText').innerHTML = lastlines;
+                  if (document.getElementById('updatedText')){
+                    document.getElementById('updatedText').innerHTML = lastlines;
+                  }
+
                 })
                 .catch(error => {
                   console.error('There was a problem fetching the text:', error);
@@ -67,7 +70,7 @@ sweetAlert_spinner <- function(message, logUrl = "/logs/log.txt", updateMiliseco
           // Call updateText initially to update the text when the page loads
           updateText();
         </script>
-        <div id='updatedText' style='border: 1px solid #ccc; padding: 10px; font-family: Arial, sans-serif; text-align: left;'></div>"
+        <pre id='updatedText' style='border: 1px solid #ccc; padding: 10px; text-align: left;'></pre>"
       ))
       # attendantBar("progress-bar", hidden = TRUE, max=1000)
     ),

@@ -5,7 +5,18 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-logger <- setup_ModalWithLog()
+logger <- ParallelLogger::createLogger(
+  appenders = list(
+    # to console for traking
+    # to file for showing in app
+    ParallelLogger::createFileAppender(
+      fileName = file.path(tempdir(), "log.txt"),
+      layout = ParallelLogger::layoutSimple
+    )
+  )
+)
+ParallelLogger::clearLoggers()
+ParallelLogger::registerLogger(logger)
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 
