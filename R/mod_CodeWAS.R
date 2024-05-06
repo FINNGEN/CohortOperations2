@@ -76,7 +76,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-
+    cores <- shiny::getShinyOption("cores")
 
     #
     # reactive variables
@@ -193,7 +193,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         cohortIdControls = input$selectControlCohort_pickerInput,
         analysisIds = analysisIds,
         covariatesIds = covariatesIds,
-        minCellCount = input$minCellCount_numericInput
+        minCellCount = input$minCellCount_numericInput,
+        cores = cores
       )
 
       for(covaraiteSetting in input$selectCovariates){
@@ -251,7 +252,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortIdControls = as.integer(analysisSettings$cohortIdControls),
           analysisIds = analysisSettings$analysisId,
           covariatesIds = analysisSettings$covariatesIds,
-          minCellCount = analysisSettings$minCellCount
+          minCellCount = analysisSettings$minCellCount,
+          cores = analysisSettings$cores
         )
 
         ParallelLogger::logInfo("Results to csv")
