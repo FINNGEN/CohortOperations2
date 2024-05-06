@@ -225,7 +225,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
       ParallelLogger::logInfo("[Operate cohorts] Creating cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
                               " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
-                              " to database", input$selectDatabases_pickerInput)
+                              " to database ", input$selectDatabases_pickerInput)
 
     })
 

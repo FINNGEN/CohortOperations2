@@ -175,21 +175,23 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$covaraites_pickerInput)
       shiny::req(input$minCellCount_numericInput)
 
-
-
+      # if covariates selected, also add the necessary analysis
       covariatesIds <- c()
+      analysisIds  <-  input$covaraites_pickerInput |> as.numeric()
       if(input$controlSex_checkboxInput){
         covariatesIds <- c(covariatesIds, 8507001)
+        analysisIds <- union(analysisIds, 1)
       }
       if(input$controlYearOfBirth_checkboxInput){
         covariatesIds <- c(covariatesIds, 1041)
+        analysisIds <- union(analysisIds, 41)
       }
 
       analysisSettings <- list(
         analysisType = "codeWAS",
         cohortIdCases = input$selectCaseCohort_pickerInput,
         cohortIdControls = input$selectControlCohort_pickerInput,
-        analysisIds = input$covaraites_pickerInput |> as.numeric(),
+        analysisIds = analysisIds,
         covariatesIds = covariatesIds,
         minCellCount = input$minCellCount_numericInput
       )
@@ -219,7 +221,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
 
-      ParallelLogger::logInfo("[CodeWAS] Run in database:", input$selectDatabases_pickerInput, "with settings:", l)
+      ParallelLogger::logInfo("[CodeWAS] Run in database: ", input$selectDatabases_pickerInput, "with settings: ", l)
     })
 
 
@@ -306,7 +308,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
                                 "📄 Message: ", rf_results()$result)
       }
 
-      ParallelLogger::logInfo("[CodeWAS] Ran results:", resultMessage)
+      ParallelLogger::logInfo("[CodeWAS] Ran results: ", resultMessage)
 
       resultMessage
     })
