@@ -25,18 +25,17 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
 
-  # set up futures
+  # set up futuress
   future::plan(future::multisession, workers = 2)
 
   # set up loger
   folderWithLog <- file.path(tempdir(), "logs")
   dir.create(folderWithLog, showWarnings = FALSE)
   logger <- ParallelLogger::createLogger(
+      threshold = "TRACE",
     appenders = list(
       # to console for traking
-      ParallelLogger::createConsoleAppender(
-        layout = .layoutParallelWithHeader
-      ),
+      .createConsoleAppenderForSandboxLogging(),
       # to file for showing in app
       ParallelLogger::createFileAppender(
         fileName = file.path(folderWithLog, "log.txt"),
@@ -45,6 +44,7 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
     )
   )
   ParallelLogger::clearLoggers()
+  #addDefaultFileLogger(file.path(folderWithLog, "log2.txt"))
   ParallelLogger::registerLogger(logger)
 
   shiny::addResourcePath("logs", folderWithLog)
@@ -71,8 +71,15 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
 }
 
 
+.createConsoleAppenderForSandboxLogging <- function(layout = ParallelLogger::layoutParallel) {
+  appendFunction <- function(this, level, message, echoToConsole) {
+    # Avoid note in check:
+    missing(this)
+    message <- paste0("[sandbox-co2-log] ", message)
+    writeLines(message, con = stdout())
 
-.layoutParallelWithHeader <- function(level, message) {
-  message <- paste0("[sandbox-co2-log] ", message)
-  ParallelLogger::layoutParallel(level, message)
+  }
+  appender <- list(appendFunction = appendFunction, layout = layout)
+  class(appender) <- "Appender"
+  return(appender)
 }
