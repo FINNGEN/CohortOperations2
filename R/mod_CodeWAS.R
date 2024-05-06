@@ -222,7 +222,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
 
-      ParallelLogger::logInfo("[CodeWAS] Run in database: ", input$selectDatabases_pickerInput, "with settings: ", l)
+      ParallelLogger::logInfo("[CodeWAS] Run in database: ", input$selectDatabases_pickerInput, " with settings: ", str(l))
     })
 
 

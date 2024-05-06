@@ -216,7 +216,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
 
-      ParallelLogger::logInfo("[TimeCodeWAS] Run in database: ", input$selectDatabases_pickerInput, "with settings: ", l)
+      ParallelLogger::logInfo("[TimeCodeWAS] Run in database: ", input$selectDatabases_pickerInput, " with settings: ", str(l))
     })
 
 
