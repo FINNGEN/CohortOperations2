@@ -77,6 +77,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     ns <- session$ns
 
     cores <- shiny::getShinyOption("cores")
+    chunksSizeNOutcomes <- shiny::getShinyOption("chunksSizeNOutcomes")
 
     #
     # reactive variables
@@ -194,7 +195,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         analysisIds = analysisIds,
         covariatesIds = covariatesIds,
         minCellCount = input$minCellCount_numericInput,
-        cores = cores
+        cores = cores,
+        chunksSizeNOutcomes = chunksSizeNOutcomes
       )
 
       for(covaraiteSetting in input$selectCovariates){
@@ -222,7 +224,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
 
-      ParallelLogger::logInfo("[CodeWAS] Run in database: ", input$selectDatabases_pickerInput, " with settings: ", str(l))
+      ParallelLogger::logInfo("[CodeWAS] Run in database: ", input$selectDatabases_pickerInput, " with settings: ", .listToString(l))
     })
 
 
@@ -253,7 +255,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           analysisIds = analysisSettings$analysisId,
           covariatesIds = analysisSettings$covariatesIds,
           minCellCount = analysisSettings$minCellCount,
-          cores = analysisSettings$cores
+          cores = analysisSettings$cores,
+          chunksSizeNOutcomes = analysisSettings$chunksSizeNOutcomes
         )
 
         ParallelLogger::logInfo("Results to csv")

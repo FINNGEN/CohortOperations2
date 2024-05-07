@@ -101,3 +101,16 @@ sweetAlert_spinner <- function(message, logUrl = "/logs/log.txt", updateMiliseco
 remove_sweetAlert_spinner <- function() {
   shinyWidgets::closeSweetAlert()
 }
+
+
+
+
+.listToString <- function(list) {
+  # string with list of names = values separated by :
+  paste0(
+    names(list),
+    " = ",
+    unlist(list),
+    collapse = " ; "
+  )
+}

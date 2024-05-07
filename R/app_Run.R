@@ -62,6 +62,7 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   app$appOptions$databasesConfig  <- databasesConfig
   app$appOptions$logger  <- logger
   app$appOptions$cores  <- parallel::detectCores()-1
+  app$appOptions$chunksSizeNOutcomes  <- 2000
 
   app$appOptions$pathToNews  <- here::here("NEWS.md")
   app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)

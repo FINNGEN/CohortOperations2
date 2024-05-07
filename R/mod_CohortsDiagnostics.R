@@ -319,7 +319,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
 
-      ParallelLogger::logInfo("[CohortDiagnostics] Run in database: ", input$selectDatabases_pickerInput, " with settings: ", str(l))
+      ParallelLogger::logInfo("[CohortDiagnostics] Run in database: ", input$selectDatabases_pickerInput, " with settings: ", .listToString(l))
     })
 
 
