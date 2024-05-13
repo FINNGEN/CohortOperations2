@@ -219,15 +219,14 @@
     },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
-      "Version": "3.5.1",
+      "Version": "3.5.2",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "FeatureExtraction",
       "RemoteRef": "main",
-      "RemoteSha": "a93992be1a2f7d3710aa8249287af937872d50f3",
-      "Remotes": "ohdsi/Eunomia",
+      "RemoteSha": "f4536fb75e5c32399c91270f6b6e35c8e95fdf1e",
       "Requirements": [
         "Andromeda",
         "DBI",
@@ -246,7 +245,7 @@
         "readr",
         "rlang"
       ],
-      "Hash": "bd1abbedde6e04599d59921733ec2db1"
+      "Hash": "e686d93264359802fdccd41989c51386"
     },
     "HadesExtras": {
       "Package": "HadesExtras",
@@ -257,7 +256,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "HEAD",
-      "RemoteSha": "65d0ecdd9f54a5ecbf54b3fd62fdcf401d907957",
+      "RemoteSha": "c512c4571bc3dec51aefc2f11a6698d3a636dfdd",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -291,7 +290,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "c0f705eed4626557603269cdaa3b314f"
+      "Hash": "0f69e061d795ce63bc60afcc9c40db9a"
     },
     "MASS": {
       "Package": "MASS",
@@ -517,14 +516,14 @@
     },
     "ResultModelManager": {
       "Package": "ResultModelManager",
-      "Version": "0.5.6",
+      "Version": "0.5.7",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
-      "RemoteSha": "58100690f36000bfa7f8058bc6584780b11311d5",
+      "RemoteSha": "1cff4f0b1856b4c9fef662d3a6fb88e3c3005760",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -542,7 +541,7 @@
         "rlang",
         "zip"
       ],
-      "Hash": "04dd85f6ac8234623c66b6a64db389d6"
+      "Hash": "0e5d673a91b0e34b21a5e15b278ee44f"
     },
     "SqlRender": {
       "Package": "SqlRender",

@@ -225,7 +225,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
       ParallelLogger::logInfo("[Operate cohorts] Creating cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
                               " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
-                              " to database", input$selectDatabases_pickerInput)
+                              " to database ", input$selectDatabases_pickerInput)
 
     })
 
@@ -263,8 +263,8 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
   ###
   ## function
   ###
-
-  tryCatch({
+  g <- NULL
+  try({
     g <- cohortOverlapPlot %>%
       dplyr::mutate(newset = forcats::as_factor(!newset)) %>%
       #
@@ -281,10 +281,6 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       ggplot2::theme(
         text = ggplot2::element_text(size = 15)
       )
-  }, error = function(e){
-    g <- NULL
-  }, warning = function(w){
-    g <- NULL
   })
 
   return(g)
