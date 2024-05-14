@@ -180,6 +180,23 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
           cohortOverlap <- cohortTableHandler$getCohortsOverlap()
 
+          # TEMP FIX
+          cohortOverlap <- cohortOverlap|>
+            dplyr::mutate(cohortIdCombinations = paste0('-', cohortIdCombinations, '-'))
+
+          cohortIds <- cohortOverlap |> dplyr::pull(cohortIdCombinations)  |>
+            stringr::str_split("-") |> unlist() |> unique() |>
+            as.numeric() |> sort() |> as.character()
+
+          for (cohortId in cohortIds) {
+            cohortOverlap <- cohortOverlap |>
+              dplyr::mutate(!!cohortId := stringr::str_detect(cohortIdCombinations, paste0("-", cohortId, "-")))
+          }
+
+          cohortOverlap <- cohortOverlap |>
+            dplyr::select(-cohortIdCombinations)
+          # END TEMP FIX
+
           expression <- s |>
             stringr::str_replace_all("\\d+", "`\\0`") |>
             stringr::str_replace_all("Upd", "|") |>
