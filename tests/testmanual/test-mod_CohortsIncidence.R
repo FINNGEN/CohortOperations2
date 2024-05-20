@@ -5,7 +5,6 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-
 logger <- ParallelLogger::createLogger(
   appenders = list(
     # to console for traking
@@ -18,7 +17,6 @@ logger <- ParallelLogger::createLogger(
 )
 ParallelLogger::clearLoggers()
 ParallelLogger::registerLogger(logger)
-
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 

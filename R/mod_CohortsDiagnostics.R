@@ -398,7 +398,7 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
         dir.create(tmpdirTimeAnalysisResultsSqlite)
 
         CohortDiagnostics::createMergedResultsFile(
-          dataFolder = tmpdirTime,
+          dataFolder = tmpdirTimeAnalysisResultsCsv,
           sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
           overwrite = TRUE
         )
