@@ -154,14 +154,13 @@ app_ui <- function(request) {
             shinydashboard::box(
               title = "Cohorts workbench ",
               status = "primary", solidHeader = TRUE, width = 12,
-              mod_cohortWorkbench_ui("cohortWorkbench_cohortsOverlap")
+              mod_cohortWorkbench_ui("cohortWorkbench_cohortOverlaps")
             ),
-            ### Import Cohorts
+            ###
             shinydashboard::box(
               title = shiny::tagList(shiny::icon("braille"), "Cohorts Overlap:"),
               solidHeader = TRUE, width = 12,
-              shiny::tags$h3("Not implemented yet"),
-              shiny::tags$h3("will allow to compare cohorts for overlap")
+              mod_cohortOverlaps_ui("cohortOverlaps")
             )
           ),
           ## TAB cohortsIncidence
@@ -173,7 +172,7 @@ app_ui <- function(request) {
               status = "primary", solidHeader = TRUE, width = 12,
               mod_cohortWorkbench_ui("cohortWorkbench_cohortsIncidence")
             ),
-            ### Import Cohorts
+            ###
             shinydashboard::box(
               title = shiny::tagList(shiny::icon("users"), "Cohorts Demographics:"),
               solidHeader = TRUE, width = 12,
@@ -189,7 +188,7 @@ app_ui <- function(request) {
               status = "primary", solidHeader = TRUE, width = 12,
                 mod_cohortWorkbench_ui("cohortWorkbench_codeWAS")
             ),
-            ### Import Cohorts
+            ###
             shinydashboard::box(
               title = shiny::tagList(shiny::icon("tasks"), "CodeWAS:"),
               solidHeader = TRUE, width = 12,
@@ -205,7 +204,7 @@ app_ui <- function(request) {
               status = "primary", solidHeader = TRUE, width = 12,
               mod_cohortWorkbench_ui("cohortWorkbench_timeCodeWAS")
             ),
-            ### Import Cohorts
+            ###
             shinydashboard::box(
               title = shiny::tagList(shiny::icon("road"), "TimeCodeWAS:"),
               solidHeader = TRUE, width = 12,
