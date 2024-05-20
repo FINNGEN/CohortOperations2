@@ -7,8 +7,13 @@ mod_cohortsIncidence_ui <- function(id) {
     shinyjs::useShinyjs(),
     #
     shiny::tags$h4("Cohorts"),
-    shiny::uiOutput(ns("selectCohort_pickerInput_uiOutput")),
-    htmltools::hr(),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectCohort_pickerInput"),
+      label = "Select one or more cohorts:",
+      choices = NULL,
+      multiple = TRUE,
+      options = list(`actions-box` = TRUE)
+    ),
     #
     shiny::tags$h4("Settings"),
     shiny::numericInput(
@@ -36,7 +41,7 @@ mod_cohortsIncidence_ui <- function(id) {
 }
 
 
-mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
+mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -61,24 +66,20 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
     #
     # render selectDatabases_pickerInput with database names
     #
-    output$selectCohort_pickerInput_uiOutput <- shiny::renderUI({
-      databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
+    shiny::observeEvent(r_workbench$cohortsSummaryDatabases, {
 
       cohortIdAndNamesList <- list()
-      for(databaseIdName in databaseIdNamesList){
-        cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[databaseIdName]]$cohortTableHandler$getCohortIdAndNames()
-        cohortIdAndNamesList[databaseIdName] <- list(as.list(setNames(paste0(databaseIdName, "-", cohortIdAndNames$cohortId), cohortIdAndNames$cohortName)))
+      for(databaseId in unique(r_workbench$cohortsSummaryDatabases$databaseId)){
+        cohortIdAndNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter(databaseId == !!databaseId) |> dplyr::select(cohortId, shortName)
+        cohortIdAndNamesList[databaseId] <- list(as.list(setNames(paste0(databaseId, "@", cohortIdAndNames$cohortId), cohortIdAndNames$shortName)))
       }
 
-      shinyWidgets::pickerInput(
-        inputId = ns("selectCohort_pickerInput"),
-        label = "Select one or more cohorts:",
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "selectCohort_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = cohortIdAndNamesList,
-        multiple = TRUE,
-        options = list(
-          `actions-box` = TRUE)
-        )
+        selected = NULL
+      )
     })
 
 
@@ -100,8 +101,8 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
 
       # convert vector of strings databaseId-cohortId to tibble databaseId and cohortIds
       databaseIdsCohortIdsTibble<- data.frame(
-        databaseId = gsub(pattern = "-.*", replacement = "", x = input$selectCohort_pickerInput),
-        cohortId = gsub(pattern = ".*-", replacement = "", x = input$selectCohort_pickerInput)
+        databaseId = gsub(pattern = "@.*", replacement = "", x = input$selectCohort_pickerInput),
+        cohortId = gsub(pattern = ".*@", replacement = "", x = input$selectCohort_pickerInput)
       )
 
       databaseIdsCohorsIdsList <- list()
@@ -119,16 +120,6 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
 
     })
 
-    #
-    # Render temporal name
-    #
-    output$newCohortName_text <- shiny::renderText({
-      if(!shiny::isTruthy(r$analysisSettings)){
-        "----"
-      }else{
-        yaml::as.yaml(r$analysisSettings)
-      }
-    })
 
     #
     # click to run
@@ -167,7 +158,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
         dir.create(tmpdirTime)
         ParallelLogger::logInfo(tmpdirTime)
         #
-        ParallelLogger::logInfo("Start CohortDemographics")
+        ParallelLogger::logInfo("Start cohortDiagnostics")
         pathToResultFolders <- c()
         for(databaseId in names(analysisSettings$databaseIdsCohorsIdsList)){
           tmpdirTimeDatabase <- file.path(tmpdirTime, databaseId)
@@ -178,7 +169,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
           exportFolder  <-  tmpdirTimeDatabase
           pathToResultFolders <- c(pathToResultFolders, exportFolder)
 
-          CohortDemographics:: executeDiagnostics(
+          CohortDiagnostics::executeDiagnostics(
             cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
             exportFolder = exportFolder,
             databaseId = cohortTableHandler$databaseName,
@@ -207,7 +198,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
         ParallelLogger::logInfo("Results to csv")
         tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
         dir.create(tmpdirTimeAnalysisResultsCsv)
-        HadesExtras::CohortDemographics_mergeCsvResults(
+        HadesExtras::CohortDiagnostics_mergeCsvResults(
           pathToResultFolders = pathToResultFolders,
           pathToMergedRestulsFolder = tmpdirTimeAnalysisResultsCsv
         )
@@ -221,7 +212,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
         tmpdirTimeAnalysisResultsSqlite <- file.path(tmpdirTime, "analysisResultsSqlite")
         dir.create(tmpdirTimeAnalysisResultsSqlite)
 
-        CohortDemographics::createMergedResultsFile(
+        CohortDiagnostics::createMergedResultsFile(
           dataFolder = tmpdirTimeAnalysisResultsCsv,
           sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
           overwrite = TRUE
@@ -232,7 +223,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
         analysisResultsZipSqlitePath <- file.path(tmpdirTime, "analysisResultsSqlite.zip")
         zip::zipr(zipfile = analysisResultsZipSqlitePath, files = list.files(tmpdirTimeAnalysisResultsSqlite, full.names = TRUE, recursive = TRUE))
 
-        ParallelLogger::logInfo("End CohortDemographics")
+        ParallelLogger::logInfo("End cohortDiagnostics")
 
 
         return(tmpdirTime)
@@ -265,7 +256,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
                                 "📄 Message: ", rf_results()$result)
       }
 
-      ParallelLogger::logInfo("[CohortDemographics] Ran results: ", resultMessage)
+      ParallelLogger::logInfo("[CohortDiagnostics] Ran results: ", resultMessage)
 
       resultMessage
     })
@@ -286,14 +277,14 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
 
 
     output$download_actionButton <- shiny::downloadHandler(
-      filename = function(){"analysisName_CohortDemographics.zip"},
+      filename = function(){"analysisName_cohortDiagnostics.zip"},
       content = function(fname){
 
         if(rf_results()$success){
           file.copy(file.path(rf_results()$result, "analysisResultsSqlite.zip"), fname)
         }
 
-        ParallelLogger::logInfo("[CohortDemographics] Download:")
+        ParallelLogger::logInfo("[CohortDiagnostics] Download:")
 
         return(fname)
       }
@@ -301,7 +292,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers) {
 
 
     shiny::observeEvent(input$view_actionButton, {
-      ParallelLogger::logInfo("[CohortDemographics] Open in Viewer:")
+      ParallelLogger::logInfo("[CohortDiagnostics] Open in Viewer:")
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url
