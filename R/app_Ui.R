@@ -19,14 +19,14 @@ app_ui <- function(request) {
           shiny::h5(" Databases"),
           shinydashboard::menuItem("Databases connection", tabName = "selectDatabases", icon = shiny::icon("database")),
           shiny::h5(" Cohorts"),
-          shinydashboard::menuItem("Import Cohorts", tabName = "importCohorts", icon = shiny::icon("address-card")),
+          shinydashboard::menuItem("Import Cohorts", tabName = "importCohorts", icon = shiny::icon("upload")),
           shinydashboard::menuItem("Operate Cohorts", tabName = "OperateCohorts", icon = shiny::icon("calculator")),
           shinydashboard::menuItem("Match Cohorts", tabName = "matchCohorts", icon = shiny::icon("connectdevelop")),
           #shinydashboard::menuItem("Export Cohorts", tabName = "exportsCohorts", icon = shiny::icon("")),
           shiny::h5(" Analyses"),
           shinydashboard::menuItem("CohortsDiagnostics", tabName = "cohortDiagnostics", icon = shiny::icon("stethoscope")),
-          #shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("")),
-          #shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("")),
+          shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("braille")),
+          shinydashboard::menuItem("Cohorts Incidence", tabName = "cohortsIncidence", icon = shiny::icon("users")),
           shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("tasks")),
           shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road")),
           shiny::h5(" About"),
@@ -158,7 +158,7 @@ app_ui <- function(request) {
             ),
             ### Import Cohorts
             shinydashboard::box(
-              title = shiny::tagList(shiny::icon("connectdevelop"), "Cohorts Overlap:"),
+              title = shiny::tagList(shiny::icon("braille"), "Cohorts Overlap:"),
               solidHeader = TRUE, width = 12,
               shiny::tags$h3("Not implemented yet"),
               shiny::tags$h3("will allow to compare cohorts for overlap")
@@ -175,7 +175,7 @@ app_ui <- function(request) {
             ),
             ### Import Cohorts
             shinydashboard::box(
-              title = shiny::tagList(shiny::icon("connectdevelop"), "Cohorts Incidence:"),
+              title = shiny::tagList(shiny::icon("users"), "Cohorts Demographics:"),
               solidHeader = TRUE, width = 12,
               mod_cohortsIncidence_ui("cohortsIncidence")
             )
@@ -187,11 +187,11 @@ app_ui <- function(request) {
             shinydashboard::box(
               title = "Cohorts workbench ",
               status = "primary", solidHeader = TRUE, width = 12,
-              mod_cohortWorkbench_ui("cohortWorkbench_CodeWAS")
+                mod_cohortWorkbench_ui("cohortWorkbench_codeWAS")
             ),
             ### Import Cohorts
             shinydashboard::box(
-              title = shiny::tagList(shiny::icon("connectdevelop"), "CodeWAS:"),
+              title = shiny::tagList(shiny::icon("tasks"), "CodeWAS:"),
               solidHeader = TRUE, width = 12,
               mod_codeWAS_ui("codeWAS")
             )
@@ -207,7 +207,7 @@ app_ui <- function(request) {
             ),
             ### Import Cohorts
             shinydashboard::box(
-              title = shiny::tagList(shiny::icon("connectdevelop"), "TimeCodeWAS:"),
+              title = shiny::tagList(shiny::icon("road"), "TimeCodeWAS:"),
               solidHeader = TRUE, width = 12,
               mod_timeCodeWAS_ui("timeCodeWAS")
             )

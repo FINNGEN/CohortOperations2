@@ -1,32 +1,37 @@
 
 
 
-mod_cohortsIncidence_ui <- function(id) {
+mod_cohortOverlaps_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
     shinyjs::useShinyjs(),
     #
+    shiny::tags$h4("Database"),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectDatabases_pickerInput"),
+      label = "Select database where calculate cohort overlaps:",
+      choices = NULL,
+      selected = NULL,
+      multiple = FALSE),
+    htmltools::hr(),
     shiny::tags$h4("Cohorts"),
     shinyWidgets::pickerInput(
-      inputId = ns("selectCohort_pickerInput"),
+      inputId = ns("selectCohorts_pickerInput"),
       label = "Select one or more cohorts:",
       choices = NULL,
-      multiple = TRUE,
-      options = list(`actions-box` = TRUE)
-    ),
-    #
-    shiny::tags$h4("Settings"),
+      selected = NULL,
+      multiple = TRUE),
+    shiny::tags$h5("Minimum cell count:"),
     shiny::numericInput(
       inputId = ns("minCellCount_numericInput"),
-      label = "Min Cell Count",
+      label = NULL,
       value = 1,
       min = 1,
       max = 1000
     ),
     htmltools::hr(),
-    #
-    htmltools::hr(),
-    shiny::tags$h4("Run"),
+    shiny::tags$h4("Summary"),
+    shiny::verbatimTextOutput(ns("summary_text")),
     shiny::tags$br(),
     shiny::actionButton(ns("run_actionButton"), "Run Study"),
     #
@@ -41,21 +46,23 @@ mod_cohortsIncidence_ui <- function(id) {
 }
 
 
-mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
+mod_cohortOverlaps_server <- function(id, r_connectionHandlers, r_workbench) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-
+    cores <- shiny::getShinyOption("cores")
+    chunksSizeNOutcomes <- shiny::getShinyOption("chunksSizeNOutcomes")
 
     #
     # reactive variables
     #
+    r_ranges <- mod_formTimeWindows_server("selectRanges")
 
     r <- shiny::reactiveValues(
       analysisSettings = NULL
     )
 
-    rf_results <- shiny::reactiveVal()
+    rf_cohortOverlapsCounts <- shiny::reactiveVal()
 
     # A reactive value with the inputs to modalWithLog_server
     .r_l <- shiny::reactiveValues(
@@ -64,21 +71,34 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
     #
-    # render selectDatabases_pickerInput with database names
+    # update selectDatabases_pickerInput with database names
     #
-    shiny::observeEvent(r_workbench$cohortsSummaryDatabases, {
+    shiny::observe({
+      shiny::req(r_connectionHandlers$databasesHandlers)
 
-      cohortIdAndNamesList <- list()
-      for(databaseId in unique(r_workbench$cohortsSummaryDatabases$databaseId)){
-        cohortIdAndNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter(databaseId == !!databaseId) |> dplyr::select(cohortId, shortName)
-        cohortIdAndNamesList[databaseId] <- list(as.list(setNames(paste0(databaseId, "@", cohortIdAndNames$cohortId), cohortIdAndNames$shortName)))
-      }
+      databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
 
       shinyWidgets::updatePickerInput(
-        session = session,
-        inputId = "selectCohort_pickerInput",
+        inputId = "selectDatabases_pickerInput",
+        choices = databaseIdNamesList,
+        selected = databaseIdNamesList[1]
+      )
+    })
+
+    #
+    # update selectCohorts_pickerInput with cohort names in selectDatabases_pickerInput database
+    #
+    shiny::observe({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
+      shiny::req(input$selectDatabases_pickerInput)
+
+      cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortIdAndNames()
+      cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
+
+      shinyWidgets::updatePickerInput(
+        inputId = "selectCohorts_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = NULL
+        selected = cohortIdAndNamesList
       )
     })
 
@@ -87,7 +107,8 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
     # activate settings if cohors have been selected
     #
     shiny::observe({
-      condition <- !is.null(input$selectCohort_pickerInput)
+      condition <- !is.null(input$selectCohorts_pickerInput) & input$selectCohorts_pickerInput!="NA"
+      #shinyjs::toggleState("selectCovariates", condition = condition )
       shinyjs::toggleState("run_actionButton", condition = condition )
     })
 
@@ -95,26 +116,16 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
     # create settings
     #
     shiny::observe({
-      shiny::req(input$selectCohort_pickerInput)
-      shiny::req(input$selectCohort_pickerInput!="NA")
+      shiny::req(input$selectDatabases_pickerInput)
+      shiny::req(input$selectCohorts_pickerInput)
+      shiny::req(input$selectCohorts_pickerInput!="NA")
       shiny::req(input$minCellCount_numericInput)
 
-      # convert vector of strings databaseId-cohortId to tibble databaseId and cohortIds
-      databaseIdsCohortIdsTibble<- data.frame(
-        databaseId = gsub(pattern = "@.*", replacement = "", x = input$selectCohort_pickerInput),
-        cohortId = gsub(pattern = ".*@", replacement = "", x = input$selectCohort_pickerInput)
-      )
-
-      databaseIdsCohorsIdsList <- list()
-      for(databaseId in unique(databaseIdsCohortIdsTibble$databaseId)){
-        databaseIdsCohorsIdsList[[databaseId]] <- databaseIdsCohortIdsTibble |> dplyr::filter(databaseId == !!databaseId) |> dplyr::pull(cohortId)
-      }
-
       analysisSettings <- list(
-        studyType = "cohortsIncidence",
-        databaseIdsCohorsIdsList = databaseIdsCohorsIdsList,
+        analysisType = "cohortOverlaps",
+        cohortIds = input$selectCohorts_pickerInput,
         minCellCount = input$minCellCount_numericInput
-        )
+      )
 
       r$analysisSettings <- analysisSettings
 
@@ -127,18 +138,17 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
     shiny::observeEvent(input$run_actionButton, {
       shiny::req(r$analysisSettings)
       # copy analysisSettings to .r_l$.l
-      databasesHandlers <- r_connectionHandlers$databasesHandlers
-
+      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
 
       l <- r$analysisSettings
 
       .r_l$.l <- list(
-        databasesHandlers = databasesHandlers,
+        cohortTableHandler = cohortTableHandler,
         analysisSettings = l,
         sqlRenderTempEmulationSchema = getOption("sqlRenderTempEmulationSchema")
       )
 
-      ParallelLogger::logInfo("[Demographics] Run in databases: ", input$selectDatabases_pickerInput, " with settings: ", .listToString(l))
+      ParallelLogger::logInfo("[cohortOverlaps] Run in database: ", input$selectDatabases_pickerInput, " with settings: ", .listToString(l))
     })
 
 
@@ -146,7 +156,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
     rf_results <- modalWithLog_server(
       id = "sss",
       .f = function(
-    databasesHandlers,
+    cohortTableHandler,
     analysisSettings,
     sqlRenderTempEmulationSchema
       ){
@@ -158,52 +168,18 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
         dir.create(tmpdirTime)
         ParallelLogger::logInfo(tmpdirTime)
         #
-        ParallelLogger::logInfo("Start cohortDiagnostics")
-        pathToResultFolders <- c()
-        for(databaseId in names(analysisSettings$databaseIdsCohorsIdsList)){
-          tmpdirTimeDatabase <- file.path(tmpdirTime, databaseId)
-          dir.create(tmpdirTimeDatabase)
-
-          ParallelLogger::logInfo("databaseId = ", databaseId)
-          cohortTableHandler <-databasesHandlers[[databaseId]]$cohortTableHandler
-          exportFolder  <-  tmpdirTimeDatabase
-          pathToResultFolders <- c(pathToResultFolders, exportFolder)
-
-          CohortDiagnostics::executeDiagnostics(
-            cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
-            exportFolder = exportFolder,
-            databaseId = cohortTableHandler$databaseName,
-            cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
-            databaseName = cohortTableHandler$databaseName,
-            databaseDescription = cohortTableHandler$databaseName,
-            connection = cohortTableHandler$connectionHandler$getConnection(),
-            cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
-            cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
-            vocabularyDatabaseSchema = cohortTableHandler$vocabularyDatabaseSchema,
-            cohortIds = analysisSettings$databaseIdsCohorsIdsList[[databaseId]],
-            runInclusionStatistics = FALSE,
-            runIncludedSourceConcepts = FALSE,
-            runOrphanConcepts = FALSE,
-            runTimeSeries = FALSE,
-            runVisitContext = FALSE,
-            runBreakdownIndexEvents = FALSE,
-            runIncidenceRate = TRUE,
-            runCohortRelationship = FALSE,
-            runTemporalCohortCharacterization = FALSE,
-            minCellCount = 1,
-            incremental = FALSE
-          )
-        }
-
-        ParallelLogger::logInfo("Results to csv")
         tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
         dir.create(tmpdirTimeAnalysisResultsCsv)
-        HadesExtras::CohortDiagnostics_mergeCsvResults(
-          pathToResultFolders = pathToResultFolders,
-          pathToMergedRestulsFolder = tmpdirTimeAnalysisResultsCsv
+
+        HadesExtras::executeCohortOverlaps(
+          exportFolder = tmpdirTimeAnalysisResultsCsv,
+          cohortTableHandler = cohortTableHandler,
+          cohortIds = as.integer(analysisSettings$cohortIds),
+          minCellCount = analysisSettings$minCellCount
         )
 
-        yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsCsv, "analysisSettings.yaml"))
+        ParallelLogger::logInfo("Results to csv")
+        yaml::write_yaml(tmpdirTimeAnalysisResultsCsv, file.path(tmpdirTime, "analysisSettings.yaml"))
 
         analysisResultsZipCsvPath <- file.path(tmpdirTime, "analysisResultsCsv.zip")
         zip::zipr(zipfile = analysisResultsZipCsvPath, files = list.files(tmpdirTimeAnalysisResultsCsv, full.names = TRUE, recursive = TRUE))
@@ -212,10 +188,11 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
         tmpdirTimeAnalysisResultsSqlite <- file.path(tmpdirTime, "analysisResultsSqlite")
         dir.create(tmpdirTimeAnalysisResultsSqlite)
 
-        CohortDiagnostics::createMergedResultsFile(
+        HadesExtras::csvFilesToSqlite(
           dataFolder = tmpdirTimeAnalysisResultsCsv,
           sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
-          overwrite = TRUE
+          overwrite = TRUE,
+          analysis = "cohortOverlaps"
         )
 
         yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsSqlite, "analysisSettings.yaml"))
@@ -223,8 +200,8 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
         analysisResultsZipSqlitePath <- file.path(tmpdirTime, "analysisResultsSqlite.zip")
         zip::zipr(zipfile = analysisResultsZipSqlitePath, files = list.files(tmpdirTimeAnalysisResultsSqlite, full.names = TRUE, recursive = TRUE))
 
-        ParallelLogger::logInfo("End cohortDiagnostics")
 
+        ParallelLogger::logInfo("End cohortOverlapsCounts")
 
         return(tmpdirTime)
       },
@@ -235,8 +212,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # display results
     #
-    output$results_text <- shiny::renderText({
-
+    output$summary_text <- shiny::renderText({
       rf_results()$result
       shiny::req(rf_results)
 
@@ -256,10 +232,11 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
                                 "📄 Message: ", rf_results()$result)
       }
 
-      ParallelLogger::logInfo("[CohortDiagnostics] Ran results: ", resultMessage)
+      ParallelLogger::logInfo("[cohortOverlaps] Ran results: ", resultMessage)
 
       resultMessage
     })
+
     #
     # activate settings if cohorts have been selected
     #
@@ -277,22 +254,19 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
     output$download_actionButton <- shiny::downloadHandler(
-      filename = function(){"analysisName_cohortDiagnostics.zip"},
+      filename = function(){"analysisName_cohortOverlaps.zip"},
       content = function(fname){
-
         if(rf_results()$success){
           file.copy(file.path(rf_results()$result, "analysisResultsSqlite.zip"), fname)
         }
-
-        ParallelLogger::logInfo("[CohortDiagnostics] Download:")
-
+        ParallelLogger::logInfo("[cohortOverlaps] Download:")
         return(fname)
       }
     )
 
 
     shiny::observeEvent(input$view_actionButton, {
-      ParallelLogger::logInfo("[CohortDiagnostics] Open in Viewer:")
+      ParallelLogger::logInfo("[cohortOverlaps] Open in Viewer:")
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url
@@ -301,27 +275,12 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
 
       # run js code in client
       shinyjs::runjs(paste0("window.open('", url, "')"))
-
     })
 
 
 
   })
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

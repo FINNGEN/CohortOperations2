@@ -36,11 +36,11 @@ devtools::load_all(".")
 app <- shiny::shinyApp(
   shiny::fluidPage(
     mod_cohortWorkbench_ui("test"),
-    mod_cohortsIncidence_ui("test")
+    mod_cohortOverlaps_ui("test")
   ),
   function(input,output,session){
     mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
-    mod_cohortsIncidence_server("test", r_connectionHandlers)
+    mod_cohortOverlaps_server("test", r_connectionHandlers, r_workbench)
   },
   options = list(launch.browser=TRUE)
 )

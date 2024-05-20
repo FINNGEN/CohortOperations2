@@ -26,7 +26,7 @@ modalWithLog_server <- function(id,.f,.r_l, logger, logUpdateSeconds = 0.5, logL
       .l = .r_l$.l
       ParallelLogger::logInfo("Launching future in modalWithLog_server id = ", id)
       sweetAlert_spinner("Starting analysis")
-
+#browser()
       future::future({
         # run function
         result <- NULL
