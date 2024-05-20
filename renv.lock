@@ -256,7 +256,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "HEAD",
-      "RemoteSha": "c512c4571bc3dec51aefc2f11a6698d3a636dfdd",
+      "RemoteSha": "916825b18c0df0759266446ba9f15b92d990b891",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -290,7 +290,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "0f69e061d795ce63bc60afcc9c40db9a"
+      "Hash": "10ce0edd2cae21f6af75299629515935"
     },
     "MASS": {
       "Package": "MASS",
