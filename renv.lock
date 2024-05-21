@@ -256,7 +256,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "HEAD",
-      "RemoteSha": "916825b18c0df0759266446ba9f15b92d990b891",
+      "RemoteSha": "9c17b4cc2fbfb4d0449e087ae76a713a8bb649df",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -290,7 +290,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "10ce0edd2cae21f6af75299629515935"
+      "Hash": "4893f0da24742af13d8aa09196e1d4e7"
     },
     "MASS": {
       "Package": "MASS",
@@ -2565,7 +2565,7 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.26",
+      "Version": "2.27",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2584,7 +2584,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "9b148e7f95d33aac01f31282d49e4f44"
+      "Hash": "27f9502e1cdbfa195f94e03b0f517484"
     },
     "roxygen2": {
       "Package": "roxygen2",

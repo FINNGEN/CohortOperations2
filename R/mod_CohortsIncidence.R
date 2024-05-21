@@ -16,6 +16,18 @@ mod_cohortsIncidence_ui <- function(id) {
     ),
     #
     shiny::tags$h4("Settings"),
+    shinyWidgets::pickerInput(
+      inputId = ns("stratify_pickerInput"),
+      label = "Select counts stratification:",
+      choices = list(`Calendar Year`='calendarYear', `Age Group`='ageGroup', `Gender`="gender"),
+      selected = list(`Calendar Year`='calendarYear', `Age Group`='ageGroup', `Gender`="gender"),
+      multiple = TRUE),
+    shinyWidgets::pickerInput(
+      inputId = ns("references_pickerInput"),
+      label = "Select counts refered to:",
+      choices = list(`Cohort Onset`="cohort_start_date", `Cohort End`="cohort_end_date", `Birth Year`="year_of_birth"),
+      selected = list(`Cohort Onset`="cohort_start_date", `Cohort End`="cohort_end_date", `Birth Year`="year_of_birth"),
+      multiple = TRUE),
     shiny::numericInput(
       inputId = ns("minCellCount_numericInput"),
       label = "Min Cell Count",
@@ -87,7 +99,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
     # activate settings if cohors have been selected
     #
     shiny::observe({
-      condition <- !is.null(input$selectCohort_pickerInput)
+      condition <- !is.null(input$selectCohort_pickerInput)  && !is.null(input$minCellCount_numericInput) && !is.null(input$stratify_pickerInput) && !is.null(input$references_pickerInput)
       shinyjs::toggleState("run_actionButton", condition = condition )
     })
 
@@ -98,6 +110,8 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$selectCohort_pickerInput)
       shiny::req(input$selectCohort_pickerInput!="NA")
       shiny::req(input$minCellCount_numericInput)
+      shiny::req(input$stratify_pickerInput)
+      shiny::req(input$references_pickerInput)
 
       # convert vector of strings databaseId-cohortId to tibble databaseId and cohortIds
       databaseIdsCohortIdsTibble<- data.frame(
@@ -113,7 +127,9 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
       analysisSettings <- list(
         studyType = "cohortsIncidence",
         databaseIdsCohorsIdsList = databaseIdsCohorsIdsList,
-        minCellCount = input$minCellCount_numericInput
+        minCellCount = input$minCellCount_numericInput,
+        groupBy = input$stratify_pickerInput,
+        referenceYears = input$references_pickerInput
         )
 
       r$analysisSettings <- analysisSettings
@@ -160,40 +176,24 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
         #
         ParallelLogger::logInfo("Start cohortDiagnostics")
         pathToResultFolders <- c()
-        for(databaseId in names(analysisSettings$databaseIdsCohorsIdsList)){
-          tmpdirTimeDatabase <- file.path(tmpdirTime, databaseId)
-          dir.create(tmpdirTimeDatabase)
+          for(databaseId in names(analysisSettings$databaseIdsCohorsIdsList)){
+            tmpdirTimeDatabase <- file.path(tmpdirTime, databaseId)
+            dir.create(tmpdirTimeDatabase)
 
-          ParallelLogger::logInfo("databaseId = ", databaseId)
-          cohortTableHandler <-databasesHandlers[[databaseId]]$cohortTableHandler
-          exportFolder  <-  tmpdirTimeDatabase
-          pathToResultFolders <- c(pathToResultFolders, exportFolder)
+            ParallelLogger::logInfo("databaseId = ", databaseId)
+            cohortTableHandler <-databasesHandlers[[databaseId]]$cohortTableHandler
+            exportFolder  <-  tmpdirTimeDatabase
+            pathToResultFolders <- c(pathToResultFolders, exportFolder)
 
-          CohortDiagnostics::executeDiagnostics(
-            cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
-            exportFolder = exportFolder,
-            databaseId = cohortTableHandler$databaseName,
-            cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
-            databaseName = cohortTableHandler$databaseName,
-            databaseDescription = cohortTableHandler$databaseName,
-            connection = cohortTableHandler$connectionHandler$getConnection(),
-            cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
-            cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
-            vocabularyDatabaseSchema = cohortTableHandler$vocabularyDatabaseSchema,
-            cohortIds = analysisSettings$databaseIdsCohorsIdsList[[databaseId]],
-            runInclusionStatistics = FALSE,
-            runIncludedSourceConcepts = FALSE,
-            runOrphanConcepts = FALSE,
-            runTimeSeries = FALSE,
-            runVisitContext = FALSE,
-            runBreakdownIndexEvents = FALSE,
-            runIncidenceRate = TRUE,
-            runCohortRelationship = FALSE,
-            runTemporalCohortCharacterization = FALSE,
-            minCellCount = 1,
-            incremental = FALSE
-          )
-        }
+            HadesExtras::executeCohortDemographicsCounts(
+              exportFolder = exportFolder,
+              cohortTableHandler = cohortTableHandler,
+              cohortIds = as.integer(analysisSettings$databaseIdsCohorsIdsList[[databaseId]]),
+              referenceYears = analysisSettings$referenceYears,
+              groupBy = analysisSettings$groupBy,
+              minCellCount = analysisSettings$minCellCount
+            )
+          }
 
         ParallelLogger::logInfo("Results to csv")
         tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
@@ -212,10 +212,11 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
         tmpdirTimeAnalysisResultsSqlite <- file.path(tmpdirTime, "analysisResultsSqlite")
         dir.create(tmpdirTimeAnalysisResultsSqlite)
 
-        CohortDiagnostics::createMergedResultsFile(
+        HadesExtras::csvFilesToSqlite(
           dataFolder = tmpdirTimeAnalysisResultsCsv,
           sqliteDbPath = file.path(tmpdirTimeAnalysisResultsSqlite, "analysisResults.sqlite"),
-          overwrite = TRUE
+          overwrite = TRUE,
+          analysis = "cohortDemographics"
         )
 
         yaml::write_yaml(analysisSettings, file.path(tmpdirTimeAnalysisResultsSqlite, "analysisSettings.yaml"))
