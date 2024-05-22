@@ -1,3 +1,5 @@
+# CohortOperations2 0.3.0
+
 # CohortOperations2 0.2.2
 
 - Added CodeWAS analyis
