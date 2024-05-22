@@ -25,8 +25,8 @@ mod_cohortsIncidence_ui <- function(id) {
     shinyWidgets::pickerInput(
       inputId = ns("references_pickerInput"),
       label = "Select counts refered to:",
-      choices = list(`Cohort Onset`="cohort_start_date", `Cohort End`="cohort_end_date", `Birth Year`="year_of_birth"),
-      selected = list(`Cohort Onset`="cohort_start_date", `Cohort End`="cohort_end_date", `Birth Year`="year_of_birth"),
+      choices = list(`Cohort Onset`="cohort_start_date", `Cohort End`="cohort_end_date", `Birth`="birth_datetime"),
+      selected = list(`Cohort Onset`="cohort_start_date", `Cohort End`="cohort_end_date", `Birth`="birth_datetime"),
       multiple = TRUE),
     shiny::numericInput(
       inputId = ns("minCellCount_numericInput"),

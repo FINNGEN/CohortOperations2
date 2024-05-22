@@ -45,7 +45,7 @@ app_server <- function(input, output, session) {
   mod_cohortDiagnostics_server("cohortDiagnostics", r_connectionHandlers, r_workbench)
 
   mod_cohortWorkbench_server("cohortWorkbench_cohortOverlaps", r_connectionHandlers, r_workbench)
-  mod_cohortsIncidence_server("cohortOverlaps", r_connectionHandlers, r_workbench)
+  mod_cohortOverlaps_server("cohortOverlaps", r_connectionHandlers, r_workbench)
 
   mod_cohortWorkbench_server("cohortWorkbench_cohortsIncidence", r_connectionHandlers, r_workbench)
   mod_cohortsIncidence_server("cohortsIncidence", r_connectionHandlers, r_workbench)

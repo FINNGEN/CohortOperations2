@@ -26,8 +26,8 @@ app_ui <- function(request) {
           shiny::h5(" Analyses"),
           shinydashboard::menuItem("CohortsDiagnostics", tabName = "cohortDiagnostics", icon = shiny::icon("stethoscope")),
           shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("braille")),
-          shinydashboard::menuItem("Cohorts Demographics", tabName = "cohortsIncidence", icon = shiny::icon("users")),
-          shinydashboard::menuItem("CodeWAS", tabName = "CodeWAS", icon = shiny::icon("tasks")),
+          shinydashboard::menuItem("Cohorts Demographics(Beta)", tabName = "cohortsIncidence", icon = shiny::icon("users")),
+          shinydashboard::menuItem("CodeWAS (Beta)", tabName = "CodeWAS", icon = shiny::icon("tasks")),
           shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road")),
           shiny::h5(" About"),
           shinydashboard::menuItem("About", tabName = "about", icon = shiny::icon("info"))
