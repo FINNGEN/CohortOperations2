@@ -22,7 +22,7 @@ app_ui <- function(request) {
           shinydashboard::menuItem("Import Cohorts", tabName = "importCohorts", icon = shiny::icon("address-card")),
           shinydashboard::menuItem("Operate Cohorts", tabName = "OperateCohorts", icon = shiny::icon("calculator")),
           shinydashboard::menuItem("Match Cohorts", tabName = "matchCohorts", icon = shiny::icon("connectdevelop")),
-          #shinydashboard::menuItem("Export Cohorts", tabName = "exportsCohorts", icon = shiny::icon("")),
+          shinydashboard::menuItem("Export Cohorts", tabName = "exportsCohorts", icon = shiny::icon("file-export")),
           shiny::h5(" Analyses"),
           shinydashboard::menuItem("CohortsDiagnostics", tabName = "cohortDiagnostics", icon = shiny::icon("stethoscope")),
           #shinydashboard::menuItem("Cohorts Overlap", tabName = "cohortsOverlap", icon = shiny::icon("")),
@@ -119,12 +119,11 @@ app_ui <- function(request) {
               status = "primary", solidHeader = TRUE, width = 12,
               mod_cohortWorkbench_ui("cohortWorkbench_exportsCohorts")
             ),
-            ### Import Cohorts
+            ### Export Cohorts
             shinydashboard::box(
-              title = shiny::tagList(shiny::icon("connectdevelop"), "Exports Cohorts:"),
+              title = shiny::tagList(shiny::icon("file-export"), "Exports Cohorts:"),
               solidHeader = TRUE, width = 12,
-              shiny::tags$h3("Not implemented yet"),
-              shiny::tags$h3("will allow to export cohort definitions or cohorts as a cohortData file")
+              mod_exportsCohorts_ui("exportsCohorts")
             )
           ),
           ##
