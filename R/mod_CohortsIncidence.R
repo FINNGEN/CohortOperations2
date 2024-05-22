@@ -90,7 +90,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
         session = session,
         inputId = "selectCohort_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = NULL
+        selected = cohortIdAndNamesList |> unlist()
       )
     })
 
@@ -125,7 +125,7 @@ mod_cohortsIncidence_server <- function(id, r_connectionHandlers, r_workbench) {
       }
 
       analysisSettings <- list(
-        studyType = "cohortsIncidence",
+        analysisType = "cohortDemographics",
         databaseIdsCohorsIdsList = databaseIdsCohorsIdsList,
         minCellCount = input$minCellCount_numericInput,
         groupBy = input$stratify_pickerInput,

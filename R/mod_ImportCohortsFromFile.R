@@ -17,7 +17,7 @@ mod_importCohortsFromFile_ui <- function(id) {
                                 "text/csv", "text/comma-separated-values,text/plain", ".csv")
     ),
     htmltools::hr(),
-    reactable::reactableOutput(ns("cohorts_reactable")), # %>% ui_load_spiner(),
+    reactable::reactableOutput(ns("cohorts_reactable")), # |> ui_load_spiner(),
     htmltools::hr(),
     shiny::actionButton(ns("import_actionButton"), "Import Selected")
   )

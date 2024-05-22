@@ -282,8 +282,8 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
   ###
   g <- NULL
   try({
-    g <- cohortOverlapPlot %>%
-      dplyr::mutate(newset = forcats::as_factor(!newset)) %>%
+    g <- cohortOverlapPlot |>
+      dplyr::mutate(newset = forcats::as_factor(!newset)) |>
       #
       ggplot2::ggplot(ggplot2::aes(x=cohort_vector, y=numberOfSubjects, fill=newset, label = numberOfSubjects)) +
       ggplot2::geom_bar(stat = "identity") +

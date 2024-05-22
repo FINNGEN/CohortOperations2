@@ -23,4 +23,4 @@ run_app(
 
 
 # Run modules independently
-# find the codes for each module in tests/testmanual/test-mod_<module>.R
+# find the codes for each module in tests/testmanual/test-mod_<module>.
