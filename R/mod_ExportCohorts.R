@@ -20,15 +20,95 @@ mod_exportsCohorts_ui <- function(id) {
       label = NULL,
       choices = NULL,
       selected = NULL,
-      multiple = FALSE),
+      multiple = TRUE),
     htmltools::hr(),
     shiny::downloadButton(ns("downloadData"), "Export")
   )
 }
 
 format_str <- function(x){
-  tolower(stringr::str_replace_all(x, "[[:punct:]]", "") %>% stringr::str_replace_all(.,  " ", "_"))
+  res <- tolower(stringr::str_replace_all(x, "[[:punct:]]", "") %>% stringr::str_replace_all(.,  " ", "_"))
+  cat("\nresults:")
+  cat(str(res))
+  return(res)
 }
+
+create_cohort <- function(cohortTableHandler, session, databaseId, cohortId){
+
+  ns <- session$ns
+
+  result <- list(
+    success = NULL,
+    cohortData = NULL
+  )
+
+  generatedCohorts <- NULL
+  cohortNameIds <- NULL
+  cohortData <- NULL
+
+  connection <- cohortTableHandler$connectionHandler$getConnection()
+  cohortDefinitionSet <- cohortTableHandler$cohortDefinitionSet
+  cdmDatabaseSchema <- cohortTableHandler$cdmDatabaseSchema
+  cohortDatabaseSchema <- cohortTableHandler$cohortDatabaseSchema
+  cohortTable <- cohortTableHandler$cohortTableNames$cohortTable
+  cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
+
+  tryCatch({
+    CohortGenerator::createCohortTables(
+      connection = connection,
+      cohortDatabaseSchema = cohortDatabaseSchema,
+      cohortTableNames = cohortTableNames)
+  }, error=function(e) {
+    ParallelLogger::logError("[Export Cohorts] createCohortTables: ", e$message)
+  }, warning=function(w) {
+    ParallelLogger::logWarn("[Export Cohorts] createCohortTables: ", w$message)
+  })
+
+  tryCatch({
+    generatedCohorts <- CohortGenerator::generateCohortSet(
+      connection = connection,
+      cdmDatabaseSchema = cdmDatabaseSchema,
+      cohortDatabaseSchema = cohortDatabaseSchema,
+      cohortTableNames = cohortTableNames,
+      cohortDefinitionSet = cohortDefinitionSet,
+      incremental = FALSE)
+  }, error=function(e) {
+    ParallelLogger::logError("[Export Cohorts] generateCohortSet: ", e$message)
+  }, warning=function(w) {
+    ParallelLogger::logWarn("[Export Cohorts] generateCohortSet: ", w$message)
+  }, finally = {
+    if (!is.null(generatedCohorts)){
+      cohortNameIds <- (generatedCohorts |> dplyr::select(cohortId, cohortName))[which(generatedCohorts$cohortId == cohortId), ]
+    }
+  })
+
+  tryCatch({
+    cohortData <- HadesExtras::getCohortDataFromCohortTable(
+      connection = connection,
+      cdmDatabaseSchema = cdmDatabaseSchema,
+      cohortDatabaseSchema = cohortDatabaseSchema,
+      cohortTable = cohortTable,
+      cohortNameIds = cohortNameIds)
+  }, error=function(e) {
+    ParallelLogger::logError("[Export Cohorts] getCohortDataFromCohortTable: ", e$message)
+  }, warning=function(w) {
+    ParallelLogger::logWarn("[Export Cohorts] getCohortDataFromCohortTable: ", w$message)
+  }, finally={
+    if (!is.null(cohortData)){
+      cohortData <- tibble::add_column(
+        cohortData, database_id = rep(databaseId, nrow(cohortData)), .before = 1
+      )
+      result$success <- TRUE
+    } else {
+      result$success <- FALSE
+    }
+  })
+
+  result$cohortData <- cohortData
+
+  return(result)
+}
+
 
 mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
@@ -50,13 +130,12 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
     r_data <- shiny::reactiveValues(
       databaseId = NULL,
+      databaseName = NULL,
       cohortId = NULL,
       filename = NULL,
-      cohortName = NULL
-    )
-
-    r_status <- shiny::reactiveValues(
-      success = NULL
+      cohortName = NULL,
+      success = NULL,
+      failedCohorts = NULL
     )
 
     #
@@ -82,16 +161,16 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$selectCohorts_pickerInput)
 
       selected <- input$selectCohorts_pickerInput
-      databaseId <- strsplit(selected, '@')[[1]][1]
-      cohortId <- strsplit(selected, '@')[[1]][2]
 
-      id <- which(r_workbench$cohortsSummaryDatabases$databaseId == databaseId & r_workbench$cohortsSummaryDatabases$cohortId == cohortId)
-      dbName <- format_str(r_workbench$cohortsSummaryDatabases$databaseName[id])
-      cohortName <- format_str(r_workbench$cohortsSummaryDatabases$cohortName[id])
+      df <- r_workbench$cohortsSummaryDatabases[which(paste0(r_workbench$cohortsSummaryDatabases$databaseId, "@",
+                                                 r_workbench$cohortsSummaryDatabases$cohortId) %in% selected), ]
 
-      r_data$databaseId <- databaseId
-      r_data$cohortId <- cohortId
-      r_data$filename <- paste0(c("cohort", cohortName, "database",  dbName), collapse = "_")
+      r_data$databaseId <- df$databaseId
+      r_data$cohortId <- df$cohortId
+      r_data$cohortName <- df$cohortName
+      r_data$databaseName <- df$databaseName
+      name <- paste0(paste0(df$databaseId, "_", df$cohortName), collapse = "_")
+      r_data$filename <- sprintf("cohort_%s.csv", name)
 
     })
 
@@ -99,100 +178,34 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       filename =  function() {r_data$filename},
       content = function(filename) {
 
-        databaseId <- r_data$databaseId
-        cohortId <- r_data$cohortId
-
         sweetAlert_spinner("Preparing cohort for download")
 
-        cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
-        connection <- cohortTableHandler$connectionHandler$getConnection()
-        cohortDefinitionSet <- cohortTableHandler$cohortDefinitionSet
-        cdmDatabaseSchema <- cohortTableHandler$cdmDatabaseSchema
-        cohortDatabaseSchema <- cohortTableHandler$cohortDatabaseSchema
-        cohortTable <- cohortTableHandler$cohortTableNames$cohortTable
-        cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
+        result <- rbind()
+        for (i in 1:length(r_data$databaseId)){
+          databaseId <- r_data$databaseId[i]
+          cohortId <- r_data$cohortId[i]
+          cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
+
+          cohort <- create_cohort(cohortTableHandler, session, databaseId, cohortId)
+          if (!cohort$success){
+            r_data$failedCohorts <- c(r_data$failedCohorts,
+                                      sprintf("%s (%s)", r_data$cohortName[i],
+                                              r_data$databaseName[i]))
+          } else {
+            result <- rbind(result, cohort$cohortData)
+          }
+
+        }
 
         tryCatch({
-          CohortGenerator::createCohortTables(
-            connection = connection,
-            cohortDatabaseSchema = cohortDatabaseSchema,
-            cohortTableNames = cohortTableNames)
+          write.table(result, filename, row.names=FALSE, sep="\t", quote = F, append = F)
+          r_data$success <<- TRUE
         }, error=function(e) {
-          shinyWidgets::sendSweetAlert(
-            session = session,
-            title = "Error while creaating a cohort:",
-            text = e,
-            btn_labels = "OK",
-            type = "error"
-          )
+          r_data$success <<- FALSE
+          ParallelLogger::logError("[Export Cohorts] write table: ", e$message)
         }, warning=function(w) {
-          shinyWidgets::sendSweetAlert(
-            session = session,
-            title = "Warning while creaating a cohort:",
-            text = w,
-            btn_labels = "OK",
-            type = "warning"
-          )
-        })
-
-        tryCatch({
-          generatedCohorts <- CohortGenerator::generateCohortSet(
-            connection = connection,
-            cdmDatabaseSchema = cdmDatabaseSchema,
-            cohortDatabaseSchema = cohortDatabaseSchema,
-            cohortTableNames = cohortTableNames,
-            cohortDefinitionSet = cohortDefinitionSet,
-            incremental = FALSE)
-        }, error=function(e) {
-          shinyWidgets::sendSweetAlert(
-            session = session,
-            title = "Error while generating cohort set:",
-            text = e,
-            btn_labels = "OK",
-            type = "error"
-          )
-        }, warning=function(w) {
-          errors$generateCohortSetWarn <- w
-          shinyWidgets::sendSweetAlert(
-            session = session,
-            title = "Warning while generating cohort set:",
-            text = w,
-            btn_labels = "OK",
-            type = "warning"
-          )
-        }, finally = {
-          cohortNameIds <- (generatedCohorts |> dplyr::select(cohortId, cohortName))[which(generatedCohorts$cohortId == cohortId), ]
-        })
-
-        tryCatch({
-          cohortData <- HadesExtras::getCohortDataFromCohortTable(
-            connection = connection,
-            cdmDatabaseSchema = cdmDatabaseSchema,
-            cohortDatabaseSchema = cohortDatabaseSchema,
-            cohortTable = cohortTable,
-            cohortNameIds = cohortNameIds)
-        }, error=function(e) {
-          shinyWidgets::sendSweetAlert(
-            session = session,
-            title = "Error while getting cohort data from table:",
-            text = e,
-            btn_labels = "OK",
-            type = "error"
-          )
-          r_status$success <- FALSE
-        }, warning=function(w) {
-          errors$getCohortDataFromCohortTableWarn <- w
-          shinyWidgets::sendSweetAlert(
-            session = session,
-            title = "Warning while getting cohort data from table:",
-            text = w,
-            btn_labels = "OK",
-            type = "warning"
-          )
-          r_status$success <- FALSE
-        }, finally = {
-          write.table(cohortData, filename, row.names=FALSE, sep="\t", quote = F, append = F)
-          r_status$success <- TRUE
+          r_data$success <<- FALSE
+          ParallelLogger::logWarn("[Export Cohorts] write table: ", w$message)
         })
 
         remove_sweetAlert_spinner()
@@ -201,15 +214,36 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     )
 
     shiny::observe({
-      shiny::req(r_status$success)
-      shinyWidgets::show_alert(
-        title = NULL,
-        text = "Download Completed Successfully",
-        btn_labels = "OK",
-        btn_colors = "#70B6E0",
-        width = "550px"
-      )
-      r_status$success <- NULL
+      shiny::req(!is.null(r_data$success))
+
+      if (!is.null(r_data$failedCohorts)){
+        multiple <- length(r_data$failedCohorts) > 1
+        message <- sprintf("In addition, the following cohort%s %s not exported: \n%s",
+                           if (multiple) "s" else "",
+                           if (multiple) "were" else "was",
+                           paste(r_data$failedCohorts, collapse = ", "))
+      } else {
+        message <- ""
+      }
+
+      if (r_data$success){
+        shinyWidgets::show_alert(
+          title = "Download completed successfully",
+          text = message,
+          btn_labels = "OK",
+          btn_colors = "#70B6E0",
+          width = "550px"
+        )
+      } else {
+        shinyWidgets::sendSweetAlert(
+          session = session,
+          title = "Error while downloading a file",
+          text = message,
+          btn_labels = "OK",
+          type = "error"
+        )
+      }
+      r_data$success <- NULL
     })
 
 
