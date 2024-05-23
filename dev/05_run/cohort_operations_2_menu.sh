@@ -29,6 +29,7 @@ atlasUrl: https://atlas.app.finngen.fi/
 
 echo "
 urlCohortOperationsViewer: http://127.0.0.1:8560/?pathToResultsZip=
+webApiUrl: https://ohdsi-webapi.app.finngen.fi/WebAPI
 " > /tmp/co2_config.yml
 
 echo "
