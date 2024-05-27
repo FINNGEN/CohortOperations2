@@ -17,6 +17,7 @@ mod_exportsCohorts_ui <- function(id) {
     shiny::tags$h5("Select cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectCohorts_pickerInput"),
+      width = "600px",
       label = NULL,
       choices = NULL,
       selected = NULL,
