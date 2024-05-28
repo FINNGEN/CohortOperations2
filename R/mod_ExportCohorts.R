@@ -27,54 +27,6 @@ mod_exportsCohorts_ui <- function(id) {
   )
 }
 
-format_str <- function(x){
-  tolower(stringr::str_replace_all(x, "[[:punct:]]", "") %>% stringr::str_replace_all(.,  " ", "_"))
-}
-
-create_cohort <- function(cohortTableHandler, session, databaseId, cohortId, cohortName){
-
-  ns <- session$ns
-
-  connection <- cohortTableHandler$connectionHandler$getConnection()
-  cohortDefinitionSet <- cohortTableHandler$cohortDefinitionSet
-  cdmDatabaseSchema <- cohortTableHandler$cdmDatabaseSchema
-  cohortDatabaseSchema <- cohortTableHandler$cohortDatabaseSchema
-  cohortTable <- cohortTableHandler$cohortTableNames$cohortTable
-  cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
-  cohortNameIds <- tibble::data_frame(cohortId=cohortId, cohortName=cohortName)
-
-  result <- list(
-    success = NULL,
-    cohortData = NULL
-  )
-
-  tryCatch({
-    cohortData <- HadesExtras::getCohortDataFromCohortTable(
-      connection = connection,
-      cdmDatabaseSchema = cdmDatabaseSchema,
-      cohortDatabaseSchema = cohortDatabaseSchema,
-      cohortTable = cohortTable,
-      cohortNameIds = cohortNameIds)
-  }, error=function(e) {
-    ParallelLogger::logError("[Export Cohorts]: ", e$message)
-  }, warning=function(w) {
-    ParallelLogger::logWarn("[Export Cohorts]: ", w$message)
-  }, finally={
-    if (!is.null(cohortData)){
-      cohortData <- tibble::add_column(
-        cohortData, database_id = rep(databaseId, nrow(cohortData)), .before = 1
-      )
-      result$success <- TRUE
-    } else {
-      result$success <- FALSE
-    }
-  })
-
-  result$cohortData <- cohortData
-
-  return(result)
-}
-
 
 mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
@@ -129,13 +81,13 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       selected <- input$selectCohorts_pickerInput
 
       df <- r_workbench$cohortsSummaryDatabases[which(paste0(r_workbench$cohortsSummaryDatabases$databaseId, "@",
-                                                 r_workbench$cohortsSummaryDatabases$cohortId) %in% selected), ]
+                                                             r_workbench$cohortsSummaryDatabases$cohortId) %in% selected), ]
 
       r_data$databaseId <- df$databaseId
       r_data$cohortId <- df$cohortId
       r_data$cohortName <- df$cohortName
       r_data$databaseName <- df$databaseName
-      name <- paste0(paste0(format_str(df$databaseId), "_", format_str(df$cohortName)), collapse = "_")
+      name <- paste0(paste0(.format_str(df$databaseId), "_", .format_str(df$cohortName)), collapse = "_")
       r_data$filename <- sprintf("%s.csv", name)
 
     })
@@ -153,7 +105,7 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortName <- r_data$cohortName[i]
           cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
 
-          cohort <- create_cohort(cohortTableHandler, session, databaseId, cohortId, cohortName)
+          cohort <- .create_cohort(cohortTableHandler, databaseId, cohortId, cohortName)
           if (!cohort$success){
             r_data$failedCohorts <- c(r_data$failedCohorts,
                                       sprintf("%s (%s)", r_data$cohortName[i],
@@ -220,5 +172,49 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 }
 
 
+.format_str <- function(x){
+  tolower(stringr::str_replace_all(x, "[[:punct:]]", "") %>% stringr::str_replace_all(.,  " ", "_"))
+}
 
+.create_cohort <- function(cohortTableHandler, databaseId, cohortId, cohortName){
+
+  connection <- cohortTableHandler$connectionHandler$getConnection()
+  cohortDefinitionSet <- cohortTableHandler$cohortDefinitionSet
+  cdmDatabaseSchema <- cohortTableHandler$cdmDatabaseSchema
+  cohortDatabaseSchema <- cohortTableHandler$cohortDatabaseSchema
+  cohortTable <- cohortTableHandler$cohortTableNames$cohortTable
+  cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
+  cohortNameIds <- tibble::data_frame(cohortId=cohortId, cohortName=cohortName)
+
+  result <- list(
+    success = NULL,
+    cohortData = NULL
+  )
+
+  tryCatch({
+    cohortData <- HadesExtras::getCohortDataFromCohortTable(
+      connection = connection,
+      cdmDatabaseSchema = cdmDatabaseSchema,
+      cohortDatabaseSchema = cohortDatabaseSchema,
+      cohortTable = cohortTable,
+      cohortNameIds = cohortNameIds)
+  }, error=function(e) {
+    ParallelLogger::logError("[Export Cohorts]: ", e$message)
+  }, warning=function(w) {
+    ParallelLogger::logWarn("[Export Cohorts]: ", w$message)
+  }, finally={
+    if (!is.null(cohortData)){
+      cohortData <- tibble::add_column(
+        cohortData, database_id = rep(databaseId, nrow(cohortData)), .before = 1
+      )
+      result$success <- TRUE
+    } else {
+      result$success <- FALSE
+    }
+  })
+
+  result$cohortData <- cohortData
+
+  return(result)
+}
 
