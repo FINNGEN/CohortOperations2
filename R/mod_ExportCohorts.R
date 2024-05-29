@@ -13,6 +13,7 @@
 mod_exportsCohorts_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
+    shinyjs::useShinyjs(),
     shiny::tags$h4("Cohort"),
     shiny::tags$h5("Select cohort:"),
     shinyWidgets::pickerInput(
@@ -21,9 +22,11 @@ mod_exportsCohorts_ui <- function(id) {
       label = NULL,
       choices = NULL,
       selected = NULL,
+      options = list(
+        `actions-box` = TRUE),
       multiple = TRUE),
     htmltools::hr(),
-    shiny::downloadButton(ns("downloadData"), "Export")
+    shiny::downloadButton(ns("downloadData_downloadButton"), "Export")
   )
 }
 
@@ -74,6 +77,7 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       )
     })
 
+
     shiny::observeEvent(input$selectCohorts_pickerInput, {
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectCohorts_pickerInput)
@@ -92,7 +96,15 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
     })
 
-    output$downloadData <- shiny::downloadHandler(
+    #
+    # activate settings if cohors have been selected
+    #
+    shiny::observe({
+      condition <- shiny::isTruthy(input$selectCohorts_pickerInput)
+      shinyjs::toggleState("downloadData_downloadButton", condition = condition )
+    })
+
+    output$downloadData_downloadButton <- shiny::downloadHandler(
       filename =  function() {r_data$filename},
       content = function(filename) {
 
@@ -105,13 +117,23 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortName <- r_data$cohortName[i]
           cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
 
-          cohort <- .create_cohort(cohortTableHandler, databaseId, cohortId, cohortName)
-          if (!cohort$success){
+          cohortData <- HadesExtras::getCohortDataFromCohortTable(
+            connection = cohortTableHandler$connectionHandler$getConnection(),
+            cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
+            cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
+            cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
+            cohortNameIds = tibble::data_frame(cohortId=cohortId, cohortName=cohortName))
+
+          cohortData <- tibble::add_column(
+            cohortData, database_id = rep(databaseId, nrow(cohortData)), .before = 1
+          )
+
+          if (is.null(cohortData)){
             r_data$failedCohorts <- c(r_data$failedCohorts,
                                       sprintf("%s (%s)", r_data$cohortName[i],
                                               r_data$databaseName[i]))
           } else {
-            result <- rbind(result, cohort$cohortData)
+            result <- rbind(result, cohortData)
           }
 
         }
@@ -175,46 +197,3 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 .format_str <- function(x){
   tolower(stringr::str_replace_all(x, "[[:punct:]]", "") %>% stringr::str_replace_all(.,  " ", "_"))
 }
-
-.create_cohort <- function(cohortTableHandler, databaseId, cohortId, cohortName){
-
-  connection <- cohortTableHandler$connectionHandler$getConnection()
-  cohortDefinitionSet <- cohortTableHandler$cohortDefinitionSet
-  cdmDatabaseSchema <- cohortTableHandler$cdmDatabaseSchema
-  cohortDatabaseSchema <- cohortTableHandler$cohortDatabaseSchema
-  cohortTable <- cohortTableHandler$cohortTableNames$cohortTable
-  cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
-  cohortNameIds <- tibble::data_frame(cohortId=cohortId, cohortName=cohortName)
-
-  result <- list(
-    success = NULL,
-    cohortData = NULL
-  )
-
-  tryCatch({
-    cohortData <- HadesExtras::getCohortDataFromCohortTable(
-      connection = connection,
-      cdmDatabaseSchema = cdmDatabaseSchema,
-      cohortDatabaseSchema = cohortDatabaseSchema,
-      cohortTable = cohortTable,
-      cohortNameIds = cohortNameIds)
-  }, error=function(e) {
-    ParallelLogger::logError("[Export Cohorts]: ", e$message)
-  }, warning=function(w) {
-    ParallelLogger::logWarn("[Export Cohorts]: ", w$message)
-  }, finally={
-    if (!is.null(cohortData)){
-      cohortData <- tibble::add_column(
-        cohortData, database_id = rep(databaseId, nrow(cohortData)), .before = 1
-      )
-      result$success <- TRUE
-    } else {
-      result$success <- FALSE
-    }
-  })
-
-  result$cohortData <- cohortData
-
-  return(result)
-}
-
