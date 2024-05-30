@@ -195,5 +195,5 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
 .format_str <- function(x){
-  tolower(stringr::str_replace_all(x, "[[:punct:]]", "")  |>  stringr::str_replace_all(.,  " ", "_"))
+  tolower(stringr::str_replace_all(x, "[[:punct:]]", "")  |>  stringr::str_replace_all( " ", "_"))
 }
