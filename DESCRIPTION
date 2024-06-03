@@ -35,7 +35,8 @@ Imports:
     CohortGenerator,
     FeatureExtraction,
     CohortDiagnostics, 
-    shinyjqui
+    shinyjqui,
+    FinnGenUtilsR
 Remotes: 
     OHDSI/DatabaseConnector,
     OHDSI/FeatureExtraction,
@@ -43,7 +44,8 @@ Remotes:
     OHDSI/ResultModelManager,
     OHDSI/Eunomia,
     javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts,
-    FINNGEN/HadesExtras
+    FINNGEN/HadesExtras,
+    FINNGEN/FinnGenUtilsR@23-move-to-this-package-the-code-to-run-gwas
 Suggests: 
     gert,
     knitr,

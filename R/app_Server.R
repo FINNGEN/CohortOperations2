@@ -14,7 +14,8 @@ app_server <- function(input, output, session) {
   # not all modules used all, they modules check the list has at least the ones they need
   # they are produced only by mod_select_configuration and consumed by the modules
   r_connectionHandlers <- shiny::reactiveValues(
-    databasesHandlers = NULL
+    databasesHandlers = NULL,
+    connection_sandboxAPI = configGWAS()
   )
 
   # produced by modules related to cohort editing
@@ -58,6 +59,9 @@ app_server <- function(input, output, session) {
 
   mod_cohortWorkbench_server("cohortWorkbench_codeWAS", r_connectionHandlers, r_workbench)
   mod_codeWAS_server("codeWAS", r_connectionHandlers, r_workbench)
+
+  mod_cohortWorkbench_server("cohortWorkbench_runGWAS", r_connectionHandlers, r_workbench)
+  mod_runGWAS_server("runGWAS", r_connectionHandlers, r_workbench)
 
 
   output$about <- shiny::renderUI({
