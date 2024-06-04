@@ -38,32 +38,32 @@
     },
     "CirceR": {
       "Package": "CirceR",
-      "Version": "1.3.2",
+      "Version": "1.3.3",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "ohdsi",
       "RemoteRepo": "CirceR",
       "RemoteRef": "main",
-      "RemoteSha": "758a67ee9c446420efba7bcbc9b7217dccfa8805",
+      "RemoteSha": "30303ec28bfd3bd4deffc9f84e7b8f9ddbf93c77",
+      "RemoteHost": "api.github.com",
       "Requirements": [
         "R",
         "RJSONIO",
         "rJava"
       ],
-      "Hash": "c15d2a0a90ea2c38f4f35ca623fdc8ea"
+      "Hash": "fd35885362db71145b8eedccdad7cd2d"
     },
     "CohortDiagnostics": {
       "Package": "CohortDiagnostics",
       "Version": "3.2.5",
       "Source": "GitHub",
+      "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRepo": "CohortDiagnostics",
+      "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRef": "fix-error-with-no-conceptset-cohorts",
       "RemoteSha": "46d72aaf678307b7d3200e19aea5aa193e730697",
-      "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "Requirements": [
         "Andromeda",
         "CohortGenerator",
@@ -89,14 +89,14 @@
     },
     "CohortGenerator": {
       "Package": "CohortGenerator",
-      "Version": "0.8.1",
+      "Version": "0.9.0",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "CohortGenerator",
       "RemoteRef": "main",
-      "RemoteSha": "78757f1b191a395cf9dcff0d5bbe2b9fa4aa163e",
+      "RemoteSha": "e3efad630b8b2c0376431a88fde89e6c4bbac38c",
       "Remotes": "ohdsi/CirceR, ohdsi/Eunomia, ohdsi/ROhdsiWebApi",
       "Requirements": [
         "DatabaseConnector",
@@ -115,7 +115,7 @@
         "rlang",
         "stringi"
       ],
-      "Hash": "1ba14745ec29dc17a7226cd079e93d8b"
+      "Hash": "a441009fb11cba8bf31e1ccf17fed82a"
     },
     "CommonDataModel": {
       "Package": "CommonDataModel",
@@ -247,6 +247,33 @@
       ],
       "Hash": "e686d93264359802fdccd41989c51386"
     },
+    "FinnGenUtilsR": {
+      "Package": "FinnGenUtilsR",
+      "Version": "3.0.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "FinnGenUtilsR",
+      "RemoteUsername": "FINNGEN",
+      "RemoteRef": "23-move-to-this-package-the-code-to-run-gwas",
+      "RemoteSha": "4a98fa0ca017538441f724abddcfd2deeded6b54",
+      "Requirements": [
+        "DBI",
+        "DatabaseConnector",
+        "Eunomia",
+        "R6",
+        "SqlRender",
+        "bigrquery",
+        "checkmate",
+        "dbplyr",
+        "dplyr",
+        "rlang",
+        "stringr",
+        "tibble",
+        "yaml"
+      ],
+      "Hash": "fb5d66c20892d61b7c686f6a6964f1db"
+    },
     "HadesExtras": {
       "Package": "HadesExtras",
       "Version": "0.0.0.9002",
@@ -255,8 +282,8 @@
       "RemoteHost": "api.github.com",
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "deb151e33ed237977d4872643660af4bf7eaa07b",
+      "RemoteRef": "master",
+      "RemoteSha": "c8bafa2219a084d7f4b2d00c1340118b09261440",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -290,7 +317,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "66574391006641bdbe9c309b36b3929f"
+      "Hash": "b540b730cd4f107cfe18fe0f4f67499c"
     },
     "MASS": {
       "Package": "MASS",
@@ -326,14 +353,14 @@
     },
     "OhdsiShinyModules": {
       "Package": "OhdsiShinyModules",
-      "Version": "2.1.2",
+      "Version": "2.1.4",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "OHDSI",
+      "RemoteUsername": "ohdsi",
       "RemoteRepo": "OhdsiShinyModules",
       "RemoteRef": "main",
-      "RemoteSha": "1c0db9e151e79b5789c7e458c31fbe4677333d19",
+      "RemoteSha": "42f5bb42c731fd9ff1a9c96bb68b624fd357ba78",
       "Remotes": "ohdsi/CirceR, ohdsi/ResultModelManager",
       "Requirements": [
         "CirceR",
@@ -371,7 +398,7 @@
         "tidyselect",
         "tippy"
       ],
-      "Hash": "8f7168a83b4880297f5e263f3d7e34e6"
+      "Hash": "0d9716d5aa6050be213d2b1ab13fb2d7"
     },
     "ParallelLogger": {
       "Package": "ParallelLogger",
@@ -449,9 +476,10 @@
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "ROhdsiWebApi",
       "RemoteUsername": "ohdsi",
-      "RemoteRef": "v1.3.3",
+      "RemoteRepo": "ROhdsiWebApi",
+      "RemoteRef": "main",
+      "RemoteSha": "455c81633de6d68dcd675ddb31f471c66e8fa332",
       "Requirements": [
         "R",
         "RJSONIO",
@@ -469,7 +497,7 @@
         "tibble",
         "tidyr"
       ],
-      "Hash": "4b3d67873501ddb53e95a20d8213eee9"
+      "Hash": "26ba2fb6768a9fb7660c24a58fc5ceba"
     },
     "RSQLite": {
       "Package": "RSQLite",
@@ -722,7 +750,7 @@
       "Package": "boot",
       "Version": "1.3-28.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "graphics",
@@ -866,7 +894,7 @@
       "Package": "codetools",
       "Version": "0.2-19",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R"
       ],
@@ -1497,14 +1525,14 @@
     },
     "highr": {
       "Package": "highr",
-      "Version": "0.10",
+      "Version": "0.11",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "xfun"
       ],
-      "Hash": "06230136b2d2b9ba5805e1963fa6e890"
+      "Hash": "d65ba49117ca223614f71b60d85b8ab7"
     },
     "hms": {
       "Package": "hms",
@@ -1680,7 +1708,7 @@
     },
     "knitr": {
       "Package": "knitr",
-      "Version": "1.46",
+      "Version": "1.47",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1692,7 +1720,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "6e008ab1d696a5283c79765fa7b56b47"
+      "Hash": "7c99b2d55584b982717fcc0950378612"
     },
     "labeling": {
       "Package": "labeling",
@@ -2616,7 +2644,7 @@
       "Package": "rpart",
       "Version": "4.1.19",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "grDevices",
@@ -2760,7 +2788,7 @@
     },
     "shinyWidgets": {
       "Package": "shinyWidgets",
-      "Version": "0.8.3",
+      "Version": "0.8.6",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2774,7 +2802,7 @@
         "sass",
         "shiny"
       ],
-      "Hash": "a515a78460d21328d2b8765fd5506964"
+      "Hash": "bc918b6911c4e928e24a9928295de834"
     },
     "shinycssloaders": {
       "Package": "shinycssloaders",
@@ -3278,7 +3306,7 @@
     },
     "xfun": {
       "Package": "xfun",
-      "Version": "0.43",
+      "Version": "0.44",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -3286,7 +3314,7 @@
         "stats",
         "tools"
       ],
-      "Hash": "ab6371d8653ce5f2f9290f4ec7b42a8e"
+      "Hash": "317a0538d32f4a009658bcedb7923f4b"
     },
     "xml2": {
       "Package": "xml2",
