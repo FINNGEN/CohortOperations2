@@ -193,7 +193,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           cohorts_settings,
           phenotype_name,
           title = phenotype_name,
-          notification_email = connection_sandboxAPI$notification_email
+          notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email
         )
         r_data$success <- TRUE
       }, error=function(e) {

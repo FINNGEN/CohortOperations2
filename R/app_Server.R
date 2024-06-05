@@ -10,12 +10,21 @@ app_server <- function(input, output, session) {
   # get settings loaded from file
   databasesConfig <- shiny::getShinyOption("databasesConfig")
 
+  # get connection sandbox API configured for running GWAS
+  tryCatch({
+    connection_sandboxAPI <- configGWAS()
+  }, error=function(e) {
+    ParallelLogger::logError("[configGWAS]: ", e$message)
+  }, warning=function(w) {
+    ParallelLogger::logWarn("[configGWAS]: ", w$message)
+  })
+
   # list of connection handlers that are passed to modules,
   # not all modules used all, they modules check the list has at least the ones they need
   # they are produced only by mod_select_configuration and consumed by the modules
   r_connectionHandlers <- shiny::reactiveValues(
     databasesHandlers = NULL,
-    connection_sandboxAPI = configGWAS()
+    connection_sandboxAPI = connection_sandboxAPI
   )
 
   # produced by modules related to cohort editing
