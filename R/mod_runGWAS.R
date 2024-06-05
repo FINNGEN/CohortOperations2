@@ -191,8 +191,8 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         FinnGenUtilsR::runGWASAnalysis(
           r_connectionHandlers$connection_sandboxAPI,
           cohorts_settings,
-          phenotype_name,
-          title = phenotype_name,
+          r_data$phenotypeName,
+          title = r_data$phenotypeName,
           notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email
         )
         r_data$success <- TRUE
