@@ -161,7 +161,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         cdmDatabaseSchema = casesCohortTableHandler$cdmDatabaseSchema,
         cohortDatabaseSchema = casesCohortTableHandler$cohortDatabaseSchema,
         cohortTable = casesCohortTableHandler$cohortTableNames$cohortTable,
-        cohortNameIds = tibble::data_frame(cohortId=r_data$casesCohortId, cohortName=r_data$casesCohortName))
+        cohortNameIds = tibble::tibble(cohortId=r_data$casesCohortId, cohortName=r_data$casesCohortName))
 
       controlsCohortTableHandler <- r_connectionHandlers$databasesHandlers[[r_data$controlsDatabaseId]]$cohortTableHandler
 
@@ -170,7 +170,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         cdmDatabaseSchema = controlsCohortTableHandler$cdmDatabaseSchema,
         cohortDatabaseSchema = controlsCohortTableHandler$cohortDatabaseSchema,
         cohortTable = controlsCohortTableHandler$cohortTableNames$cohortTable,
-        cohortNameIds = tibble::data_frame(cohortId=r_data$controlsCohortId, cohortName=r_data$controlsCohortName))
+        cohortNameIds = tibble::tibble(cohortId=r_data$controlsCohortId, cohortName=r_data$controlsCohortName))
 
       cases_cohort <- list(
         name = r_data$casesCohortName,
@@ -186,6 +186,8 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         cases_cohort = cases_cohort,
         controls_cohort = controls_cohort
       )
+
+      ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name", r_data$phenotypeName)
 
       tryCatch({
         FinnGenUtilsR::runGWASAnalysis(
