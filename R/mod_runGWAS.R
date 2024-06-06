@@ -187,7 +187,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         controls_cohort = controls_cohort
       )
 
-      ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name", r_data$phenotypeName)
+      ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", r_data$phenotypeName)
 
       tryCatch({
         FinnGenUtilsR::runGWASAnalysis(
