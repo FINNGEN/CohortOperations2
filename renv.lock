@@ -256,7 +256,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "FinnGenUtilsR",
       "RemoteRef": "23-move-to-this-package-the-code-to-run-gwas",
-      "RemoteSha": "64badcd9d1455d48922382d35a0358b606a249e9",
+      "RemoteSha": "c5654421852223693ebf390d4b0c396e00ebfd56",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -272,7 +272,7 @@
         "tibble",
         "yaml"
       ],
-      "Hash": "c143fcc1f753da98b8fa6bca7f4c2d8c"
+      "Hash": "5fd458a9c55c1b372c3ed13aad8ed712"
     },
     "HadesExtras": {
       "Package": "HadesExtras",
