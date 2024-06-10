@@ -7,28 +7,7 @@ source(testthat::test_path("helper.R"))
 
 future::plan(future::multisession, workers = 2)
 
-folderWithLog <- file.path(tempdir(), "logs")
-dir.create(folderWithLog, showWarnings = FALSE)
-logger <- ParallelLogger::createLogger(
-  appenders = list(
-    # to console for traking
-    ParallelLogger::createConsoleAppender(
-      layout = .layoutParallelWithHeader
-    ),
-    # to file for showing in app
-    ParallelLogger::createFileAppender(
-      fileName = file.path(folderWithLog, "log.txt"),
-      layout = ParallelLogger::layoutSimple
-    )
-  )
-)
-ParallelLogger::clearLoggers()
-ParallelLogger::registerLogger(logger)
-ParallelLogger::logTrace("Start logging")
-
-shiny::addResourcePath("logs", folderWithLog)
-
-
+fcr_setUpLogger()
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 
@@ -57,7 +36,6 @@ app <- shiny::shinyApp(
   options = list(launch.browser=TRUE)
 )
 
-app$appOptions$logger  <- logger
 app
 
 

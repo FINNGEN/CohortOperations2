@@ -3,8 +3,7 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-logger <- setup_ModalWithLog()
-
+fcr_setUpLogger()
 
 r_connectionHandlers <- shiny::reactiveValues(
   databasesHandlers = NULL
@@ -24,7 +23,6 @@ app <- shiny::shinyApp(
   options = list(launch.browser=TRUE)
 )
 
-app$appOptions$logger  <- logger
 app
 
 

@@ -5,18 +5,7 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-logger <- ParallelLogger::createLogger(
-  appenders = list(
-    # to console for traking
-    # to file for showing in app
-    ParallelLogger::createFileAppender(
-      fileName = file.path(tempdir(), "log.txt"),
-      layout = ParallelLogger::layoutSimple
-    )
-  )
-)
-ParallelLogger::clearLoggers()
-ParallelLogger::registerLogger(logger)
+fcr_setUpLogger()
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 
@@ -45,7 +34,6 @@ app <- shiny::shinyApp(
   options = list(launch.browser=TRUE)
 )
 
-app$appOptions$logger  <- logger
 app
 
 
