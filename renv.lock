@@ -256,7 +256,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "FinnGenUtilsR",
       "RemoteRef": "23-move-to-this-package-the-code-to-run-gwas",
-      "RemoteSha": "c5654421852223693ebf390d4b0c396e00ebfd56",
+      "RemoteSha": "cb3424c00ef6ee58ea41954e6a614adb7cca68ad",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -267,12 +267,15 @@
         "checkmate",
         "dbplyr",
         "dplyr",
+        "httr",
+        "jsonlite",
+        "readr",
         "rlang",
         "stringr",
         "tibble",
         "yaml"
       ],
-      "Hash": "5fd458a9c55c1b372c3ed13aad8ed712"
+      "Hash": "24a4ec29bc4da1672f6210034034b401"
     },
     "HadesExtras": {
       "Package": "HadesExtras",
@@ -2785,6 +2788,20 @@
         "xtable"
       ],
       "Hash": "54b26646816af9960a4c64d8ceec75d6"
+    },
+    "shinyFeedback": {
+      "Package": "shinyFeedback",
+      "Version": "0.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "fontawesome",
+        "htmltools",
+        "jsonlite",
+        "shiny"
+      ],
+      "Hash": "88a6b7ff3d135195ad0011fec04336f2"
     },
     "shinyWidgets": {
       "Package": "shinyWidgets",

@@ -10,9 +10,11 @@
 #' @importFrom htmltools tagList hr
 #' @importFrom shinyjs useShinyjs
 #' @importFrom reactable reactableOutput
+#' @importFrom shinyFeedback useShinyFeedback
 mod_runGWAS_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
+    shinyFeedback::useShinyFeedback(),
     shinyjs::useShinyjs(),
     shiny::tags$h4("Cohort"),
     shiny::tags$h5("Select cohort:"),
@@ -36,6 +38,7 @@ mod_runGWAS_ui <- function(id) {
         `actions-box` = TRUE),
       multiple = FALSE),
     htmltools::hr(),
+    shiny::textInput(ns("pheno"), label = "Phenotype Name"),
     shiny::actionButton(ns("run_actionButton"), "Run GWAS Analysis"),
     htmltools::hr()
   )
@@ -69,6 +72,17 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     )
 
     #
+    # setup warning on input for the phenotype name
+    #
+    shiny::observeEvent(input$pheno, {
+      shinyFeedback::feedbackWarning(
+        inputId = "pheno",
+        stringr::str_detect(input$pheno, "[^[:alnum:]]|[:lower:]"),
+        text = "Name must use only upper case characters or numbers"
+      )
+    })
+
+    #
     # render cohort pickers with database/cohort names
     #
     shiny::observeEvent(r_workbench$cohortsSummaryDatabases, {
@@ -96,7 +110,9 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       )
     })
 
-
+    #
+    # render cases cohort picker
+    #
     shiny::observeEvent(input$selectCasesCohort_pickerInput, {
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectCasesCohort_pickerInput)
@@ -113,8 +129,14 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       r_data$casesCohortId <- cohort$cohortId
       r_data$casesCohortName <- cohort$cohortName
 
+      defaultPhenotypeName <- paste0(.format_str(r_data$casesCohortName), .format_str(r_data$controlsCohortName))
+      shiny::updateTextInput(session, "pheno", value = defaultPhenotypeName )
+
     })
 
+    #
+    # render controls cohort picker
+    #
     shiny::observeEvent(input$selectControlsCohort_pickerInput, {
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectControlsCohort_pickerInput)
@@ -131,15 +153,20 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       r_data$controlsCohortId <- cohort$cohortId
       r_data$controlsCohortName <- cohort$cohortName
 
+      defaultPhenotypeName <- paste0(.format_str(r_data$casesCohortName), .format_str(r_data$controlsCohortName))
+      shiny::updateTextInput(session, "pheno", value = defaultPhenotypeName )
+
     })
 
     #
     # activate settings if cohorts have been selected
     #
     shiny::observe({
-      condition <- shiny::isTruthy((!is.null(input$selectCasesCohort_pickerInput) &
-                                      !is.null(input$selectControlsCohort_pickerInput)) &
-                                     (input$selectCasesCohort_pickerInput != input$selectControlsCohort_pickerInput))
+      condition <- shiny::isTruthy(
+        (!is.null(input$selectCasesCohort_pickerInput) & !is.null(input$selectControlsCohort_pickerInput)) &
+        (input$selectCasesCohort_pickerInput != input$selectControlsCohort_pickerInput) &
+        (stringr::str_detect(input$pheno, "[^[:alnum:]]|[:lower:]", negate = T))
+      )
       shinyjs::toggleState("run_actionButton", condition = condition )
     })
 
@@ -147,10 +174,8 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     # click to run
     #
     shiny::observeEvent(input$run_actionButton, {
-      shiny::req(!is.null(r_data$casesCohortName))
-      shiny::req(!is.null(r_data$controlsCohortName))
 
-      r_data$phenotypeName <- paste0(.format_str(r_data$casesCohortName), .format_str(r_data$controlsCohortName))
+      r_data$phenotypeName <- input$pheno
 
       sweetAlert_spinner("Preparing cohorts for submission to GWAS analysis")
 
@@ -187,14 +212,14 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         controls_cohort = controls_cohort
       )
 
-      ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", r_data$phenotypeName)
+      ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", input$pheno)
 
       tryCatch({
         FinnGenUtilsR::runGWASAnalysis(
           r_connectionHandlers$connection_sandboxAPI,
           cohorts_settings,
-          r_data$phenotypeName,
-          title = r_data$phenotypeName,
+          input$pheno,
+          title = input$pheno,
           notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email
         )
         r_data$success <- TRUE
@@ -231,7 +256,6 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       }
       r_data$success <- NULL
     })
-
 
   })
 

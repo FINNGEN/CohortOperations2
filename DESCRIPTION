@@ -36,7 +36,8 @@ Imports:
     FeatureExtraction,
     CohortDiagnostics, 
     shinyjqui,
-    FinnGenUtilsR
+    FinnGenUtilsR,
+    shinyFeedback
 Remotes: 
     OHDSI/DatabaseConnector,
     OHDSI/FeatureExtraction,
