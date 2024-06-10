@@ -38,7 +38,8 @@ mod_runGWAS_ui <- function(id) {
         `actions-box` = TRUE),
       multiple = FALSE),
     htmltools::hr(),
-    shiny::textInput(ns("pheno"), label = "Phenotype Name"),
+    shiny::textInput(ns("pheno"), label = "Phenotype Name:"),
+    shiny::textInput(ns("description"), label = "Description:"),
     shiny::actionButton(ns("run_actionButton"), "Run GWAS Analysis"),
     htmltools::hr()
   )
@@ -156,6 +157,13 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       defaultPhenotypeName <- paste0(.format_str(r_data$casesCohortName), .format_str(r_data$controlsCohortName))
       shiny::updateTextInput(session, "pheno", value = defaultPhenotypeName )
 
+      defaultDescription <- paste0("Cases-cohort: ",
+                                   r_data$casesCohortName,
+                                   "(db: ", r_data$casesDatabaseName, "); ",
+                                   "Controls-cohort: ", r_data$controlsCohortName,
+                                   "(db: ", r_data$controlsDatabaseName, ")")
+      shiny::updateTextInput(session, "description", value = defaultDescription )
+
     })
 
     #
@@ -220,6 +228,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           cohorts_settings,
           input$pheno,
           title = input$pheno,
+          description = input$description,
           notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email
         )
         r_data$success <- TRUE
