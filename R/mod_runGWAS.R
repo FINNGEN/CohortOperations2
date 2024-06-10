@@ -220,6 +220,12 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         controls_cohort = controls_cohort
       )
 
+      cat("\ncasesCohortData:\n")
+      cat(str(casesCohortData))
+
+      cat("\ncontrolsCohortData:\n")
+      cat(str(controlsCohortData))
+
       ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", input$pheno)
 
       tryCatch({
