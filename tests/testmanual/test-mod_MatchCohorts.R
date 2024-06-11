@@ -3,7 +3,7 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-fcr_setUpLogger()
+logger <- fcr_setUpLogger()
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 
@@ -20,7 +20,7 @@ r_workbench <- shiny::reactiveValues(
 # run module --------------------------------------------------------------
 devtools::load_all(".")
 
-shiny::shinyApp(
+app <- shiny::shinyApp(
   shiny::fluidPage(
     mod_cohortWorkbench_ui("test"),
     mod_matchCohorts_ui("test")
@@ -32,7 +32,8 @@ shiny::shinyApp(
   options = list(launch.browser=TRUE)
 )
 
-
+app$appOptions$logger  <- logger
+app
 
 # connectionStatus_reactable ----------------------------------------------
 # devtools::load_all(".")

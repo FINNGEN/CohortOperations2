@@ -29,8 +29,7 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   future::plan(future::multisession, workers = 2)
 
   # set up loger
-  fcr_setUpLogger()
-
+  logger <- fcr_setUpLogger()
 
   # start app
   app  <- shiny::shinyApp(
@@ -42,6 +41,7 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   # setup shiny options
   app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
   app$appOptions$databasesConfig  <- databasesConfig
+  # TEMP
   app$appOptions$logger  <- logger
   app$appOptions$cores  <- parallel::detectCores()-1
   app$appOptions$chunksSizeNOutcomes  <- 1000

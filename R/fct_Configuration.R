@@ -86,6 +86,8 @@ fcr_setUpLogger  <- function(){
   ParallelLogger::registerLogger(logger)
 
   shiny::addResourcePath("logs", folderWithLog)
+
+  return(logger)
 }
 
 

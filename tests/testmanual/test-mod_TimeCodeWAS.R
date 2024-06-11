@@ -1,5 +1,4 @@
 
-
 # build parameters --------------------------------------------------------------
 devtools::load_all(".")
 source(testthat::test_path("setup.R"))
@@ -7,7 +6,7 @@ source(testthat::test_path("helper.R"))
 
 future::plan(future::multisession, workers = 2)
 
-fcr_setUpLogger()
+logger  <- fcr_setUpLogger()
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = TRUE)
 
@@ -36,6 +35,7 @@ app <- shiny::shinyApp(
   options = list(launch.browser=TRUE)
 )
 
+app$appOptions$logger  <- logger
 app
 
 

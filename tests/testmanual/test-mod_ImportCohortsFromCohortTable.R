@@ -3,7 +3,7 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-fcr_setUpLogger()
+logger <- fcr_setUpLogger()
 
 databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = FALSE, withCohortTableCohorts = TRUE)
 
@@ -35,6 +35,7 @@ app <- shiny::shinyApp(
 pathToCohortOperationsConfigYalm = testthat::test_path("config", "cohortOperationsConfig.yml")
 cohortOperationsConfig <- yaml::read_yaml(pathToCohortOperationsConfigYalm)
 
+app$appOptions$logger  <- logger
 app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
 app
 
