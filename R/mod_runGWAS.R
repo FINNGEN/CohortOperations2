@@ -205,40 +205,25 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         cohortTable = controlsCohortTableHandler$cohortTableNames$cohortTable,
         cohortNameIds = tibble::tibble(cohortId=r_data$controlsCohortId, cohortName=r_data$controlsCohortName))
 
-      cases_cohort <- list(
-        name = r_data$casesCohortName,
-        validated_ids = casesCohortData$person_source_value
-      )
-
-      controls_cohort <- list(
-        name = r_data$controlsCohortName,
-        validated_ids = controlsCohortData$person_source_value
-      )
-
-      cohorts_settings <- list(
-        cases_cohort = cases_cohort,
-        controls_cohort = controls_cohort
-      )
-
       ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", input$pheno)
 
-      tryCatch({
-        FinnGenUtilsR::runGWASAnalysis(
-          r_connectionHandlers$connection_sandboxAPI,
-          cohorts_settings,
-          input$pheno,
-          title = input$pheno,
-          description = input$description,
-          notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email
-        )
-        r_data$success <- TRUE
-      }, error=function(e) {
-        r_data$success <- FALSE
-        ParallelLogger::logError("[Run GWAS analysis]: ", e$message)
-      }, warning=function(w) {
-        r_data$success <- FALSE
-        ParallelLogger::logWarn("[Run GWAS analysis]:", w$message)
-      })
+      res <- FinnGenUtilsR::runGWASAnalysis(
+        connection_sandboxAPI = r_connectionHandlers$connection_sandboxAPI,
+        cases_finngenids = casesCohortData$person_source_value,
+        controls_finngenids = controlsCohortData$person_source_value,
+        phenotype_name = input$pheno,
+        title = input$pheno,
+        description = input$description,
+        notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email
+      )
+
+      r_data$success <- res$status
+
+      if (res$status){
+        ParallelLogger::logInfo("[Run GWAS analysis]:  successfully submitted")
+      } else {
+        ParallelLogger::logError("[Run GWAS analysis]:  ", res$content)
+      }
 
       remove_sweetAlert_spinner()
 
