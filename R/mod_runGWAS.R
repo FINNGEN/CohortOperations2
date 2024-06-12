@@ -238,6 +238,9 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
       ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", input$pheno)
 
+      release <- paste0("Regenie", gsub("[A-Za-z]", "", r_data$databaseId))
+      ParallelLogger::logInfo("[Run GWAS analysis]: using ", release)
+
       cases_finngenids <- cohortData$person_source_value[
         which(cohortData$cohort_name == casesCohort$cohortName)
       ]
@@ -253,7 +256,8 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         phenotype_name = input$pheno,
         title = input$pheno,
         description = input$description,
-        notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email
+        notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email,
+        release = release
       )
 
       r_data$success <- res$status
