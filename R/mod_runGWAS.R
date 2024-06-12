@@ -17,9 +17,9 @@ mod_runGWAS_ui <- function(id) {
     shinyFeedback::useShinyFeedback(),
     shinyjs::useShinyjs(),
     shiny::tags$h4("Database"),
+    shiny::tags$h5("Select database where to run GWAS analysis:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectDatabases_pickerInput_gwas"),
-      label = "Select database where to run GWAS analysis:",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
@@ -122,77 +122,80 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # render cohort pickers with database/cohort names
     #
-    shiny::observeEvent(input$selectDatabases_pickerInput_gwas, {
+    shiny::observe({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
+      shiny::req(input$selectDatabases_pickerInput_gwas)
+
+      cohorts <- r_workbench$cohortsSummaryDatabases[
+        which(r_workbench$cohortsSummaryDatabases$databaseId == input$selectDatabases_pickerInput_gwas),
+      ]
+      cohortsList <- cohorts$cohortName
+
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "selectCasesCohort_pickerInput",
+        choices = cohortsList,
+        selected = cohortsList[1]
+      )
+
+    })
+
+    #
+    # render cases cohort picker
+    #
+    shiny::observe({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
+      shiny::req(input$selectDatabases_pickerInput_gwas)
+      shiny::req(!is.null(input$selectCasesCohort_pickerInput))
 
       cohorts <- r_workbench$cohortsSummaryDatabases[
         which(r_workbench$cohortsSummaryDatabases$databaseId == input$selectDatabases_pickerInput_gwas),
       ]
 
-      shinyWidgets::updatePickerInput(
-        session = session,
-        inputId = "selectCasesCohort_pickerInput",
-        choices = cohorts$cohortName,
-        selected = NULL
-      )
+      cohortsList <- cohorts$cohortName[cohorts$cohortName != input$selectCasesCohort_pickerInput]
 
       shinyWidgets::updatePickerInput(
         session = session,
         inputId = "selectControlsCohort_pickerInput",
-        choices = cohorts$cohortName,
-        selected = NULL
+        choices = cohortsList,
+        selected = cohortsList[1]
       )
 
     })
 
+    # #
+    # # render cases cohort picker
+    # #
+    # shiny::observe({
+    #   shiny::req(!is.null(input$selectCasesCohort_pickerInput))
+    #   shiny::req(!is.null(input$selectControlsCohort_pickerInput))
     #
-    # render cases cohort picker
+    #   cohorts <- r_workbench$cohortsSummaryDatabases[ r_workbench$cohortsSummaryDatabases$databaseId == r_data$databaseId, ]
     #
-    shiny::observeEvent(input$selectCasesCohort_pickerInput, {
-      shiny::req(r_workbench$cohortsSummaryDatabases)
-      shiny::req(input$selectCasesCohort_pickerInput)
-      shiny::req(input$selectDatabases_pickerInput_gwas)
-
-      browser()
-
-      cohort <- r_workbench$cohortsSummaryDatabases[
-        r_workbench$cohortsSummaryDatabases$databaseId == r_data$databaseId &
-          r_workbench$cohortsSummaryDatabases$cohortName == input$selectCasesCohort_pickerInput, ]
-
-      r_data$casesCohortId <- cohort$cohortId
-      r_data$casesCohortName <- cohort$cohortName
-
-    })
-
+    #   r_data$casesCohortId <- cohorts$cohortId[input$selectControlsCohort_pickerInput]
+    #   r_data$casesCohortName <- cohorts$cohortName[input$selectControlsCohort_pickerInput]
     #
-    # render cases cohort picker
-    #
-    shiny::observeEvent(input$selectControlsCohort_pickerInput, {
-      shiny::req(r_workbench$cohortsSummaryDatabases)
-      shiny::req(input$selectControlsCohort_pickerInput)
-      shiny::req(input$selectDatabases_pickerInput_gwas)
-
-      cohort <- r_workbench$cohortsSummaryDatabases[
-        r_workbench$cohortsSummaryDatabases$databaseId == r_data$databaseId &
-          r_workbench$cohortsSummaryDatabases$cohortName == input$selectControlsCohort_pickerInput, ]
-
-      r_data$controlsCohortId <- cohort$cohortId
-      r_data$controlsCohortName <- cohort$cohortName
-    })
+    #   r_data$controlsCohortId <- cohorts$cohortId[input$selectControlsCohort_pickerInput]
+    #   r_data$controlsCohortName <- cohorts$cohortName[input$selectControlsCohort_pickerInput]
+    # })
 
     #
     # update phenotype name and description with default values
     #
     shiny::observe({
-      shiny::req(!is.null(r_data$casesCohortName))
-      shiny::req(!is.null(r_data$controlsCohortName))
-      shiny::req(!is.null(r_data$databaseName))
+      shiny::req(!is.null(input$selectCasesCohort_pickerInput))
+      shiny::req(!is.null(input$selectControlsCohort_pickerInput))
 
-      defaultPhenotypeName <- paste0(.format_str(r_data$casesCohortName),
-                                     .format_str(r_data$controlsCohortName))
+      defaultPhenotypeName <- paste0(
+        .format_str(input$selectCasesCohort_pickerInput),
+        .format_str(input$selectControlsCohort_pickerInput)
+      )
 
-      defaultDescription <- paste0("Cases-cohort: ", r_data$casesCohortName,
-                                   "; Controls-cohort: ", r_data$controlsCohortName,
-                                   " (db: ", r_data$databaseName, ")")
+      defaultDescription <- paste0(
+        "Cases-cohort: ", input$selectCasesCohort_pickerInput,
+        "; Controls-cohort: ", input$selectControlsCohort_pickerInput,
+        " (db: ", r_data$databaseName, ")"
+      )
 
       shiny::updateTextInput(session, "pheno", value = defaultPhenotypeName )
       shiny::updateTextInput(session, "description", value = defaultDescription )
@@ -216,11 +219,12 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     shiny::observeEvent(input$run_actionButton, {
 
-      r_data$phenotypeName <- input$pheno
-
       sweetAlert_spinner("Preparing cohorts for submission to GWAS analysis")
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[r_data$databaseId]]$cohortTableHandler
+      cohorts <- r_workbench$cohortsSummaryDatabases[ r_workbench$cohortsSummaryDatabases$databaseId == r_data$databaseId, ]
+      casesCohort <- cohorts[cohorts$cohortName == input$selectCasesCohort_pickerInput, ]
+      controlsCohort <- cohorts[cohorts$cohortName == input$selectControlsCohort_pickerInput, ]
 
       cohortData <- HadesExtras::getCohortDataFromCohortTable(
         connection = cohortTableHandler$connectionHandler$getConnection(),
@@ -228,14 +232,19 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
         cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
         cohortNameIds = tibble::tibble(
-          cohortId = c(r_data$casesCohortId, r_data$controlsCohortId),
-          cohortName = c(r_data$casesCohortName, r_data$controlsCohortName))
+          cohortId = c(casesCohort$cohortId, casesCohort$cohortName),
+          cohortName = c(controlsCohort$cohortId, controlsCohort$cohortName))
       )
 
       ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", input$pheno)
 
-      cases_finngenids <- cohortData$person_source_value[which(cohortData$cohort_name == r_data$casesCohortName)]
-      controls_finngenids <- cohortData$person_source_value[which(cohortData$cohort_name == r_data$controlsCohortName)]
+      cases_finngenids <- cohortData$person_source_value[
+        which(cohortData$cohort_name == casesCohort$cohortName)
+      ]
+
+      controls_finngenids <- cohortData$person_source_value[
+        which(cohortData$cohort_name == controlsCohort$cohortName)
+      ]
 
       res <- FinnGenUtilsR::runGWASAnalysis(
         connection_sandboxAPI = r_connectionHandlers$connection_sandboxAPI,
@@ -248,6 +257,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       )
 
       r_data$success <- res$status
+      r_data$phenotypeName <- input$pheno
 
       if (res$status){
         ParallelLogger::logInfo("[Run GWAS analysis]:  successfully submitted")
