@@ -232,14 +232,17 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
         cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
         cohortNameIds = tibble::tibble(
-          cohortId = c(casesCohort$cohortId, casesCohort$cohortName),
-          cohortName = c(controlsCohort$cohortId, controlsCohort$cohortName))
+          cohortId = c(casesCohort$cohortId, controlsCohort$cohortId),
+          cohortName = c(casesCohort$cohortName, controlsCohort$cohortName))
       )
 
       ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", input$pheno)
 
-      release <- paste0("Regenie", gsub("[A-Za-z]", "", r_data$databaseId))
-      ParallelLogger::logInfo("[Run GWAS analysis]: using ", release)
+      releaseVersion <- gsub("[A-Za-z]", "", r_data$databaseId)
+      release <- if(as.numeric(releaseVersion) < 9 | as.numeric(releaseVersion) > 12) NULL else paste0("Regenie", releaseVersion)
+      ParallelLogger::logInfo("[Run GWAS analysis]: using Regenie version ", release)
+
+      browser()
 
       cases_finngenids <- cohortData$person_source_value[
         which(cohortData$cohort_name == casesCohort$cohortName)
