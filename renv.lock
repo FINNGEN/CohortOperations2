@@ -255,8 +255,8 @@
       "RemoteHost": "api.github.com",
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "FinnGenUtilsR",
-      "RemoteRef": "master",
-      "RemoteSha": "fb9249481721cd5fe784ee3cc3688a024b0eba5f",
+      "RemoteRef": "32-add-analysis-type-additive-recessive-dominant-to-the-gwas-run-function",
+      "RemoteSha": "24d1fba8d64dbf5e9bd68072a2b507ce1ddf8aaa",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -275,7 +275,7 @@
         "tibble",
         "yaml"
       ],
-      "Hash": "efeacd73c701756d9deb85899f4e3ce5"
+      "Hash": "2046642030d021145a4c3dba8254923f"
     },
     "HadesExtras": {
       "Package": "HadesExtras",

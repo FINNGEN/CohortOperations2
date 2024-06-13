@@ -23,22 +23,20 @@ mod_runGWAS_ui <- function(id) {
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
+    htmltools::hr(),
     shiny::tags$h4("Cohorts"),
     shiny::tags$h5("Select case cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectCasesCohort_pickerInput"),
-      width = "600px",
       label = NULL,
       choices = NULL,
       selected = NULL,
       options = list(
         `actions-box` = TRUE),
       multiple = FALSE),
-    htmltools::hr(),
     shiny::tags$h5("Select control cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectControlsCohort_pickerInput"),
-      width = "600px",
       label = NULL,
       choices = NULL,
       selected = NULL,
@@ -46,6 +44,13 @@ mod_runGWAS_ui <- function(id) {
         `actions-box` = TRUE),
       multiple = FALSE),
     htmltools::hr(),
+    shiny::tags$h4("Settings"),
+    shiny::tags$h5("Select analysis type:"),
+    shinyWidgets::pickerInput(
+      inputId = ns("selectAnalysisType_pickerInput_gwas"),
+      choices = c("additive", "recessive", "dominant"),
+      selected = "additive",
+      multiple = FALSE),
     shiny::textInput(ns("pheno"), label = "Phenotype Name:"),
     shiny::textInput(ns("description"), label = "Description:"),
     shiny::actionButton(ns("run_actionButton"), "Run GWAS Analysis"),
@@ -163,22 +168,6 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
     })
 
-    # #
-    # # render cases cohort picker
-    # #
-    # shiny::observe({
-    #   shiny::req(!is.null(input$selectCasesCohort_pickerInput))
-    #   shiny::req(!is.null(input$selectControlsCohort_pickerInput))
-    #
-    #   cohorts <- r_workbench$cohortsSummaryDatabases[ r_workbench$cohortsSummaryDatabases$databaseId == r_data$databaseId, ]
-    #
-    #   r_data$casesCohortId <- cohorts$cohortId[input$selectControlsCohort_pickerInput]
-    #   r_data$casesCohortName <- cohorts$cohortName[input$selectControlsCohort_pickerInput]
-    #
-    #   r_data$controlsCohortId <- cohorts$cohortId[input$selectControlsCohort_pickerInput]
-    #   r_data$controlsCohortName <- cohorts$cohortName[input$selectControlsCohort_pickerInput]
-    # })
-
     #
     # update phenotype name and description with default values
     #
@@ -236,12 +225,6 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortName = c(casesCohort$cohortName, controlsCohort$cohortName))
       )
 
-      ParallelLogger::logInfo("[Run GWAS analysis]: Submitting GWAS analysis with phenotype name ", input$pheno)
-
-      releaseVersion <- gsub("[A-Za-z]", "", r_data$databaseId)
-      release <- if(as.numeric(releaseVersion) < 9 | as.numeric(releaseVersion) > 12) NULL else paste0("Regenie", releaseVersion)
-      ParallelLogger::logInfo("[Run GWAS analysis]: using Regenie version ", release)
-
       cases_finngenids <- cohortData$person_source_value[
         which(cohortData$cohort_name == casesCohort$cohortName)
       ]
@@ -249,6 +232,10 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       controls_finngenids <- cohortData$person_source_value[
         which(cohortData$cohort_name == controlsCohort$cohortName)
       ]
+
+      releaseVersion <- gsub("[A-Za-z]", "", r_data$databaseId)
+      release <- if(as.numeric(releaseVersion) < 7 | as.numeric(releaseVersion) > 12) NULL else paste0("Regenie", releaseVersion)
+      ParallelLogger::logInfo("[Run GWAS analysis]: using Regenie version ", release)
 
       res <- FinnGenUtilsR::runGWASAnalysis(
         connection_sandboxAPI = r_connectionHandlers$connection_sandboxAPI,
@@ -258,6 +245,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         title = input$pheno,
         description = input$description,
         notification_email = r_connectionHandlers$connection_sandboxAPI$notification_email,
+        analysis_type = input$selectAnalysisType_pickerInput_gwas,
         release = release
       )
 
