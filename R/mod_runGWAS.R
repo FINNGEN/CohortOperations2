@@ -242,8 +242,6 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       release <- if(as.numeric(releaseVersion) < 9 | as.numeric(releaseVersion) > 12) NULL else paste0("Regenie", releaseVersion)
       ParallelLogger::logInfo("[Run GWAS analysis]: using Regenie version ", release)
 
-      browser()
-
       cases_finngenids <- cohortData$person_source_value[
         which(cohortData$cohort_name == casesCohort$cohortName)
       ]
