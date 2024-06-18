@@ -5,11 +5,10 @@
 folderWithLog <- file.path(tempdir(), "logs")
 dir.create(folderWithLog, showWarnings = FALSE)
 logger <- ParallelLogger::createLogger(
+  threshold = "TRACE",
   appenders = list(
     # to console for traking
-    ParallelLogger::createConsoleAppender(
-      layout = .layoutParallelWithHeader
-    ),
+    .createConsoleAppenderForSandboxLogging(),
     # to file for showing in app
     ParallelLogger::createFileAppender(
       fileName = file.path(folderWithLog, "log.txt"),
