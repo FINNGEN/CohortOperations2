@@ -1,28 +1,8 @@
 
 # setup  ------------------------------------------------------------------
 
-
-folderWithLog <- file.path(tempdir(), "logs")
-dir.create(folderWithLog, showWarnings = FALSE)
-logger <- ParallelLogger::createLogger(
-  threshold = "TRACE",
-  appenders = list(
-    # to console for traking
-    .createConsoleAppenderForSandboxLogging(),
-    # to file for showing in app
-    ParallelLogger::createFileAppender(
-      fileName = file.path(folderWithLog, "log.txt"),
-      layout = ParallelLogger::layoutSimple
-    )
-  )
-)
-ParallelLogger::clearLoggers()
-ParallelLogger::registerLogger(logger)
-ParallelLogger::logTrace("Start logging")
-
-shiny::addResourcePath("logs", folderWithLog)
-
-
+logger <- fcr_setUpLogger()
+ 
 # run ---------------------------------------------------------------------
 devtools::load_all(".")
 

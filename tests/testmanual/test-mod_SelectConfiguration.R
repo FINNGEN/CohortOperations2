@@ -3,8 +3,7 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-logger <- setup_ModalWithLog()
-
+logger <- fcr_setUpLogger()
 
 r_connectionHandlers <- shiny::reactiveValues(
   databasesHandlers = NULL

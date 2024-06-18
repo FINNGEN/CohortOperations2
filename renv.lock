@@ -57,13 +57,13 @@
       "Package": "CohortDiagnostics",
       "Version": "3.2.5",
       "Source": "GitHub",
-      "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "CohortDiagnostics",
       "RemoteUsername": "javier-gracia-tabuenca-tuni",
+      "RemoteRepo": "CohortDiagnostics",
       "RemoteRef": "fix-error-with-no-conceptset-cohorts",
       "RemoteSha": "46d72aaf678307b7d3200e19aea5aa193e730697",
+      "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "Requirements": [
         "Andromeda",
         "CohortGenerator",
@@ -247,36 +247,6 @@
       ],
       "Hash": "e686d93264359802fdccd41989c51386"
     },
-    "FinnGenUtilsR": {
-      "Package": "FinnGenUtilsR",
-      "Version": "3.0.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "FINNGEN",
-      "RemoteRepo": "FinnGenUtilsR",
-      "RemoteRef": "32-add-analysis-type-additive-recessive-dominant-to-the-gwas-run-function",
-      "RemoteSha": "24d1fba8d64dbf5e9bd68072a2b507ce1ddf8aaa",
-      "Requirements": [
-        "DBI",
-        "DatabaseConnector",
-        "Eunomia",
-        "R6",
-        "SqlRender",
-        "bigrquery",
-        "checkmate",
-        "dbplyr",
-        "dplyr",
-        "httr",
-        "jsonlite",
-        "readr",
-        "rlang",
-        "stringr",
-        "tibble",
-        "yaml"
-      ],
-      "Hash": "2046642030d021145a4c3dba8254923f"
-    },
     "HadesExtras": {
       "Package": "HadesExtras",
       "Version": "0.0.0.9002",
@@ -285,8 +255,8 @@
       "RemoteHost": "api.github.com",
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
-      "RemoteRef": "deb151e33ed237977d4872643660af4bf7eaa07b",
-      "RemoteSha": "deb151e33ed237977d4872643660af4bf7eaa07b",
+      "RemoteRef": "master",
+      "RemoteSha": "29e56da19fccd9dc000e76ada07e03d036e82c28",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -320,7 +290,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "8d6a2aba72e02c4f9b2377856d38b2b9"
+      "Hash": "b39d55329990fafc09374ff1c9c8368f"
     },
     "MASS": {
       "Package": "MASS",
@@ -547,14 +517,14 @@
     },
     "ResultModelManager": {
       "Package": "ResultModelManager",
-      "Version": "0.5.7",
+      "Version": "0.5.8",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
-      "RemoteSha": "1cff4f0b1856b4c9fef662d3a6fb88e3c3005760",
+      "RemoteSha": "ad706b4396d8285a8930c9b99ec09e927e403b00",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -572,7 +542,7 @@
         "rlang",
         "zip"
       ],
-      "Hash": "0e5d673a91b0e34b21a5e15b278ee44f"
+      "Hash": "f664eac6620a8d5a9a3365b4aed4caf4"
     },
     "SqlRender": {
       "Package": "SqlRender",
@@ -753,7 +723,7 @@
       "Package": "boot",
       "Version": "1.3-28.1",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "graphics",
@@ -897,7 +867,7 @@
       "Package": "codetools",
       "Version": "0.2-19",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "R"
       ],
@@ -2647,7 +2617,7 @@
       "Package": "rpart",
       "Version": "4.1.19",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "grDevices",
@@ -2964,14 +2934,15 @@
     },
     "systemfonts": {
       "Package": "systemfonts",
-      "Version": "1.0.6",
+      "Version": "1.1.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
-        "cpp11"
+        "cpp11",
+        "lifecycle"
       ],
-      "Hash": "6d538cff441f0f1f36db2209ac7495ac"
+      "Hash": "213b6b8ed5afbf934843e6c3b090d418"
     },
     "testthat": {
       "Package": "testthat",

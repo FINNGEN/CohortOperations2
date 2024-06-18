@@ -66,7 +66,29 @@ fct_assertdatabasesConfig  <- function(databasesConfig) {
 
 }
 
+fcr_setUpLogger  <- function(){
+  folderWithLog <- file.path(tempdir(), "logs")
+  dir.create(folderWithLog, showWarnings = FALSE)
+  logger <- ParallelLogger::createLogger(
+    threshold = "TRACE",
+    appenders = list(
+      # to console for traking
+      .createConsoleAppenderForSandboxLogging(),
+      # to file for showing in app
+      ParallelLogger::createFileAppender(
+        fileName = file.path(folderWithLog, "log.txt"),
+        layout = ParallelLogger::layoutSimple
+      )
+    )
+  )
+  ParallelLogger::clearLoggers()
+  #addDefaultFileLogger(file.path(folderWithLog, "log2.txt"))
+  ParallelLogger::registerLogger(logger)
 
+  shiny::addResourcePath("logs", folderWithLog)
+
+  return(logger)
+}
 
 
 
