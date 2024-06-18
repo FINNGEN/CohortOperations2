@@ -20,7 +20,7 @@ DF12:
   cohortTableHandler:
     database:
       databaseId: DF12
-      databaseName: FinngGen-DF12
+      databaseName: FinnG en-DF12
       databaseDescription: FinnGen database 12
     connection:
       connectionDetailsSettings:
@@ -42,7 +42,7 @@ DF11:
   cohortTableHandler:
     database:
       databaseId: DF11
-      databaseName: FinngGen-DF11
+      databaseName: FinnG en-DF11
       databaseDescription: FinnGen database 11
     connection:
       connectionDetailsSettings:

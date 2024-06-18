@@ -432,8 +432,8 @@ mod_cohortDiagnostics_server <- function(id, r_connectionHandlers, r_workbench) 
           round((rf_results()$runningTimeMins-floor(rf_results()$runningTimeMins))*60), " seconds"
         )
         resultMessage <- paste0("✅ Success\n",
-                                "🕒 Running time: ", runningTimeMinsSecs, "\n",
-                                "📂 Results in: ", rf_results()$result)
+                                "🕒 Running time: ", runningTimeMinsSecs, "\n"
+                                 )
         shiny::removeModal()
       }else{
         resultMessage <- paste0("❌ Error\n",

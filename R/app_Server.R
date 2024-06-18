@@ -11,6 +11,7 @@ app_server <- function(input, output, session) {
   databasesConfig <- shiny::getShinyOption("databasesConfig")
 
   # get connection sandbox API configured for running GWAS
+  connection_sandboxAPI <- NULL
   tryCatch({
     connection_sandboxAPI <- configGWAS()
   }, error=function(e) {
