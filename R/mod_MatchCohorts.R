@@ -27,14 +27,14 @@ mod_matchCohorts_ui <- function(id) {
       multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
-    shiny::tags$h5("Create a new cohort, matching subjects from target cohort:"),
+    shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectTargetCohort_pickerInput"),
       label = NULL,
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
-    shiny::tags$h5("with same characteristic as in matching cohort:"),
+    shiny::tags$h5("with same characteristic as in matching/case cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectMatchCohort_pickerInput"),
       label = NULL,
@@ -42,8 +42,8 @@ mod_matchCohorts_ui <- function(id) {
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
-    shiny::tags$h4("Settings"),
-    shiny::tags$h5("Match"),
+    #shiny::tags$h4("Settings"),
+    shiny::tags$h5("The new cohort will have a maximum of"),
     shiny::numericInput(
       inputId = ns("matchRatio_numericInput"),
       label = NULL,
@@ -51,7 +51,7 @@ mod_matchCohorts_ui <- function(id) {
       min = 1,
       max = 1000
     ),
-    shiny::tags$h5("subjects for each subject in matching cohort,"),
+    shiny::tags$h5("subjects for each subject in matching/case cohort,"),
     shiny::tags$h5(" with"),
     shinyWidgets::prettySwitch(
       inputId = ns("matchSex_switch"),
@@ -67,17 +67,19 @@ mod_matchCohorts_ui <- function(id) {
     ),
     shinyWidgets::prettySwitch(
       inputId = ns("matchCohortStartDateWithInDuration_switch"),
-      label = "Observation period includes matching cohort start date",
+      label = "Start date within target's/control's observation period",
       status = "primary",
       value = FALSE
     ),
     shinyWidgets::radioGroupButtons(
       inputId = ns("newCohortStartDate_option"),
-      label = "Subjects in the new cohort to have cohort start date as in",
+      label = "Cohort start date in the new cohort will be ",
       choices = list(
-        `Target cohort` = "keep",
-        `Matched control cohort` = "asMatch"
+        `unchange, same as the picked subjects from target/control cohort` = "keep",
+        `match to be the same as in matching/case cohort` = "asMatch"
       ),
+      direction = "vertical",
+      selected = "asMatch",
       individual = TRUE,
       checkIcon = list(
         yes = shiny::tags$i(class = "fa fa-circle",
@@ -87,11 +89,12 @@ mod_matchCohorts_ui <- function(id) {
     ),
     shinyWidgets::radioGroupButtons(
       inputId = ns("newCohortEndDate_option"),
-      label = "Patients in new cohort to have cohort end date as in",
+      label = "Cohort end date in the new cohort will be ",
       choices = list(
-        `Target cohort` = "keep",
-        `Matched control cohort` = "asMatch"
+        `unchange, same as the picked subjects from target/control cohort` = "keep",
+        `match to be the same as in matching/case cohort` = "asMatch"
       ),
+      direction = "vertical",
       individual = TRUE,
       checkIcon = list(
         yes = shiny::tags$i(class = "fa fa-circle",
