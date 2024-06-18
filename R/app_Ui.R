@@ -29,6 +29,7 @@ app_ui <- function(request) {
           shinydashboard::menuItem("Cohorts Demographics(Beta)", tabName = "cohortsIncidence", icon = shiny::icon("users")),
           shinydashboard::menuItem("CodeWAS (Beta)", tabName = "CodeWAS", icon = shiny::icon("tasks")),
           shinydashboard::menuItem("Time CodeWAS", tabName = "timeCodeWAS", icon = shiny::icon("road")),
+          shinydashboard::menuItem("Run GWAS", tabName = "runGWAS", icon = shiny::icon("magnifying-glass-chart")),
           shiny::h5(" About"),
           shinydashboard::menuItem("About", tabName = "about", icon = shiny::icon("info"))
         )
@@ -194,6 +195,24 @@ app_ui <- function(request) {
               mod_codeWAS_ui("codeWAS")
             )
           ),
+
+          ## TAB GWAS
+          shinydashboard::tabItem(
+            tabName = "runGWAS",
+            ### Cohorts workbench
+            shinydashboard::box(
+              title = "Cohorts workbench ",
+              status = "primary", solidHeader = TRUE, width = 12,
+              mod_cohortWorkbench_ui("cohortWorkbench_runGWAS")
+            ),
+            ###
+            shinydashboard::box(
+              title = shiny::tagList(shiny::icon("magnifying-glass-chart"), "GWAS:"),
+              solidHeader = TRUE, width = 12,
+              mod_runGWAS_ui("runGWAS")
+            )
+          ),
+
           ## TAB timeCodeWAS
           shinydashboard::tabItem(
             tabName = "timeCodeWAS",

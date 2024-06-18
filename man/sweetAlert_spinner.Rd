@@ -4,14 +4,19 @@
 \alias{sweetAlert_spinner}
 \title{sweetAlert_spinner}
 \usage{
-sweetAlert_spinner(message, wait_time_sec = NULL, ...)
+sweetAlert_spinner(
+  message,
+  logUrl = "/logs/log.txt",
+  updateMiliseconds = 500,
+  ...
+)
 }
 \arguments{
 \item{message}{message to show in the alert}
 
-\item{wait_time_sec}{if not NULL shows a progress bar that loads in the given second}
-
 \item{...}{additional options for shinyWidgets::show_alert}
+
+\item{wait_time_sec}{if not NULL shows a progress bar that loads in the given second}
 }
 \description{
 A sweet alert with a dna spinner
