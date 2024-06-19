@@ -31,21 +31,41 @@ mod_codeWAS_ui <- function(id) {
     shiny::tags$h4("Settings"),
     #
     mod_fct_covariateSelector_ui(
-      inputId = ns("covaraites_pickerInput"),
-      label = "Select covariates",
+      inputId = ns("features_pickerInput"),
+      label = "Select features to compare between cases and controls:",
       analysisIdsToShow = c(101, 102, 141, 204, 1, 2, 3, 6, 8, 9, 10, 41, 601, 641, 301, 341, 404, 906, 701, 702, 703, 741, 908, 801, 841, 909,501, 541, 907, 910   ),
       analysisIdsSelected = c(141, 1, 2, 8, 10, 41, 641, 341, 404, 741, 841, 541 )
     ),
-    shiny::tags$h5("Select covariates that will be used to control for confounding"),
-    shiny::checkboxInput(
-      inputId = ns("controlSex_checkboxInput"),
-      label = "Sex",
-      value = TRUE
+    shinyWidgets::radioGroupButtons(
+      inputId = ns("statistics_type_option"),
+      label = "Select comparison statistics:",
+      choices = list(
+        `Fisher's exact test and Welch's t-test (fast, no control for confounding)` = "aggregated",
+        `Logistic and linear regresions (slow, control for confounding)` = "full"
+      ),
+      direction = "vertical",
+      individual = TRUE,
+      checkIcon = list(
+        yes = shiny::tags$i(class = "fa fa-circle",
+                            style = "color: steelblue"),
+        no = shiny::tags$i(class = "fa fa-circle-o",
+                           style = "color: steelblue"))
     ),
-    shiny::checkboxInput(
-      inputId = ns("controlYearOfBirth_checkboxInput"),
-      label = "Year of birth",
-      value = TRUE
+    # conditional panel
+    shiny::conditionalPanel(
+      condition = "input.statistics_type_option == 'full'",
+      ns = ns,
+      shiny::tags$h5("Confounding variables: "),
+      shiny::checkboxInput(
+        inputId = ns("controlSex_checkboxInput"),
+        label = "Sex",
+        value = TRUE
+      ),
+      shiny::checkboxInput(
+        inputId = ns("controlYearOfBirth_checkboxInput"),
+        label = "Year of birth",
+        value = TRUE
+      ),
     ),
     shiny::tags$h5("Minimum cell count:"),
     shiny::numericInput(
@@ -56,8 +76,8 @@ mod_codeWAS_ui <- function(id) {
       max = 1000
     ),
     htmltools::hr(),
-    shiny::tags$h4("Summary"),
-    shiny::verbatimTextOutput(ns("summary_text")),
+    shiny::tags$h4("Pre-ran info"),
+    shiny::verbatimTextOutput(ns("info_text")),
     shiny::tags$br(),
     shiny::actionButton(ns("run_actionButton"), "Run Study"),
     #
@@ -173,17 +193,17 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$selectCaseCohort_pickerInput!="NA")
       shiny::req(input$selectControlCohort_pickerInput)
       shiny::req(input$selectControlCohort_pickerInput!="NA")
-      shiny::req(input$covaraites_pickerInput)
+      shiny::req(input$features_pickerInput)
       shiny::req(input$minCellCount_numericInput)
 
       # if covariates selected, also add the necessary analysis
-      covariatesIds <- c()
-      analysisIds  <-  input$covaraites_pickerInput |> as.numeric()
-      if(input$controlSex_checkboxInput){
+      covariatesIds <- NULL
+      analysisIds  <-  input$features_pickerInput |> as.numeric()
+      if(input$statistics_type_option == "full" & input$controlSex_checkboxInput){
         covariatesIds <- c(covariatesIds, 8507001)
         analysisIds <- union(analysisIds, 1)
       }
-      if(input$controlYearOfBirth_checkboxInput){
+      if(input$statistics_type_option == "full" & input$controlYearOfBirth_checkboxInput){
         covariatesIds <- c(covariatesIds, 1041)
         analysisIds <- union(analysisIds, 41)
       }
@@ -204,6 +224,82 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       }
 
       r$analysisSettings <- analysisSettings
+
+    })
+
+    output$info_text <- shiny::renderText({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
+      shiny::req(input$selectDatabases_pickerInput)
+      shiny::req(input$selectCaseCohort_pickerInput)
+      shiny::req(input$selectControlCohort_pickerInput)
+
+      # cores
+      message <- paste0("🔢 Analysis will use : ", cores, " cores\n")
+
+      # overlap
+      cohortsOverlap <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsOverlap()
+      cohortCounts <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortCounts()
+      nSubjectsOverlap <- cohortsOverlap |>
+        dplyr::filter(stringr::str_detect(cohortIdCombinations, input$selectCaseCohort_pickerInput) & stringr::str_detect(cohortIdCombinations, input$selectControlCohort_pickerInput)) |>
+        dplyr::pull(numberOfSubjects)  |>
+        sum()
+      nSubjectsCase <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
+
+      if(length(nSubjectsOverlap)==0){
+        message <- paste0(message, "✅ No subjects verlap between case and control cohorts\n")
+      }else{
+        if(nSubjectsOverlap > nSubjectsCase * .20){
+          message <- paste0(message, "❌  Error: There is many subjects, ",nSubjectsOverlap, ", that overlpa between case and control cohorts. That is more than 20% of the cases. \n")
+        }else{
+          message <- paste0(message, "⚠️️ Warning: There is few subjects, ",nSubjectsOverlap, ", that overlap between case and control cohorts. \n")
+        }
+      }
+
+      cohortsSumary  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsSummary()
+      # sex
+      if(!(input$statistics_type_option == "full" & input$controlSex_checkboxInput)){
+        sexCase <- cohortsSumary |>
+          dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+          dplyr::pull(sexCounts)
+        sexControl <- cohortsSumary |>
+          dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+          dplyr::pull(sexCounts)
+        nMaleCases <- sexCase[[1]]  |> dplyr::filter(sex == "MALE")  |> dplyr::pull(n)
+        nMaleCases <- ifelse(length(nMaleCases)==0, 0, nMaleCases)
+        nFemaleCases <- sexCase[[1]]  |> dplyr::filter(sex == "FEMALE")  |> dplyr::pull(n)
+        nFemaleCases <- ifelse(length(nFemaleCases)==0, 0, nFemaleCases)
+        nMaleControls <- sexControl[[1]]  |> dplyr::filter(sex == "MALE") |> dplyr::pull(n)
+        nMaleControls <- ifelse(length(nMaleControls)==0, 0, nMaleControls)
+        nFemaleControls <- sexControl[[1]]  |> dplyr::filter(sex == "FEMALE") |> dplyr::pull(n)
+        nFemaleControls <- ifelse(length(nFemaleControls)==0, 0, nFemaleControls)
+
+        data <-matrix(c(nMaleCases,nFemaleCases,nMaleControls,nFemaleControls),ncol=2)
+        fisher_results <- stats::fisher.test(data)
+
+        if(fisher_results$p.value < 0.05){
+          message <- paste0(message, "⚠️ Warning: There is a significant difference in sex distribution between case and control cohorts. (Fisher's test p = ", scales::scientific(fisher_results$p.value)," ) \n")
+        }
+      }
+
+      # year of birth
+      if(!(input$statistics_type_option == "full" & input$controlYearOfBirth_checkboxInput)){
+        yearOfBirthCase <- cohortsSumary |>
+          dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+          dplyr::pull(histogramBirthYear)
+        yearOfBirthControl <- cohortsSumary |>
+          dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+          dplyr::pull(histogramBirthYear)
+
+        ttestResult <- t.test(yearOfBirthCase[[1]]  |> tidyr::uncount(n), yearOfBirthControl[[1]]  |> tidyr::uncount(n))
+
+        if(ttestResult$p.value < 0.05){
+          message <- paste0(message, "⚠️ Warning: There is a significant difference in year of birth distribution between case and control cohorts. (t-test p = ", scales::scientific(ttestResult$p.value)," ) \n")
+        }
+      }
+
+      return(message)
 
     })
 
@@ -293,7 +389,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # display results
     #
-    output$summary_text <- shiny::renderText({
+    output$results_text <- shiny::renderText({
       rf_results()$result
       shiny::req(rf_results)
 
@@ -306,7 +402,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         )
         resultMessage <- paste0("✅ Success\n",
                                 "🕒 Running time: ", runningTimeMinsSecs, "\n"
-                                 )
+        )
         shiny::removeModal()
       }else{
         resultMessage <- paste0("❌ Error\n",

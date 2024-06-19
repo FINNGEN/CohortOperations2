@@ -32,6 +32,7 @@ mod_fct_covariateSelector_ui <- function(inputId, label = NULL, analysisIdsToSho
     dplyr::left_join(analysisNamePretty, by = c("analysisName" = "analysisName")) |>
     dplyr::mutate(analysisNamePretty = dplyr::if_else(is.na(analysisNamePretty), analysisName, analysisNamePretty)) |>
     dplyr::mutate(analysisNamePretty = stringr::str_replace_all(analysisNamePretty, "([a-z])([A-Z])", "\\1 \\2")) |>
+    dplyr::mutate(analysisNamePretty = paste0(analysisNamePretty, " [", dplyr::if_else(isBinary, "Binary", "Continuous"), dplyr::if_else(isSourceConcept, ", Source Codes", ""), "]")) |>
     dplyr::filter(analysisId %in% analysisIdsToShow) |>
     dplyr::select(group = domainId, analysisId, analysisNamePretty)
 

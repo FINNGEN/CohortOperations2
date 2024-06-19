@@ -35,6 +35,7 @@ app <- shiny::shinyApp(
 )
 
 app$appOptions$logger  <- logger
+app$appOptions$cores  <- 3
 app
 
 
