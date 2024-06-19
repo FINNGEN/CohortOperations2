@@ -247,7 +247,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
         dplyr::pull(cohortSubjects)
 
-      if(length(nSubjectsOverlap)==0){
+      if(length(nSubjectsOverlap)==0 || nSubjectsOverlap == 0){
         message <- paste0(message, "✅ No subjects verlap between case and control cohorts\n")
       }else{
         if(nSubjectsOverlap > nSubjectsCase * .20){
@@ -280,6 +280,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
         if(fisher_results$p.value < 0.05){
           message <- paste0(message, "⚠️ Warning: There is a significant difference in sex distribution between case and control cohorts. (Fisher's test p = ", scales::scientific(fisher_results$p.value)," ) \n")
+        }else{
+          message <- paste0(message, "✅ No significant difference in sex distribution between case and control cohorts. (Fisher's test p = ", scales::scientific(fisher_results$p.value)," ) \n")
         }
       }
 
@@ -296,6 +298,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
         if(ttestResult$p.value < 0.05){
           message <- paste0(message, "⚠️ Warning: There is a significant difference in year of birth distribution between case and control cohorts. (t-test p = ", scales::scientific(ttestResult$p.value)," ) \n")
+        }else{
+          message <- paste0(message, "✅ No significant difference in year of birth distribution between case and control cohorts. (t-test p = ", scales::scientific(ttestResult$p.value)," ) \n")
         }
       }
 
