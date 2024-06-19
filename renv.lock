@@ -247,6 +247,36 @@
       ],
       "Hash": "e686d93264359802fdccd41989c51386"
     },
+    "FinnGenUtilsR": {
+      "Package": "FinnGenUtilsR",
+      "Version": "3.0.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "FINNGEN",
+      "RemoteRepo": "FinnGenUtilsR",
+      "RemoteRef": "master",
+      "RemoteSha": "fb9249481721cd5fe784ee3cc3688a024b0eba5f",
+      "Requirements": [
+        "DBI",
+        "DatabaseConnector",
+        "Eunomia",
+        "R6",
+        "SqlRender",
+        "bigrquery",
+        "checkmate",
+        "dbplyr",
+        "dplyr",
+        "httr",
+        "jsonlite",
+        "readr",
+        "rlang",
+        "stringr",
+        "tibble",
+        "yaml"
+      ],
+      "Hash": "efeacd73c701756d9deb85899f4e3ce5"
+    },
     "HadesExtras": {
       "Package": "HadesExtras",
       "Version": "0.0.0.9002",
