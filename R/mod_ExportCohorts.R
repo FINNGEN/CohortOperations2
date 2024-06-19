@@ -92,12 +92,12 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       r_data$cohortName <- df$cohortName
       r_data$databaseName <- df$databaseName
       name <- paste0(paste0(.format_str(df$databaseId), "_", .format_str(df$cohortName)), collapse = "_")
-      r_data$filename <- sprintf("%s.csv", name)
+      r_data$filename <- sprintf("%s.tsv", name)
 
     })
 
     #
-    # activate settings if cohors have been selected
+    # activate settings if cohorts have been selected
     #
     shiny::observe({
       condition <- shiny::isTruthy(input$selectCohorts_pickerInput)
