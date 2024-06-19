@@ -86,7 +86,7 @@ mod_codeWAS_ui <- function(id) {
     shiny::verbatimTextOutput(ns("results_text")),
     shiny::tags$br(),
     shiny::downloadButton(ns("download_actionButton"), "Download to Sandbox"),
-    shiny::downloadButton(ns("download_actionButton2"), "Download out of Sandbox"),
+    #shiny::downloadButton(ns("download_actionButton2"), "Download out of Sandbox"),
     shiny::actionButton(ns("view_actionButton"), "Open Viewer"),
   )
 }
