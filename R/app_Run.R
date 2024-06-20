@@ -28,9 +28,19 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   # set up futuress
   future::plan(future::multisession, workers = 2)
 
-  # set up loger
+  # create tmp location for the logs
+  # refresh the log file to contain logs only from current session
   folderWithLog <- file.path(tempdir(), "logs")
-  dir.create(folderWithLog, showWarnings = FALSE)
+  logFile <- file.path(folderWithLog, "log.txt")
+  if(!file.exists(logFile)) {
+    dir.create(folderWithLog, showWarnings = FALSE)
+  } else {
+    # file exists, delete and replace with a new one
+    unlink(logFile, force = T)
+  }
+
+  # set up logger
+  ParallelLogger::clearLoggers()
   logger <- ParallelLogger::createLogger(
       threshold = "TRACE",
     appenders = list(
@@ -39,11 +49,10 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
       # to file for showing in app
       ParallelLogger::createFileAppender(
         fileName = file.path(folderWithLog, "log.txt"),
-        layout = ParallelLogger::layoutSimple
+        layout = ParallelLogger::layoutTimestamp
       )
     )
   )
-  ParallelLogger::clearLoggers()
   #addDefaultFileLogger(file.path(folderWithLog, "log2.txt"))
   ParallelLogger::registerLogger(logger)
 
@@ -85,3 +94,5 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   class(appender) <- "Appender"
   return(appender)
 }
+
+

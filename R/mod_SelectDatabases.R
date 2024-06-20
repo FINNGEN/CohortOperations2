@@ -65,7 +65,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
     shiny::observeEvent(c(input$selectDatabases_pickerInput, input$allChecks_checkbox), {
       shiny::req(input$selectDatabases_pickerInput)
 
-      remove_sweetAlert_spinner()
+      # remove_sweetAlert_spinner()
       sweetAlert_spinner("Connecting to databases")
 
       selecteddatabasesConfig <- databasesConfig[input$selectDatabases_pickerInput]

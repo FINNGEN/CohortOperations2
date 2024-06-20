@@ -3,7 +3,17 @@
 
 
 folderWithLog <- file.path(tempdir(), "logs")
-dir.create(folderWithLog, showWarnings = FALSE)
+logFile <- file.path(folderWithLog, "log.txt")
+
+# refresh the log file to contain logs only from current session
+if(!file.exists(logFile)) {
+  dir.create(folderWithLog, showWarnings = FALSE)
+} else {
+  # file exists, delete and replace with a new one
+  unlink(logFile, force = T)
+}
+
+ParallelLogger::clearLoggers()
 logger <- ParallelLogger::createLogger(
   threshold = "TRACE",
   appenders = list(
@@ -12,15 +22,20 @@ logger <- ParallelLogger::createLogger(
     # to file for showing in app
     ParallelLogger::createFileAppender(
       fileName = file.path(folderWithLog, "log.txt"),
-      layout = ParallelLogger::layoutSimple
+      layout = ParallelLogger::layoutTimestamp
     )
   )
 )
-ParallelLogger::clearLoggers()
+
 ParallelLogger::registerLogger(logger)
 ParallelLogger::logTrace("Start logging")
 
+ParallelLogger::logError("Error example")
+ParallelLogger::logInfo("Info example")
+ParallelLogger::logWarn("Warn example")
+
 shiny::addResourcePath("logs", folderWithLog)
+
 
 
 # run ---------------------------------------------------------------------
@@ -58,8 +73,6 @@ server <- function(input, output) {
     remove_sweetAlert_spinner()
 
   })
-
-
 
 }
 

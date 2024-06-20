@@ -23,10 +23,6 @@ app_server <- function(input, output, session) {
     cohortsSummaryDatabases = HadesExtras::createEmptyCohortsSummary()
   )
 
-  shiny::observe({
-    sweetAlert_spinner("Starting application")
-  })
-
   mod_selectDatabases_server("selectDatabases", databasesConfig, r_connectionHandlers)
 
   mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_connectionHandlers, r_workbench)
@@ -58,7 +54,6 @@ app_server <- function(input, output, session) {
 
   mod_cohortWorkbench_server("cohortWorkbench_codeWAS", r_connectionHandlers, r_workbench)
   mod_codeWAS_server("codeWAS", r_connectionHandlers, r_workbench)
-
 
   output$about <- shiny::renderUI({
     # load news from shinyoption pathtomd
