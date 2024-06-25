@@ -133,6 +133,11 @@ DF12:
     cohortTable:
       cohortDatabaseSchema: "$SANDBOX_PROJECT".sandbox
       cohortTableName: co2_d12_"$SESSION_MANAGER_ID"
+  atlasConfig:
+    webapi: https://ohdsi-webapi.app.finngen.fi/WebAPI
+    sourceKey: FINNGEN_CDM_R12
+    cohortDatabaseSchema: finngen-production-library.finngen_omop_results_r12
+    cohortTable: cohort
 
 DF11:
   cohortTableHandler:
@@ -155,6 +160,11 @@ DF11:
     cohortTable:
       cohortDatabaseSchema: "$SANDBOX_PROJECT".sandbox
       cohortTableName: co2_d11_"$SESSION_MANAGER_ID"
+  atlasConfig:
+    webapi: https://ohdsi-webapi.app.finngen.fi/WebAPI
+    sourceKey: FINNGEN_CDM_R11
+    cohortDatabaseSchema: finngen-production-library.finngen_omop_results_r11
+    cohortTable: cohort
 
 " > /tmp/co2_databases_config.yml
 

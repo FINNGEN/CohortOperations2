@@ -70,9 +70,9 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       atlasCohortsTable <- NULL
       tryCatch({
         atlasCohortsTable <- ROhdsiWebApi::getCohortDefinitionsMetaData(webApiUrl) |>
-        dplyr::filter(grepl(filterCohortsRegex, name)) |>
-        dplyr::arrange(dplyr::desc(id)) |>
-        dplyr::select(id, name, description)
+          dplyr::filter(grepl(filterCohortsRegex, name)) |>
+          dplyr::arrange(dplyr::desc(id)) |>
+          dplyr::select(id, name, description, modifiedDate)
       }, error = function(e) {
         atlasCohortsTable <<- paste("Error connecting to Atlas. Check that Atlas is working.")
       })
@@ -119,20 +119,100 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         dplyr::slice(r_selectedIndex()) |>
         dplyr::pull(id)
 
-      cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
-        baseUrl = webApiUrl,
-        cohortIds = selectedCohortIds
-      )
+      atlasConfig <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$atlasConfig
 
-      r_toAdd$databaseName <- input$selectDatabases_pickerInput
-      r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
 
-      ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
-                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
-                              " to database", input$selectDatabases_pickerInput)
 
-      remove_sweetAlert_spinner()
-    })
+      for (selectedCohortId in selectedCohortIds) {
+        browser()
+        # check if cohort has been generated and up to date
+        cohortModifiedDate <- r$atlasCohortsTable |>
+          dplyr::filter(id == selectedCohortId) |>
+          dplyr::pull(modifiedDate)
+
+        cohortGenerationInformation <- ROhdsiWebApi::getCohortGenerationInformation(selectedCohortId, atlasConfig$webapi)|>
+          dplyr::filter(sourceKey == atlasConfig$sourceKey)
+
+        cohortIsUpToDate <- cohortModifiedDate <= cohortGenerationInformation$startTime
+
+        if (!isUpToDate) {
+          # run it
+          ROhdsiWebApi::invokeCohortGeneration(selectedCohortId, atlasConfig$webapi, atlasConfig$sourceKey)
+          # wait for completed or failed status
+          while (cohortGenerationInformation$status %in% c("PENDING", "RUNNING")) {
+            Sys.sleep(5)
+            try(
+              cohortGenerationInformation <- ROhdsiWebApi::getCohortGenerationInformation(selectedCohortId, atlasConfig$webapi)|>
+                dplyr::filter(sourceKey == atlasConfig$sourceKey)
+            )
+          }
+        }
+
+        if (cohortGenerationInformation$status == "FAILED") {
+          sweetAlert_error("Cohort generation failed")
+          return()
+        }
+
+        if (cohortGenerationInformation$status == "COMPLETED") {
+
+          cohortDefinitionTable <-  r$atlasCohortsTable |>
+            dplyr::filter(id == selectedCohortId) |>
+            dplyr::transmute(
+              cohort_definition_id = id,
+              cohort_definition_name = name,
+              cohort_definition_description = description
+            )
+
+
+          HadesExtras::cohortTableToCohortDefinitionSettings(
+            cohortDatabaseSchema = atlasConfig$cohortDatabaseSchema,
+            cohortTable = atlasConfig$cohortTable,
+            cohortDefinitionTable = cohortDefinitionTable,
+            cohortDefinitionIds = selectedCohortId,
+            cohortIdOffset = 0L
+          ){
+
+            # add cohort to database
+            cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
+              baseUrl = webApiUrl,
+              cohortIds = selectedCohortId
+            )
+
+            # add cohort to database
+            r_toAdd$databaseName <- input$selectDatabases_pickerInput
+            r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+
+            ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
+                                    " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+                                    " to database", input$selectDatabases_pickerInput)
+          }
+
+
+
+
+
+        }
+
+        cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
+          baseUrl = webApiUrl,
+          cohortIds = selectedCohortIds
+        )
+
+        ROhdsiWebApi::getCohortGenerationInformation(1778211, webApiUrl)
+
+
+
+
+
+        r_toAdd$databaseName <- input$selectDatabases_pickerInput
+        r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+
+        ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
+                                " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+                                " to database", input$selectDatabases_pickerInput)
+
+        remove_sweetAlert_spinner()
+      })
 
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
@@ -145,10 +225,10 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       reactable::updateReactable("cohorts_reactable", selected = NA, session = session )
     })
 
-  })
+    })
 
 
-}
+  }
 
 
 

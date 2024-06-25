@@ -30,7 +30,10 @@ fct_databasesConfigToDatabasesHandlers <- function(
 
     cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
 
-    databasesHandlers[[databaseId]] <- list(cohortTableHandler = cohortTableHandler)
+    databasesHandlers[[databaseId]] <- list(
+      cohortTableHandler = cohortTableHandler,
+      atlasConfig = databasesConfig[[databaseId]]$atlasConfig
+      )
   }
 
   return(databasesHandlers)

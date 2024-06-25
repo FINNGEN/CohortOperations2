@@ -20,6 +20,11 @@ DF11:
     cohortTable:
       cohortDatabaseSchema: fg-production-sandbox-6.sandbox
       cohortTableName: javier_test_cohort_table
+  atlasConfig:
+    webapi: https://api.ohdsi.org/WebAPI
+    sourceKey: SYNPUF5PCT
+    cohortDatabaseSchema: main
+    cohortTable: cohort
 
 # DF10
 DF12:
@@ -43,3 +48,9 @@ DF12:
     cohortTable:
       cohortDatabaseSchema: fg-production-sandbox-6.sandbox
       cohortTableName: javier_test_cohort_table
+  atlasConfig:
+    webapi: https://api.ohdsi.org/WebAPI
+    sourceKey: SYNPUF5PCT
+    cohortDatabaseSchema: main
+    cohortTable: cohort
+

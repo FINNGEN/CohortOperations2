@@ -14,9 +14,11 @@ E1:
     cohortTable:
         cohortDatabaseSchema: main
         cohortTableName: test_cohort_table
-#  atlasConfig:
-#     webapi:
-#     resultsshchema:
+  atlasConfig:
+    webapi: https://api.ohdsi.org/WebAPI
+    sourceKey: SYNPUF5PCT
+    cohortDatabaseSchema: main
+    cohortTable: cohort
 
 # EUNOMIA 2
 E2:
@@ -34,6 +36,11 @@ E2:
     cohortTable:
         cohortDatabaseSchema: main
         cohortTableName: test_cohort_table
+  atlasConfig:
+    webapi: https://api.ohdsi.org/WebAPI
+    sourceKey: SYNPUF1K
+    cohortDatabaseSchema: main
+    cohortTable: cohort
 
 # BQ 1
 # dev_bigquery:

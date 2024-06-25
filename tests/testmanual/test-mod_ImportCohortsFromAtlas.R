@@ -26,7 +26,7 @@ app <- shiny::shinyApp(
     mod_importCohortsFromAtlas_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromAtlas_server("test", r_connectionHandlers, r_workbench, filterCohortsRegex='PENIS')
+    mod_importCohortsFromAtlas_server("test", r_connectionHandlers, r_workbench)# filterCohortsRegex='PENIS')
     mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
   },
   options = list(launch.browser=TRUE)
