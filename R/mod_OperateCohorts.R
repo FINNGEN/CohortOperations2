@@ -134,16 +134,28 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
       # two adjacent cohorts crash the following function (malformed input)
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
-        cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet |> dplyr::mutate(cohortId=as.double(cohortId)),# TEMP FIX
+        cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
         cohortSubsetDefintion = subsetDef,
         targetCohortIds = targetCohortIds,
         overwriteExisting =  TRUE
       )
 
-      cohortDefinitionSet <- cohortDefinitionSet |>
+      cohortDefinitionSetOnlyNew <- cohortDefinitionSet |>
         dplyr::filter(subsetDefinitionId == nextSubsetDefinitionId)
 
-      r$cohortDefinitionSet <- cohortDefinitionSet
+      # update cohortId to non existing, to avoid overflow here
+      # https://github.com/OHDSI/CohortGenerator/blob/e3efad630b8b2c0376431a88fde89e6c4bbac38c/R/SubsetDefinitions.R#L193
+      previousCohortId <- cohortDefinitionSetOnlyNew$cohortId
+      unusedCohortId <- setdiff(1:1000, cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
+
+      cohortDefinitionSetOnlyNew <- cohortDefinitionSetOnlyNew |>
+        dplyr::mutate(
+          cohortId = unusedCohortId,
+          sql = stringr::str_replace(sql, paste0('cohort_definition_id = ', previousCohortId), paste0('cohort_definition_id = ', unusedCohortId)),
+          sql = stringr::str_replace(sql, paste0(previousCohortId, ' as cohort_definition_id'), paste0(unusedCohortId, ' as cohort_definition_id'))
+          )
+
+      r$cohortDefinitionSet <- cohortDefinitionSetOnlyNew
 
     })
 

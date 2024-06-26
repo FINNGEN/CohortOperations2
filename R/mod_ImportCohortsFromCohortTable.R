@@ -119,19 +119,24 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
       sweetAlert_spinner("Processing cohorts")
 
       # get connection
-     connection  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$connectionHandler$getConnection()
-    cohortDatabaseSchema  <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$cdmDatabaseSchema
+      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
+      connection  <- cohortTableHandler$connectionHandler$getConnection()
+      cohortDatabaseSchema  <-  cohortTableHandler$cdmDatabaseSchema
 
       cohortDefinitionTable <- r$cohortDefinitionTable
       selectedCohortIds <- cohortDefinitionTable |>
         dplyr::slice(r_selectedIndex()) |>
         dplyr::pull(cohort_definition_id)
 
+      # calculate new cohorIds
+      numberNewCohorts <- length(selectedCohortIds)
+      unusedCohortIds <- setdiff(1:1000, cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
+
       cohortDefinitionSet  <- HadesExtras::cohortTableToCohortDefinitionSettings(
         cohortDatabaseSchema = cohortDatabaseSchema,
         cohortDefinitionTable = cohortDefinitionTable,
         cohortDefinitionIds = selectedCohortIds,
-        cohortIdOffset = 0L
+        newCohortDefinitionIds = unusedCohortIds
       )
 
       r_toAdd$databaseName <- input$selectDatabases_pickerInput
