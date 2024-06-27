@@ -30,31 +30,12 @@ mod_timeCodeWAS_ui <- function(id) {
     htmltools::hr(),
     shiny::tags$h4("Settings"),
     #
-    shinyWidgets::pickerInput(
-      inputId = ns("selectCovariates"),
-      label = "Select database where to match cohorts:",
-      choices = list(
-        Conditions = list(
-          `Conditions` = "useConditionOccurrence",
-          `Conditions in Primary Inpatient` = "useConditionOccurrencePrimaryInpatient",
-          `Conditions SNOMED Group` = "useConditionEraGroupOverlap"
-        ),
-        Drugs = list(
-          `Drugs` = "useDrugExposure",
-          `Drugs ATC Group` = "useDrugEraGroupOverlap"
-        ),
-        Procedures = list(
-          `Procedures` = "useProcedureOccurrence"
-        ),
-        Others = list(
-          `Device Exposure` = "useDeviceExposure",
-          `Measurement` = "useMeasurement",
-          `Observation` = "useObservation"
-        )
-      ),
-      selected = c("useConditionOccurrence", "useDrugExposure", "useProcedureOccurrence", "useDeviceExposure", "useMeasurement", "useObservation"),
-      options = list(`actions-box` = TRUE),
-      multiple = TRUE),
+    mod_fct_covariateSelector_ui(
+      inputId = ns("features_pickerInput"),
+      label = "Select features to compare between cases and controls:",
+      analysisIdsToShow = c(101, 102, 141, 204, 601, 641, 301, 341, 404, 906, 701, 741, 801, 841, 501, 541),
+      analysisIdsSelected = c(101, 102, 204, 601, 301, 404, 701, 801, 501 )
+    ),
     htmltools::hr(),
     shiny::tags$h4("Time windows"),
     mod_formTimeWindows_ui(ns("selectRanges")),

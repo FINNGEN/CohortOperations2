@@ -83,9 +83,9 @@ mod_matchCohorts_ui <- function(id) {
       individual = TRUE,
       checkIcon = list(
         yes = shiny::tags$i(class = "fa fa-circle",
-                     style = "color: steelblue"),
+                            style = "color: steelblue"),
         no = shiny::tags$i(class = "fa fa-circle-o",
-                    style = "color: steelblue"))
+                           style = "color: steelblue"))
     ),
     shinyWidgets::radioGroupButtons(
       inputId = ns("newCohortEndDate_option"),
@@ -98,14 +98,14 @@ mod_matchCohorts_ui <- function(id) {
       individual = TRUE,
       checkIcon = list(
         yes = shiny::tags$i(class = "fa fa-circle",
-                     style = "color: steelblue"),
+                            style = "color: steelblue"),
         no = shiny::tags$i(class = "fa fa-circle-o",
-                    style = "color: steelblue"))
+                           style = "color: steelblue"))
     ),
     #
     htmltools::hr(),
-    shiny::tags$h4("Summary"),
-    shiny::textOutput(ns("newCohortName_text")),
+    shiny::tags$h4("Pre-ran info"),
+    shiny::verbatimTextOutput(ns("info_text"), placeholder = TRUE),
     shiny::tags$br(),
     shiny::actionButton(ns("create_actionButton"), "Create matching cohort")
 
@@ -273,15 +273,56 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # Render temporal name
     #
-    output$newCohortName_text <- shiny::renderText({
-      stringToShow <- "----"
-      if(shiny::isTruthy(r$cohortDefinitionSet)){
-        stringToShow <- r$cohortDefinitionSet$cohortName
+    output$info_text <- shiny::renderText({
+      shiny::req(r$cohortDefinitionSet)
+      shiny::req(input$selectDatabases_pickerInput)
+      shiny::req(input$selectMatchCohort_pickerInput)
+      shiny::req(input$selectTargetCohort_pickerInput)
+
+      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
+
+      cohortsOverlap <- cohortTableHandler$getCohortsOverlap()
+      cohortCounts <-  cohortTableHandler$getCohortCounts()
+
+      nSubjectsOverlap <- cohortsOverlap |>
+        dplyr::filter(stringr::str_detect(cohortIdCombinations, input$selectMatchCohort_pickerInput) & stringr::str_detect(cohortIdCombinations, input$selectTargetCohort_pickerInput)) |>
+        dplyr::pull(numberOfSubjects)  |>
+        sum()
+      nSubjectsCase <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectMatchCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
+      nSubjectsControl <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectTargetCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
+
+      # name
+      message <- paste0("ℹ️ New cohort name : ", r$cohortDefinitionSet$cohortName, " \n")
+
+      # counts
+      if( nSubjectsCase > nSubjectsControl ){
+        message <- paste0(message, "❌ There are more subjects in matching/case cohort (", nSubjectsCase,") that in target/control cohort (", nSubjectsControl,"). Are you sure they are correct?\n")
+      }else{
+        if( nSubjectsCase * input$matchRatio_numericInput > nSubjectsControl){
+          message <- paste0(message, "⚠️There may be few subjects in target/control cohort (", nSubjectsControl,") to match from (number of subjects in matching/case * matching ratio = ",nSubjectsCase * input$matchRatio_numericInput,")\n")
+        }
       }
 
-      ParallelLogger::logInfo("[Match cohorts] Match Settings: ", stringToShow)
+      # overlap
+      if(length(nSubjectsOverlap)==0){
+        message <- paste0(message, "✅ No subjects overlap between matching/case and target/control n")
+      }else{
+        if(nSubjectsOverlap > nSubjectsCase * .20){
+          message <- paste0(message, "❌ There are many subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. Consider removing them in Operate Cohorts tab\n")
+        }else{
+          message <- paste0(message, "⚠️There are few subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. \n")
+        }
+      }
 
-      stringToShow
+
+
+      ParallelLogger::logInfo("[Match cohorts] Match Settings: ", message)
+
+      return(message)
     })
 
 

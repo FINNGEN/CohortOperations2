@@ -37,13 +37,13 @@ fct_databasesConfigToDatabasesHandlers <- function(
         1, 1, as.Date("2000-01-01"), as.Date("2000-12-01"),
         1, 2, as.Date("2000-01-01"), as.Date("2000-12-01"),
         1, 3, as.Date("2000-01-01"), as.Date("2000-12-01"),
-        1, 4, as.Date("2000-01-01"), as.Date("2000-12-01"),
+        1, 9, as.Date("2000-01-01"), as.Date("2000-12-01"),
         1, 5, as.Date("2000-01-01"), as.Date("2000-12-01"),
         1, 5, as.Date("2004-01-01"), as.Date("2004-12-01"),
 
         2, 2, as.Date("2001-01-01"), as.Date("2002-12-01"),# non overplaping
         2, 3, as.Date("2000-06-01"), as.Date("2000-09-01"),# inside
-        2, 4, as.Date("2000-06-01"), as.Date("2010-12-01"),# overlap
+        2, 9, as.Date("2000-06-01"), as.Date("2010-12-01"),# overlap
         2, 5, as.Date("2004-06-01"), as.Date("2010-12-01"),# overlap with second
         2, 6, as.Date("2000-01-01"), as.Date("2010-12-01")
       )

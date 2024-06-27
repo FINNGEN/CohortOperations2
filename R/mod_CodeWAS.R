@@ -77,7 +77,7 @@ mod_codeWAS_ui <- function(id) {
     ),
     htmltools::hr(),
     shiny::tags$h4("Pre-ran info"),
-    shiny::verbatimTextOutput(ns("info_text")),
+    shiny::verbatimTextOutput(ns("info_text"), placeholder = TRUE),
     shiny::tags$br(),
     shiny::actionButton(ns("run_actionButton"), "Run Study"),
     #
@@ -233,10 +233,6 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$selectCaseCohort_pickerInput)
       shiny::req(input$selectControlCohort_pickerInput)
 
-      # cores
-      message <- paste0("🔢 Analysis will use : ", cores, " cores\n")
-
-      # overlap
       cohortsOverlap <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsOverlap()
       cohortCounts <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortCounts()
       nSubjectsOverlap <- cohortsOverlap |>
@@ -246,18 +242,31 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       nSubjectsCase <- cohortCounts |>
         dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
         dplyr::pull(cohortSubjects)
+      nSubjectsControl <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
 
+      cohortsSumary  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsSummary()
+
+      # cores
+      message <- paste0("🔢 Analysis will use : ", cores, " cores\n")
+
+      # counts
+      if( nSubjectsCase > nSubjectsControl ){
+        message <- paste0(message, "❌ There are more subjects in  case cohort (", nSubjectsCase,") that in control cohort (", nSubjectsControl,"). Are you sure they are correct?\n")
+      }
+
+      # overlap
       if(length(nSubjectsOverlap)==0){
-        message <- paste0(message, "✅ No subjects verlap between case and control cohorts\n")
+          message <- paste0(message, "✅ No subjects overlap between case and control cohorts\n")
       }else{
         if(nSubjectsOverlap > nSubjectsCase * .20){
-          message <- paste0(message, "❌  Error: There is many subjects, ",nSubjectsOverlap, ", that overlpa between case and control cohorts. That is more than 20% of the cases. \n")
+          message <- paste0(message, "❌ There are many subjects, ",nSubjectsOverlap, ", that overlap  berween case and control cohorts. Consider removing them in Operate Cohorts tab\n")
         }else{
-          message <- paste0(message, "⚠️️ Warning: There is few subjects, ",nSubjectsOverlap, ", that overlap between case and control cohorts. \n")
+          message <- paste0(message, "⚠️ There are few subjects, ",nSubjectsOverlap, ", that overlap between case and control cohorts. \n")
         }
       }
 
-      cohortsSumary  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsSummary()
       # sex
       if(!(input$statistics_type_option == "full" & input$controlSex_checkboxInput)){
         sexCase <- cohortsSumary |>
@@ -279,7 +288,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         fisher_results <- stats::fisher.test(data)
 
         if(fisher_results$p.value < 0.05){
-          message <- paste0(message, "⚠️ Warning: There is a significant difference in sex distribution between case and control cohorts. (Fisher's test p = ", scales::scientific(fisher_results$p.value)," ) \n")
+          message <- paste0(message, "⚠️ There is a significant difference in sex distribution between case and control cohorts. (Fisher's test p = ", scales::scientific(fisher_results$p.value)," ) \n")
+          message <- paste0(message, "Consider controling for sex using regresion statistics or creating a new control cohort that match case cohort by sex in the Match Cohorts tab")
         }
       }
 
@@ -295,7 +305,8 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         ttestResult <- t.test(yearOfBirthCase[[1]]  |> tidyr::uncount(n), yearOfBirthControl[[1]]  |> tidyr::uncount(n))
 
         if(ttestResult$p.value < 0.05){
-          message <- paste0(message, "⚠️ Warning: There is a significant difference in year of birth distribution between case and control cohorts. (t-test p = ", scales::scientific(ttestResult$p.value)," ) \n")
+          message <- paste0(message, "⚠️ There is a significant difference in year of birth distribution between case and control cohorts. (t-test p = ", scales::scientific(ttestResult$p.value)," ) \n")
+          message <- paste0(message, "Consider controling for year of birth using regresion statistics or creating a new control cohort that match case cohort by year of birth in the Match Cohorts tab")
         }
       }
 
