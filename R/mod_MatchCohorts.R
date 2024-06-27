@@ -29,14 +29,14 @@ mod_matchCohorts_ui <- function(id) {
     shiny::tags$h4("Cohorts"),
     shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort:"),
     shinyWidgets::pickerInput(
-      inputId = ns("selectTargetCohort_pickerInput"),
+      inputId = ns("selectControlCohort_pickerInput"),
       label = NULL,
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
     shiny::tags$h5("with same characteristic as in matching/case cohort:"),
     shinyWidgets::pickerInput(
-      inputId = ns("selectMatchCohort_pickerInput"),
+      inputId = ns("selectCaseCohort_pickerInput"),
       label = NULL,
       choices = NULL,
       selected = NULL,
@@ -150,17 +150,20 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     })
 
     #
-    # update selectTargetCohort_pickerInput with cohort names in selectDatabases_pickerInput database
+    # update selectControlCohort_pickerInput with cohort names in selectDatabases_pickerInput database
     #
     shiny::observe({
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectDatabases_pickerInput)
 
       cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortIdAndNames()
-      cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
+      cohortIdAndNamesList <- list()
+      if(nrow(cohortIdAndNames) != 0){
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖"  , cohortIdAndNames$cohortName)))
+      }
 
       shinyWidgets::updatePickerInput(
-        inputId = "selectTargetCohort_pickerInput",
+        inputId = "selectControlCohort_pickerInput",
         choices = cohortIdAndNamesList,
         selected = character(0)
       )
@@ -168,26 +171,26 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
     #
-    # update matchToCohortId_pickerInput with cohort names not in selectTargetCohort_pickerInput
+    # update matchToCohortId_pickerInput with cohort names not in selectControlCohort_pickerInput
     #
     shiny::observe({
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectDatabases_pickerInput)
-      shiny::req(input$selectTargetCohort_pickerInput)
+      shiny::req(input$selectControlCohort_pickerInput)
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
 
-      if(input$selectTargetCohort_pickerInput != "NA"){
+      if(input$selectControlCohort_pickerInput != "NA"){
         cohortIdAndNames <- cohortTableHandler$getCohortIdAndNames() |>
-          dplyr::filter(!(cohortId %in% input$selectTargetCohort_pickerInput))
-        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
+          dplyr::filter(!(cohortId %in% input$selectControlCohort_pickerInput))
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖" , cohortIdAndNames$cohortName)))
       }else{
         cohortIdAndNamesList <- list()
       }
 
 
       shinyWidgets::updatePickerInput(
-        inputId = "selectMatchCohort_pickerInput",
+        inputId = "selectCaseCohort_pickerInput",
         choices = cohortIdAndNamesList,
         selected = character(0)
       )
@@ -197,7 +200,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # activate settings if cohors have been selected
     #
     shiny::observe({
-      condition <- !is.null(input$selectMatchCohort_pickerInput) & input$selectMatchCohort_pickerInput!="NA"
+      condition <- !is.null(input$selectCaseCohort_pickerInput) & input$selectCaseCohort_pickerInput!="NA"
       shinyjs::toggleState("matchRatio_numericInput", condition = condition )
       shinyjs::toggleState("matchSex_switch", condition = condition )
       shinyjs::toggleState("matchBirthYear_switch", condition = condition )
@@ -213,10 +216,10 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     shiny::observe({
       shiny::req(input$selectDatabases_pickerInput)
-      shiny::req(input$selectTargetCohort_pickerInput)
-      shiny::req(input$selectTargetCohort_pickerInput!="NA")
-      shiny::req(input$selectMatchCohort_pickerInput)
-      shiny::req(input$selectMatchCohort_pickerInput!="NA")
+      shiny::req(input$selectControlCohort_pickerInput)
+      shiny::req(input$selectControlCohort_pickerInput!="NA")
+      shiny::req(input$selectCaseCohort_pickerInput)
+      shiny::req(input$selectCaseCohort_pickerInput!="NA")
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
 
@@ -233,7 +236,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
         definitionId = nextSubsetDefinitionId,
         subsetOperators = list(
           HadesExtras::createMatchingSubset(
-            matchToCohortId = input$selectMatchCohort_pickerInput,
+            matchToCohortId = input$selectCaseCohort_pickerInput,
             matchRatio = input$matchRatio_numericInput,
             matchSex = input$matchSex_switch,
             matchBirthYear = input$matchBirthYear_switch,
@@ -247,7 +250,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
         cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
         cohortSubsetDefintion = subsetDef,
-        targetCohortIds = as.integer(input$selectTargetCohort_pickerInput),
+        targetCohortIds = as.integer(input$selectControlCohort_pickerInput),
         overwriteExisting =  TRUE
       )
 
@@ -276,8 +279,8 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     output$info_text <- shiny::renderText({
       shiny::req(r$cohortDefinitionSet)
       shiny::req(input$selectDatabases_pickerInput)
-      shiny::req(input$selectMatchCohort_pickerInput)
-      shiny::req(input$selectTargetCohort_pickerInput)
+      shiny::req(input$selectCaseCohort_pickerInput)
+      shiny::req(input$selectControlCohort_pickerInput)
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
 
@@ -285,14 +288,17 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       cohortCounts <-  cohortTableHandler$getCohortCounts()
 
       nSubjectsOverlap <- cohortsOverlap |>
-        dplyr::filter(stringr::str_detect(cohortIdCombinations, input$selectMatchCohort_pickerInput) & stringr::str_detect(cohortIdCombinations, input$selectTargetCohort_pickerInput)) |>
+        dplyr::filter(
+          stringr::str_detect(cohortIdCombinations, paste0("-", input$selectCaseCohort_pickerInput, "-")) &
+          stringr::str_detect(cohortIdCombinations, paste0("-",input$selectControlCohort_pickerInput, "-"))
+        ) |>
         dplyr::pull(numberOfSubjects)  |>
         sum()
       nSubjectsCase <- cohortCounts |>
-        dplyr::filter(cohortId == input$selectMatchCohort_pickerInput) |>
+        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
         dplyr::pull(cohortSubjects)
       nSubjectsControl <- cohortCounts |>
-        dplyr::filter(cohortId == input$selectTargetCohort_pickerInput) |>
+        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
         dplyr::pull(cohortSubjects)
 
       # name
@@ -308,8 +314,8 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       }
 
       # overlap
-      if(length(nSubjectsOverlap)==0){
-        message <- paste0(message, "✅ No subjects overlap between matching/case and target/control n")
+      if(nSubjectsOverlap==0){
+        message <- paste0(message, "✅ No subjects overlap between matching/case and target/control \n")
       }else{
         if(nSubjectsOverlap > nSubjectsCase * .20){
           message <- paste0(message, "❌ There are many subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. Consider removing them in Operate Cohorts tab\n")

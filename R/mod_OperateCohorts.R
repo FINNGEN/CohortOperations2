@@ -229,7 +229,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
             dplyr::group_by_if(is.logical) |>
             dplyr::summarise(numberOfSubjects = sum(numberOfSubjects), .groups = "drop")
 
-          .plot_upset_cohortsOverlap(cohortOverlap)
+          .plot_upset_cohortsOverlap(cohortOverlap, cohortTableHandler$getCohortIdAndNames() |> dplyr::select(cohortId, shortName) )
         }
       }
     })
@@ -272,7 +272,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
   })
 }
 
-.plot_upset_cohortsOverlap <- function(cohortOverlap) {
+.plot_upset_cohortsOverlap <- function(cohortOverlap, nameToShortName) {
 
   # check if newset column is present
   if(!"newset" %in% colnames(cohortOverlap)){
@@ -289,6 +289,15 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # string to vector
     dplyr::mutate(cohort_vector = stringr::str_split(cohort_vector, " "))
 
+  #TMP
+  cohortOverlapPlot <- cohortOverlapPlot |>
+    dplyr::select(newset, numberOfSubjects, cohort_vector) |>
+    tidyr::unnest(cohort_vector) |>
+    dplyr::left_join(nameToShortName |> dplyr::mutate(cohortId = as.character(cohortId)), by = c("cohort_vector" = "cohortId")) |>
+    dplyr::select(-cohort_vector) |>
+    dplyr::group_by(newset, numberOfSubjects) |>
+    dplyr::summarise(cohort_vector = list(shortName))
+
   ###
   ## function
   ###
@@ -303,12 +312,14 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       ggupset::scale_x_upset() +
       # style
       ggplot2::guides(fill = "none") +
-      ggplot2::geom_text( nudge_y = 60,) +
+      ggplot2::geom_text( nudge_y = 160, size=5) +
       ggplot2::scale_fill_grey(drop = FALSE) +
       ggplot2::labs(x = "Cohort Sets", y = "N patients")+
       ggplot2::theme_light() +
       ggplot2::theme(
-        text = ggplot2::element_text(size = 15)
+        text = ggplot2::element_text(size = 15),
+        axis.text.x = ggplot2::element_text(size = 15),
+        axis.text.y = ggplot2::element_text(size = 15)
       )
   })
 

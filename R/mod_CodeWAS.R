@@ -139,8 +139,10 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$selectDatabases_pickerInput)
 
       cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortIdAndNames()
-      cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
-
+      cohortIdAndNamesList <- list()
+      if(nrow(cohortIdAndNames) != 0){
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖"  , cohortIdAndNames$cohortName)))
+      }
       shinyWidgets::updatePickerInput(
         inputId = "selectCaseCohort_pickerInput",
         choices = cohortIdAndNamesList,
@@ -162,7 +164,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       if(input$selectCaseCohort_pickerInput != "NA"){
         cohortIdAndNames <- cohortTableHandler$getCohortIdAndNames() |>
           dplyr::filter(!(cohortId %in% input$selectCaseCohort_pickerInput))
-        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖"  , cohortIdAndNames$cohortName)))
       }else{
         cohortIdAndNamesList <- list()
       }
@@ -236,7 +238,10 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       cohortsOverlap <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsOverlap()
       cohortCounts <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortCounts()
       nSubjectsOverlap <- cohortsOverlap |>
-        dplyr::filter(stringr::str_detect(cohortIdCombinations, input$selectCaseCohort_pickerInput) & stringr::str_detect(cohortIdCombinations, input$selectControlCohort_pickerInput)) |>
+        dplyr::filter(
+          stringr::str_detect(cohortIdCombinations, paste0("-", input$selectCaseCohort_pickerInput, "-")) &
+            stringr::str_detect(cohortIdCombinations, paste0("-", input$selectControlCohort_pickerInput, "-"))
+        ) |>
         dplyr::pull(numberOfSubjects)  |>
         sum()
       nSubjectsCase <- cohortCounts |>
@@ -257,7 +262,7 @@ mod_codeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       }
 
       # overlap
-      if(length(nSubjectsOverlap)==0){
+      if(nSubjectsOverlap==0){
           message <- paste0(message, "✅ No subjects overlap between case and control cohorts\n")
       }else{
         if(nSubjectsOverlap > nSubjectsCase * .20){

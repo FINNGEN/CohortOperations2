@@ -25,6 +25,11 @@ mod_exportsCohorts_ui <- function(id) {
       options = list(
         `actions-box` = TRUE),
       multiple = TRUE),
+    # binary selection "make ourput compatible with CO1"
+    shiny::checkboxInput(
+      inputId = ns("co1Compatible_checkbox"),
+      label = "Make output colums compatible with CO1",
+      value = TRUE),
     htmltools::hr(),
     shiny::downloadButton(ns("downloadData_downloadButton"), "Export")
   )
@@ -40,35 +45,21 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # reactive variables
     #
     r <- shiny::reactiveValues(
-      cohortDefinitionSet = NULL,
-      operationStringError = NULL
-    )
-
-    r_toAdd <- shiny::reactiveValues(
-      databaseName = NULL,
-      cohortDefinitionSet = NULL
-    )
-
-    r_data <- shiny::reactiveValues(
-      databaseId = NULL,
-      databaseName = NULL,
-      cohortId = NULL,
+      selectedCohortsInfo = NULL,
       filename = NULL,
-      cohortName = NULL,
-      success = NULL,
-      failedCohorts = NULL
+      writeErrorMessage = NULL
     )
 
     #
-    # render selectCohorts_pickerInput with database/cohort names
+    # update selectCohorts_pickerInput with database/cohort names
     #
     shiny::observeEvent(r_workbench$cohortsSummaryDatabases, {
 
       cohortIdAndNamesList <- list()
       for(databaseId in unique(r_workbench$cohortsSummaryDatabases$databaseId)){
-        cohortIdAndNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter(databaseId == !!databaseId) |> dplyr::select(cohortId, shortName)
-        cohortIdAndNamesList[databaseId] <- list(as.list(setNames(paste0(databaseId, "@", cohortIdAndNames$cohortId), cohortIdAndNames$shortName)))
-      }
+        cohortIdAndNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter(databaseId == !!databaseId)
+        cohortIdAndNamesList[databaseId] <- list(as.list(setNames(paste0(databaseId, "@", cohortIdAndNames$cohortId), paste(cohortIdAndNames$shortName,  "➖" , cohortIdAndNames$cohortName))))
+     }
       shinyWidgets::updatePickerInput(
         session = session,
         inputId = "selectCohorts_pickerInput",
@@ -77,22 +68,21 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       )
     })
 
-
+    #
+    # prepare list of selected cohorts and filename
+    #
     shiny::observeEvent(input$selectCohorts_pickerInput, {
       shiny::req(r_workbench$cohortsSummaryDatabases)
       shiny::req(input$selectCohorts_pickerInput)
 
-      selected <- input$selectCohorts_pickerInput
+      selectedCohortsInfo <- r_workbench$cohortsSummaryDatabases  |>
+        dplyr::filter(paste0(databaseId, "@",cohortId) %in% input$selectCohorts_pickerInput) |>
+        dplyr::select(databaseId, cohortId, cohortName, databaseName)
 
-      df <- r_workbench$cohortsSummaryDatabases[which(paste0(r_workbench$cohortsSummaryDatabases$databaseId, "@",
-                                                             r_workbench$cohortsSummaryDatabases$cohortId) %in% selected), ]
+      name <- paste0(paste0(.format_str(selectedCohortsInfo$databaseId), "_", .format_str(selectedCohortsInfo$cohortName)), collapse = "_")
 
-      r_data$databaseId <- df$databaseId
-      r_data$cohortId <- df$cohortId
-      r_data$cohortName <- df$cohortName
-      r_data$databaseName <- df$databaseName
-      name <- paste0(paste0(.format_str(df$databaseId), "_", .format_str(df$cohortName)), collapse = "_")
-      r_data$filename <- sprintf("%s.tsv", name)
+      r$selectedCohortsInfo <- selectedCohortsInfo
+      r$filename <- paste0(name, ".tsv")
 
     })
 
@@ -105,16 +95,17 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     })
 
     output$downloadData_downloadButton <- shiny::downloadHandler(
-      filename =  function() {r_data$filename},
+      filename =  function() {r$filename},
       content = function(filename) {
 
         sweetAlert_spinner("Preparing cohort for download")
 
-        result <- rbind()
-        for (i in 1:length(r_data$databaseId)){
-          databaseId <- r_data$databaseId[i]
-          cohortId <- r_data$cohortId[i]
-          cohortName <- r_data$cohortName[i]
+        selectedCohortsInfo <- r$selectedCohortsInfo
+
+        result <- tibble::tibble()
+        for (databaseId in unique(selectedCohortsInfo$databaseId)){
+          cohortIds <- selectedCohortsInfo  |> dplyr::filter(databaseId == {{databaseId}}) |> dplyr::pull(cohortId)
+          cohortNames <- selectedCohortsInfo  |> dplyr::filter(databaseId == {{databaseId}}) |> dplyr::pull(cohortName)
           cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
 
           cohortData <- HadesExtras::getCohortDataFromCohortTable(
@@ -122,32 +113,40 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
             cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
             cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
             cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
-            cohortNameIds = tibble::data_frame(cohortId=cohortId, cohortName=cohortName))
-
-          cohortData <- tibble::add_column(
-            cohortData, database_id = rep(databaseId, nrow(cohortData)), .before = 1
+            cohortNameIds = tibble::data_frame(cohortId=cohortIds, cohortName=cohortNames)
           )
 
-          if (is.null(cohortData)){
-            r_data$failedCohorts <- c(r_data$failedCohorts,
-                                      sprintf("%s (%s)", r_data$cohortName[i],
-                                              r_data$databaseName[i]))
-          } else {
-            result <- rbind(result, cohortData)
+          cohortData <- cohortData  |>
+            tibble::add_column( database_id = rep(databaseId, nrow(cohortData)), .before = 1)
+
+            # TEMP to compatible with CO1
+          if (input$co1Compatible_checkbox){
+            cohortData <- cohortData  |>
+            dplyr::transmute(
+              COHORT_SOURCE  = database_id,
+              COHORT_NAME = cohort_name,
+              FINNGENID = person_source_value,
+              COHORT_START_DATE = cohort_start_date,
+              COHORT_END_DATE = cohort_end_date,
+            )
           }
+
+          result <- rbind(result, cohortData)
 
         }
 
+        writeErrorMessage <- ""
         tryCatch({
           write.table(result, filename, row.names=FALSE, sep="\t", quote = F, append = F)
-          r_data$success <- TRUE
         }, error=function(e) {
-          r_data$success <- FALSE
+          writeErrorMessage <<- e$message
           ParallelLogger::logError("[Export Cohorts] write table: ", e$message)
         }, warning=function(w) {
-          r_data$success <- FALSE
+          writeErrorMessage <<-  w$message
           ParallelLogger::logWarn("[Export Cohorts] write table: ", w$message)
         })
+
+        r$writeErrorMessage <- writeErrorMessage
 
         remove_sweetAlert_spinner()
 
@@ -155,22 +154,12 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     )
 
     shiny::observe({
-      shiny::req(!is.null(r_data$success))
-
-      if (!is.null(r_data$failedCohorts)){
-        multiple <- length(r_data$failedCohorts) > 1
-        message <- sprintf("In addition, the following cohort%s %s not exported: \n%s",
-                           if (multiple) "s" else "",
-                           if (multiple) "were" else "was",
-                           paste(r_data$failedCohorts, collapse = ", "))
-      } else {
-        message <- ""
-      }
-
-      if (r_data$success){
+      shiny::req(r$writeErrorMessage)
+      browser()
+      if (r$writeErrorMessage == ""){
         shinyWidgets::show_alert(
           title = "Download completed successfully",
-          text = message,
+          text = "If you didn't chage the default settings, the file should be in your Downloads folder",
           btn_labels = "OK",
           btn_colors = "#70B6E0",
           width = "550px"
@@ -179,12 +168,12 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
         shinyWidgets::sendSweetAlert(
           session = session,
           title = "Error while downloading a file",
-          text = message,
+          text = r$writeErrorMessage,
           btn_labels = "OK",
           type = "error"
         )
       }
-      r_data$success <- NULL
+      r$writeErrorMessage <- NULL
     })
 
 
