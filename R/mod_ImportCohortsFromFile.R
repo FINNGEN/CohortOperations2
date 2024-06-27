@@ -319,17 +319,15 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
 
-      cohortIds <- cohortTableHandler$getCohortIdAndNames() |>
-        dplyr::filter(cohortId < 1000) |> # remove ids created by subsets
-        dplyr::pull(cohortId)
-      cohortIdOffset <- ifelse(length(cohortIds)==0, 0L, max(cohortIds))
-
+      # calculate new cohorIds
+      numberNewCohorts <- selectedCohortData |> dplyr::distinct(cohort_name) |> nrow()
+      unusedCohortIds <- setdiff(1:1000, cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
 
       ## copy selected to
       r_toAdd$databaseName <- input$selectDatabases_pickerInput
       r_toAdd$cohortDefinitionSet <-  HadesExtras::cohortDataToCohortDefinitionSet(
         cohortData = selectedCohortData,
-        cohortIdOffset = cohortIdOffset,
+        newCohortIds = unusedCohortIds,
         skipCohortDataCheck = TRUE
       )
 

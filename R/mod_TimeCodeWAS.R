@@ -30,39 +30,28 @@ mod_timeCodeWAS_ui <- function(id) {
     htmltools::hr(),
     shiny::tags$h4("Settings"),
     #
-    shinyWidgets::pickerInput(
-      inputId = ns("selectCovariates"),
-      label = "Select database where to match cohorts:",
-      choices = list(
-        Conditions = list(
-          `Conditions` = "useConditionOccurrence",
-          `Conditions in Primary Inpatient` = "useConditionOccurrencePrimaryInpatient",
-          `Conditions SNOMED Group` = "useConditionEraGroupOverlap"
-        ),
-        Drugs = list(
-          `Drugs` = "useDrugExposure",
-          `Drugs ATC Group` = "useDrugEraGroupOverlap"
-        ),
-        Procedures = list(
-          `Procedures` = "useProcedureOccurrence"
-        ),
-        Others = list(
-          `Device Exposure` = "useDeviceExposure",
-          `Measurement` = "useMeasurement",
-          `Observation` = "useObservation"
-        )
-      ),
-      selected = c("useConditionOccurrence", "useDrugExposure", "useProcedureOccurrence", "useDeviceExposure", "useMeasurement", "useObservation"),
-      options = list(`actions-box` = TRUE),
-      multiple = TRUE),
+    mod_fct_covariateSelector_ui(
+      inputId = ns("features_pickerInput"),
+      label = "Select features to compare between cases and controls:",
+      analysisIdsToShow = c(101, 102, 141, 204, 601, 641, 301, 341, 404, 906, 701, 741, 801, 841, 501, 541),
+      analysisIdsSelected = c(101, 102, 204, 601, 301, 404, 701, 801, 501 )
+    ),
+    shiny::tags$h5("Minimum cell count:"),
+    shiny::numericInput(
+      inputId = ns("minCellCount_numericInput"),
+      label = NULL,
+      value = 1,
+      min = 1,
+      max = 1000
+    ),
     htmltools::hr(),
     shiny::tags$h4("Time windows"),
     mod_formTimeWindows_ui(ns("selectRanges")),
     shiny::tags$br(),
     #
     htmltools::hr(),
-    shiny::tags$h4("Summary"),
-    shiny::verbatimTextOutput(ns("summary_text")),
+    shiny::tags$h4("Pre-ran info"),
+    shiny::verbatimTextOutput(ns("info_text"), placeholder = TRUE),
     shiny::tags$br(),
     shiny::actionButton(ns("run_actionButton"), "Run Study"),
     #
@@ -123,8 +112,10 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$selectDatabases_pickerInput)
 
       cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortIdAndNames()
-      cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
-
+      cohortIdAndNamesList <- list()
+      if(nrow(cohortIdAndNames) != 0){
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖"  , cohortIdAndNames$cohortName)))
+      }
       shinyWidgets::updatePickerInput(
         inputId = "selectCaseCohort_pickerInput",
         choices = cohortIdAndNamesList,
@@ -146,7 +137,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       if(input$selectCaseCohort_pickerInput != "NA"){
         cohortIdAndNames <- cohortTableHandler$getCohortIdAndNames() |>
           dplyr::filter(!(cohortId %in% input$selectCaseCohort_pickerInput))
-        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, cohortIdAndNames$cohortName))
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖"  , cohortIdAndNames$cohortName)))
       }else{
         cohortIdAndNamesList <- list()
       }
@@ -164,7 +155,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     shiny::observe({
       condition <- !is.null(input$selectControlCohort_pickerInput) & input$selectControlCohort_pickerInput!="NA"
-      shinyjs::toggleState("selectCovariates", condition = condition )
+      #shinyjs::toggleState("features_pickerInput", condition = condition )
       shinyjs::toggleState("selectRanges-addBtn", condition = condition )
       shinyjs::toggleState("run_actionButton", condition = condition )
     })
@@ -178,27 +169,118 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(input$selectCaseCohort_pickerInput!="NA")
       shiny::req(input$selectControlCohort_pickerInput)
       shiny::req(input$selectControlCohort_pickerInput!="NA")
-      shiny::req(input$selectCovariates)
+      shiny::req(input$features_pickerInput)
       shiny::req(r_ranges()$temporalStartDays)
       shiny::req(r_ranges()$temporalEndDays)
+      shiny::req(input$minCellCount_numericInput)
 
       analysisSettings <- list(
         analysisType = "timeCodeWAS",
         cohortIdCases = input$selectCaseCohort_pickerInput,
         cohortIdControls = input$selectControlCohort_pickerInput,
-        temporalCovariateSettings = list(
-          temporalStartDays = r_ranges()$temporalStartDays,
-          temporalEndDays =   r_ranges()$temporalEndDays
-        )
+        analysisIds = input$features_pickerInput,
+        temporalStartDays = r_ranges()$temporalStartDays,
+        temporalEndDays =   r_ranges()$temporalEndDays,
+        minCellCount = input$minCellCount_numericInput
       )
-
-      for(covaraiteSetting in input$selectCovariates){
-        analysisSettings$temporalCovariateSettings[[covaraiteSetting]] <- TRUE
-      }
 
       r$analysisSettings <- analysisSettings
 
     })
+
+    output$info_text <- shiny::renderText({
+      shiny::req(r_workbench$cohortsSummaryDatabases)
+      shiny::req(input$selectDatabases_pickerInput)
+      shiny::req(input$selectCaseCohort_pickerInput)
+      shiny::req(input$selectControlCohort_pickerInput)
+
+      cohortsOverlap <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsOverlap()
+      cohortCounts <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortCounts()
+      nSubjectsOverlap <- cohortsOverlap |>
+        dplyr::filter(
+          stringr::str_detect(cohortIdCombinations, paste0("-", input$selectCaseCohort_pickerInput, "-")) &
+            stringr::str_detect(cohortIdCombinations, paste0("-", input$selectControlCohort_pickerInput, "-"))
+        ) |>
+        dplyr::pull(numberOfSubjects)  |>
+        sum()
+      nSubjectsCase <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
+      nSubjectsControl <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
+
+      nEntryCase <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+        dplyr::pull(cohortEntries)
+      nEntryControl <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+        dplyr::pull(cohortEntries)
+
+
+      cohortsSumary  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortsSummary()
+
+      message <- ""
+      # counts
+      if( nSubjectsCase > nSubjectsControl ){
+        message <- paste0(message, "There are more entries in case cohort (", nEntryCase,") that in control cohort (", nEntryControl,"). Are you sure they are correct?\n")
+      }
+
+      # overlap
+      if(nSubjectsOverlap==0){
+        message <- paste0(message, "✅ No subjects overlap between case and control cohorts\n")
+      }else{
+        if(nSubjectsOverlap > nSubjectsCase * .20){
+          message <- paste0(message, "❌ There are many subjects, ",nSubjectsOverlap, ", that overlap  berween case and control cohorts. Consider removing them in Operate Cohorts tab\n")
+        }else{
+          message <- paste0(message, "⚠️ There are few subjects, ",nSubjectsOverlap, ", that overlap between case and control cohorts. \n")
+        }
+      }
+
+      # sex
+      sexCase <- cohortsSumary |>
+        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+        dplyr::pull(sexCounts)
+      sexControl <- cohortsSumary |>
+        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+        dplyr::pull(sexCounts)
+      nMaleCases <- sexCase[[1]]  |> dplyr::filter(sex == "MALE")  |> dplyr::pull(n)
+      nMaleCases <- ifelse(length(nMaleCases)==0, 0, nMaleCases)
+      nFemaleCases <- sexCase[[1]]  |> dplyr::filter(sex == "FEMALE")  |> dplyr::pull(n)
+      nFemaleCases <- ifelse(length(nFemaleCases)==0, 0, nFemaleCases)
+      nMaleControls <- sexControl[[1]]  |> dplyr::filter(sex == "MALE") |> dplyr::pull(n)
+      nMaleControls <- ifelse(length(nMaleControls)==0, 0, nMaleControls)
+      nFemaleControls <- sexControl[[1]]  |> dplyr::filter(sex == "FEMALE") |> dplyr::pull(n)
+      nFemaleControls <- ifelse(length(nFemaleControls)==0, 0, nFemaleControls)
+
+      data <-matrix(c(nMaleCases,nFemaleCases,nMaleControls,nFemaleControls),ncol=2)
+      fisher_results <- stats::fisher.test(data)
+
+      if(fisher_results$p.value < 0.05){
+        message <- paste0(message, "⚠️ There is a significant difference in sex distribution between case and control cohorts. (Fisher's test p = ", scales::scientific(fisher_results$p.value)," ) \n")
+        message <- paste0(message, "Consider controling for sex using regresion statistics or creating a new control cohort that match case cohort by sex in the Match Cohorts tab")
+      }
+
+      # year of birth
+      yearOfBirthCase <- cohortsSumary |>
+        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+        dplyr::pull(histogramBirthYear)
+      yearOfBirthControl <- cohortsSumary |>
+        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+        dplyr::pull(histogramBirthYear)
+
+      ttestResult <- t.test(yearOfBirthCase[[1]]  |> tidyr::uncount(n), yearOfBirthControl[[1]]  |> tidyr::uncount(n))
+
+      if(ttestResult$p.value < 0.05){
+        message <- paste0(message, "⚠️ There is a significant difference in year of birth distribution between case and control cohorts. (t-test p = ", scales::scientific(ttestResult$p.value)," ) \n")
+        message <- paste0(message, "Consider controling for year of birth using regresion statistics or creating a new control cohort that match case cohort by year of birth in the Match Cohorts tab")
+      }
+
+      return(message)
+
+    })
+
+
 
     #
     # click to run
@@ -237,8 +319,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         ParallelLogger::logInfo(tmpdirTime)
         #
         ParallelLogger::logInfo("Start timeCodeWasCounts")
-        temporalCovariateSettings <- do.call(FeatureExtraction::createTemporalCovariateSettings, analysisSettings$temporalCovariateSettings)
-        #browser()
+
         tmpdirTimeAnalysisResultsCsv <- file.path(tmpdirTime, "analysisResultsCsv")
         dir.create(tmpdirTimeAnalysisResultsCsv)
 
@@ -247,7 +328,9 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortTableHandler = cohortTableHandler,
           cohortIdCases = as.integer(analysisSettings$cohortIdCases),
           cohortIdControls = as.integer(analysisSettings$cohortIdControls),
-          covariateSettings = temporalCovariateSettings,
+          analysisIds = as.integer(analysisSettings$analysisIds),
+          temporalStartDays = as.integer(analysisSettings$temporalStartDays),
+          temporalEndDays = as.integer(analysisSettings$temporalEndDays),
           minCellCount = analysisSettings$minCellCount
         )
 
@@ -297,7 +380,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         )
         resultMessage <- paste0("✅ Success\n",
                                 "🕒 Running time: ", runningTimeMinsSecs, "\n"
-                                 )
+        )
         shiny::removeModal()
       }else{
         resultMessage <- paste0("❌ Error\n",
@@ -340,7 +423,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
 
     shiny::observeEvent(input$view_actionButton, {
-    ParallelLogger::logInfo("[TimeCodeWAS] Open in Viewer:")
+      ParallelLogger::logInfo("[TimeCodeWAS] Open in Viewer:")
       shiny::req(rf_results())
       shiny::req(rf_results()$success)
       # open tab to url

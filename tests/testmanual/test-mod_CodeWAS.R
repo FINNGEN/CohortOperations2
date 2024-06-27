@@ -50,3 +50,4 @@ app
 # connectionStatusLogs <- log$logTibble |> dplyr::mutate(database="Database name")
 #
 # connectionStatus_reactable(connectionStatusLogs)
+
