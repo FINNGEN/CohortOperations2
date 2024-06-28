@@ -31,7 +31,7 @@ fct_databasesConfigToDatabasesHandlers <- function(
     cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
 
     # TEMP
-    if('E1' %in% databasesConfig |> names()){
+    if( databaseId == 'E1'){
       testCohortTable <-  tibble::tribble(
         ~cohort_definition_id, ~subject_id, ~cohort_start_date, ~cohort_end_date,
         1, 1, as.Date("2000-01-01"), as.Date("2000-12-01"),
