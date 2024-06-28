@@ -367,7 +367,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # display results
     #
-    output$summary_text <- shiny::renderText({
+    output$results_text <- shiny::renderText({
       rf_results()$result
       shiny::req(rf_results)
 

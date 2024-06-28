@@ -193,14 +193,8 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
           cohortOverlap <- cohortTableHandler$getCohortsOverlap()
 
           # TEMP FIX
-          cohortOverlap <- cohortOverlap|>
-            dplyr::mutate(cohortIdCombinations = paste0('-', cohortIdCombinations, '-'))
-
-          cohortIds <- cohortOverlap |> dplyr::pull(cohortIdCombinations)  |>
-            stringr::str_split("-") |> unlist() |> unique() |>
-            as.numeric() |> sort() |> as.character()
-
-          for (cohortId in cohortIds) {
+          # extract all numbers from string s
+          for (cohortId in cohortsInOperation) {
             cohortOverlap <- cohortOverlap |>
               dplyr::mutate(!!cohortId := stringr::str_detect(cohortIdCombinations, paste0("-", cohortId, "-")))
           }
@@ -215,11 +209,15 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
             stringr::str_replace_all("Mp", "&!") |>
             stringr::str_replace_all("Ip", "&")
 
+          expressionFilter  <-  paste0('`', cohortsInOperation, '`') |>
+            paste(collapse = "|")
+
           trycatch <- tryCatch({
             cohortOverlap <- cohortOverlap |>
               dplyr::select(-dplyr::any_of('newset')) |>
               dplyr::mutate(newset = eval(parse(text = expression))) |>
-              dplyr::select(numberOfSubjects, one_of(cohortsInOperation), newset)
+              dplyr::select(numberOfSubjects, one_of(cohortsInOperation), newset) |>
+              dplyr::filter(eval(parse(text = expressionFilter)))
           }, error = function(e){
             return(NULL)
           })
