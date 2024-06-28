@@ -1,8 +1,6 @@
 
 
-# Run the full app locally using eunomia
-
-devtools::load_all(".")
+# Run the full app locally using eunomiadevtools::load_all(".")
 run_app(
   pathToCohortOperationsConfigYalm = testthat::test_path("config", "cohortOperationsConfig.yml"),
   pathToDatabasesConfigYalm = testthat::test_path("config", "eunomia_databasesConfig.yml"),

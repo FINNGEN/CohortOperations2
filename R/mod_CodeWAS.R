@@ -41,7 +41,7 @@ mod_codeWAS_ui <- function(id) {
       label = "Select comparison statistics:",
       choices = list(
         `Fisher's exact test and Welch's t-test (fast, no control for confounding)` = "aggregated",
-        `Logistic and linear regresions (slow, control for confounding)` = "full"
+        `(BETA)Logistic and linear regresions (slow, control for confounding)` = "full"
       ),
       direction = "vertical",
       individual = TRUE,
