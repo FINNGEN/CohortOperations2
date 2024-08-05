@@ -58,7 +58,7 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       cohortIdAndNamesList <- list()
       for(databaseId in unique(r_workbench$cohortsSummaryDatabases$databaseId)){
         cohortIdAndNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter(databaseId == !!databaseId)
-        cohortIdAndNamesList[databaseId] <- list(as.list(setNames(paste0(databaseId, "@", cohortIdAndNames$cohortId), paste(cohortIdAndNames$shortName,  "➖" , cohortIdAndNames$cohortName))))
+        cohortIdAndNamesList[databaseId] <- list(as.list(setNames(paste0(databaseId, "@", cohortIdAndNames$cohortId), paste0(cohortIdAndNames$shortName,  " (" , cohortIdAndNames$cohortName, ")"))))
      }
       shinyWidgets::updatePickerInput(
         session = session,
