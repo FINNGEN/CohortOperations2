@@ -281,8 +281,8 @@
       "RemoteHost": "api.github.com",
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
-      "RemoteRef": "experimental-speedup-cohorts-import-ak",
-      "RemoteSha": "d9854aa5dc9a4fe6e40e15a5607ab57e452bff59",
+      "RemoteRef": "master",
+      "RemoteSha": "3daa8c316c259a7501b713ac67d9e32ae43ca11f",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -316,7 +316,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "4d319e1e6bcd9427c7ebf0f8e44a11ac"
+      "Hash": "1120355800854d18baeaaf821652f372"
     },
     "MASS": {
       "Package": "MASS",

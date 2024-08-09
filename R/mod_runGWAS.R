@@ -111,8 +111,8 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         selected = databaseIdNamesList[1]
       )
 
-      r_data$databaseId <- names(databaseIdNamesList[1])
-      r_data$databaseName <- databaseIdNamesList[[1]]
+      r_data$databaseName <- names(databaseIdNamesList)[1]
+      r_data$databaseId <- as.character(databaseIdNamesList[1])
 
     })
 
@@ -177,17 +177,17 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     # update phenotype name and description with default values
     #
     shiny::observe({
-      shiny::req(!is.null(input$selectCasesCohort_pickerInput))
-      shiny::req(!is.null(input$selectControlsCohort_pickerInput))
+      shiny::req(!is.null(input$selectCaseCohort_pickerInput))
+      shiny::req(!is.null(input$selectControlCohort_pickerInput))
 
       defaultPhenotypeName <- paste0(
-        .format_str(input$selectCasesCohort_pickerInput),
-        .format_str(input$selectControlsCohort_pickerInput)
+        .format_str(input$selectCaseCohort_pickerInput),
+        .format_str(input$selectControlCohort_pickerInput)
       )
 
       defaultDescription <- paste0(
-        "Cases-cohort: ", input$selectCasesCohort_pickerInput,
-        "; Controls-cohort: ", input$selectControlsCohort_pickerInput,
+        "Cases-cohort: ", input$selectCaseCohort_pickerInput,
+        "; Controls-cohort: ", input$selectControlCohort_pickerInput,
         " (db: ", r_data$databaseName, ")"
       )
 
@@ -264,8 +264,8 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[r_data$databaseId]]$cohortTableHandler
       cohorts <- r_workbench$cohortsSummaryDatabases[ r_workbench$cohortsSummaryDatabases$databaseId == r_data$databaseId, ]
-      casesCohort <- cohorts[cohorts$cohortName == input$selectCasesCohort_pickerInput, ]
-      controlsCohort <- cohorts[cohorts$cohortName == input$selectControlsCohort_pickerInput, ]
+      casesCohort <- cohorts[cohorts$cohortId == input$selectCaseCohort_pickerInput, ]
+      controlsCohort <- cohorts[cohorts$cohortId == input$selectControlCohort_pickerInput, ]
 
       cohortData <- HadesExtras::getCohortDataFromCohortTable(
         connection = cohortTableHandler$connectionHandler$getConnection(),
