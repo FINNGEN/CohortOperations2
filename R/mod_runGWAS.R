@@ -78,10 +78,6 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     r_data <- shiny::reactiveValues(
       databaseId = NULL,
       databaseName = NULL,
-      casesCohortId = NULL,
-      controlsCohortId = NULL,
-      casesCohortName = NULL,
-      controlsCohortName = NULL,
       success = NULL,
       phenotypeName = NULL
     )
