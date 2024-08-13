@@ -155,7 +155,6 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
     shiny::observe({
       shiny::req(r$writeErrorMessage)
-      browser()
       if (r$writeErrorMessage == ""){
         shinyWidgets::show_alert(
           title = "Download completed successfully",
