@@ -258,7 +258,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
       if(fisher_results$p.value < 0.05){
         message <- paste0(message, "⚠️ There is a significant difference in sex distribution between case and control cohorts. (Fisher's test p = ", scales::scientific(fisher_results$p.value)," ) \n")
-        message <- paste0(message, "Consider controling for sex using regresion statistics or creating a new control cohort that match case cohort by sex in the Match Cohorts tab")
+        message <- paste0(message, "Consider controlling for sex using regression statistics or creating a new control cohort that match case cohort by sex in the Match Cohorts tab")
       }
 
       # year of birth
@@ -273,7 +273,7 @@ mod_timeCodeWAS_server <- function(id, r_connectionHandlers, r_workbench) {
 
       if(ttestResult$p.value < 0.05){
         message <- paste0(message, "⚠️ There is a significant difference in year of birth distribution between case and control cohorts. (t-test p = ", scales::scientific(ttestResult$p.value)," ) \n")
-        message <- paste0(message, "Consider controling for year of birth using regresion statistics or creating a new control cohort that match case cohort by year of birth in the Match Cohorts tab")
+        message <- paste0(message, "Consider controlling for year of birth using regression statistics or creating a new control cohort that match case cohort by year of birth in the Match Cohorts tab")
       }
 
       return(message)
