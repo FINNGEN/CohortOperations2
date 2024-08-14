@@ -8,7 +8,7 @@ shiny::shinyApp(
   function(input,output,session){
     output <-.mod_timeRange_server("test")
 
-    observe({
+    shiny::observe({
       print(output())
     })
   },
@@ -26,7 +26,7 @@ shiny::shinyApp(
   function(input,output,session){
     output <- mod_temporalRanges_server("test", session)
 
-    observe({
+    shiny::observe({
       print(output())
     })
 

@@ -104,12 +104,12 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
 
     })
     # reactive function to get selected values
-    r_selectedIndex <- reactive(reactable::getReactableState("cohorts_reactable", "selected", session))
+    r_selectedIndex <- shiny::reactive(reactable::getReactableState("cohorts_reactable", "selected", session))
 
     #
     # button import selected: checks selected cohorts
     #
-    observe({
+    shiny::observe({
       shinyjs::toggleState("import_actionButton", condition = !is.null(r_selectedIndex()) )
     })
 

@@ -171,7 +171,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandlers, r_workben
     #
     # check the current assignment, revisit if needed
     #
-    observeEvent(input$ok, {
+    shiny::observeEvent(input$ok, {
       removeModal()
 
       cohort_name <- isolate(input$cohort_name)

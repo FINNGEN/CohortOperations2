@@ -154,7 +154,7 @@ mod_formTimeWindows_server <- function(id, session) {
       shinyjs::toggle(id = "slider_help")
     })
 
-    output$the_window_output <- renderText({
+    output$the_window_output <- shiny::renderText({
       req(input$the_slider)
       breaks <- as.vector(input$the_slider)
       if(input$zero_window && !0 %in% breaks) breaks <- c(0, breaks)

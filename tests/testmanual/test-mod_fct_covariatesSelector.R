@@ -20,7 +20,7 @@ shiny::shinyApp(
   function(input,output,session){
 
 
-    observe({
+    shiny::observe({
       print(input$test)
     })
 

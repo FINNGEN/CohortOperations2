@@ -10,7 +10,7 @@ shiny::shinyApp(
   function(input,output,session){
     output <- mod_formTimeWindows_server("test", session)
 
-    observe({
+    shiny::observe({
         print(output())
     })
 
