@@ -57,13 +57,13 @@
       "Package": "CohortDiagnostics",
       "Version": "3.2.5",
       "Source": "GitHub",
+      "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRepo": "CohortDiagnostics",
+      "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRef": "fix-error-with-no-conceptset-cohorts",
       "RemoteSha": "46d72aaf678307b7d3200e19aea5aa193e730697",
-      "Remotes": "ohdsi/Eunomia, ohdsi/FeatureExtraction, ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi, ohdsi/CirceR, ohdsi/CohortGenerator, ohdsi/OhdsiShinyModules",
       "Requirements": [
         "Andromeda",
         "CohortGenerator",
@@ -89,21 +89,22 @@
     },
     "CohortGenerator": {
       "Package": "CohortGenerator",
-      "Version": "0.9.0",
+      "Version": "0.10.0",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "CohortGenerator",
       "RemoteRef": "main",
-      "RemoteSha": "e3efad630b8b2c0376431a88fde89e6c4bbac38c",
-      "Remotes": "ohdsi/CirceR, ohdsi/Eunomia, ohdsi/ROhdsiWebApi",
+      "RemoteSha": "dc3bde3172f5d823dc1c27d709da4cdfcfb0ea3b",
+      "Remotes": "ohdsi/ResultModelManager, ohdsi/ROhdsiWebApi,",
       "Requirements": [
         "DatabaseConnector",
         "ParallelLogger",
         "R",
         "R6",
         "RJSONIO",
+        "ResultModelManager",
         "SqlRender",
         "bit64",
         "checkmate",
@@ -111,11 +112,13 @@
         "dplyr",
         "jsonlite",
         "lubridate",
+        "methods",
         "readr",
         "rlang",
-        "stringi"
+        "stringi",
+        "tibble"
       ],
-      "Hash": "a441009fb11cba8bf31e1ccf17fed82a"
+      "Hash": "8ced746e41ef35e0d089432af95b0025"
     },
     "CommonDataModel": {
       "Package": "CommonDataModel",
@@ -212,14 +215,14 @@
     },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
-      "Version": "3.5.2",
+      "Version": "3.6.0",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "FeatureExtraction",
       "RemoteRef": "main",
-      "RemoteSha": "f4536fb75e5c32399c91270f6b6e35c8e95fdf1e",
+      "RemoteSha": "a0bbc9bf86f21afd764563033316ed86de8f1186",
       "Requirements": [
         "Andromeda",
         "DBI",
@@ -238,7 +241,7 @@
         "readr",
         "rlang"
       ],
-      "Hash": "e686d93264359802fdccd41989c51386"
+      "Hash": "8d8c00cfb0eae562e9bb94c780c91e29"
     },
     "FinnGenUtilsR": {
       "Package": "FinnGenUtilsR",
@@ -249,7 +252,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "FinnGenUtilsR",
       "RemoteRef": "master",
-      "RemoteSha": "fb9249481721cd5fe784ee3cc3688a024b0eba5f",
+      "RemoteSha": "8a12d2de62ec716eafbb65e8309bd9857c498c0a",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -268,7 +271,7 @@
         "tibble",
         "yaml"
       ],
-      "Hash": "efeacd73c701756d9deb85899f4e3ce5"
+      "Hash": "f4f20632790518607f530e21b18babcd"
     },
     "HadesExtras": {
       "Package": "HadesExtras",
@@ -278,8 +281,8 @@
       "RemoteHost": "api.github.com",
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
-      "RemoteRef": "master",
-      "RemoteSha": "3daa8c316c259a7501b713ac67d9e32ae43ca11f",
+      "RemoteRef": "experimental-ak",
+      "RemoteSha": "97063596295e454b7178c3fe2dc7375e2b1557bd",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -313,7 +316,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "1120355800854d18baeaaf821652f372"
+      "Hash": "b5054977ea515189672576a4fb074888"
     },
     "MASS": {
       "Package": "MASS",
@@ -349,15 +352,15 @@
     },
     "OhdsiShinyModules": {
       "Package": "OhdsiShinyModules",
-      "Version": "2.1.4",
+      "Version": "2.1.5",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "ohdsi",
+      "RemoteUsername": "OHDSI",
       "RemoteRepo": "OhdsiShinyModules",
       "RemoteRef": "main",
-      "RemoteSha": "42f5bb42c731fd9ff1a9c96bb68b624fd357ba78",
-      "Remotes": "ohdsi/CirceR, ohdsi/ResultModelManager",
+      "RemoteSha": "815d0c8b44c96e359a6183a2f9bf94211c2166f8",
+      "Remotes": "ohdsi/ResultModelManager",
       "Requirements": [
         "CirceR",
         "DT",
@@ -394,7 +397,7 @@
         "tidyselect",
         "tippy"
       ],
-      "Hash": "0d9716d5aa6050be213d2b1ab13fb2d7"
+      "Hash": "986af58d6e26135b29dc74e4bffdccaf"
     },
     "ParallelLogger": {
       "Package": "ParallelLogger",
@@ -502,14 +505,14 @@
     },
     "ResultModelManager": {
       "Package": "ResultModelManager",
-      "Version": "0.5.8",
+      "Version": "0.5.9",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
-      "RemoteSha": "ad706b4396d8285a8930c9b99ec09e927e403b00",
+      "RemoteSha": "d939010caf5fdc4e898c6e6d1c68d39dc86dc77f",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -525,13 +528,14 @@
         "pool",
         "readr",
         "rlang",
+        "withr",
         "zip"
       ],
-      "Hash": "f664eac6620a8d5a9a3365b4aed4caf4"
+      "Hash": "c61b8bc75b92103f1248e7e1a2f04f3b"
     },
     "SqlRender": {
       "Package": "SqlRender",
-      "Version": "1.17.0",
+      "Version": "1.18.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -539,7 +543,7 @@
         "rJava",
         "rlang"
       ],
-      "Hash": "513c5e6da774c913430561a3912c5354"
+      "Hash": "e1762de0f08b14658d74989c10e2f265"
     },
     "anytime": {
       "Package": "anytime",
@@ -755,14 +759,14 @@
     },
     "cachem": {
       "Package": "cachem",
-      "Version": "1.0.8",
+      "Version": "1.1.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "fastmap",
         "rlang"
       ],
-      "Hash": "c35768291560ce302c0a6589f92e837d"
+      "Hash": "cd9a672193789068eb5a2aad65a0dedf"
     },
     "callr": {
       "Package": "callr",
@@ -779,7 +783,7 @@
     },
     "checkmate": {
       "Package": "checkmate",
-      "Version": "2.3.1",
+      "Version": "2.3.2",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -787,7 +791,7 @@
         "backports",
         "utils"
       ],
-      "Hash": "c01cab1cb0f9125211a6fc99d540e315"
+      "Hash": "0e14e01ce07e7c88fd25de6d4260d26b"
     },
     "cli": {
       "Package": "cli",
@@ -830,7 +834,7 @@
       "Package": "codetools",
       "Version": "0.2-19",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R"
       ],
@@ -1131,10 +1135,10 @@
     },
     "fastmap": {
       "Package": "fastmap",
-      "Version": "1.1.1",
+      "Version": "1.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "f7736a18de97dea803bde0a2daaafb27"
+      "Hash": "aa5e1cd11c2d15497494c5292d7ffcc8"
     },
     "filelock": {
       "Package": "filelock",
@@ -1187,7 +1191,7 @@
     },
     "future": {
       "Package": "future",
-      "Version": "1.33.2",
+      "Version": "1.34.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1198,7 +1202,7 @@
         "parallelly",
         "utils"
       ],
-      "Hash": "fd7b1d69d16d0d114e4fa82db68f184c"
+      "Hash": "475771e3edb711591476be387c9a8c2e"
     },
     "gargle": {
       "Package": "gargle",
@@ -1235,7 +1239,7 @@
     },
     "gert": {
       "Package": "gert",
-      "Version": "2.0.1",
+      "Version": "2.1.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1246,7 +1250,7 @@
         "sys",
         "zip"
       ],
-      "Hash": "f70d3fe2d9e7654213a946963d1591eb"
+      "Hash": "bdc909d9f16e2478d615b0e6a7330435"
     },
     "ggplot2": {
       "Package": "ggplot2",
@@ -1537,7 +1541,7 @@
     },
     "knitr": {
       "Package": "knitr",
-      "Version": "1.47",
+      "Version": "1.48",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1549,7 +1553,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "7c99b2d55584b982717fcc0950378612"
+      "Hash": "acf380f300c721da9fde7df115a5f86f"
     },
     "labeling": {
       "Package": "labeling",
@@ -1761,7 +1765,7 @@
     },
     "parallelly": {
       "Package": "parallelly",
-      "Version": "1.37.1",
+      "Version": "1.38.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1769,7 +1773,7 @@
         "tools",
         "utils"
       ],
-      "Hash": "5410df8d22bd36e616f2a2343dbb328c"
+      "Hash": "6e8b139c1904f5e9e14c69db64453bbe"
     },
     "pillar": {
       "Package": "pillar",
@@ -2154,13 +2158,13 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "1.0.3",
+      "Version": "1.0.7",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "utils"
       ],
-      "Hash": "41b847654f567341725473431dd0d5ab"
+      "Hash": "397b7b2a265bc5a7a06852524dabae20"
     },
     "rlang": {
       "Package": "rlang",
@@ -2198,7 +2202,7 @@
     },
     "roxygen2": {
       "Package": "roxygen2",
-      "Version": "7.3.1",
+      "Version": "7.3.2",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2220,7 +2224,7 @@
         "withr",
         "xml2"
       ],
-      "Hash": "c25fe7b2d8cba73d1b63c947bf7afdb9"
+      "Hash": "6ee25f9054a70f44d615300ed531ba8d"
     },
     "rprojroot": {
       "Package": "rprojroot",
@@ -2311,7 +2315,7 @@
     },
     "shiny": {
       "Package": "shiny",
-      "Version": "1.8.1.1",
+      "Version": "1.9.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2340,7 +2344,7 @@
         "withr",
         "xtable"
       ],
-      "Hash": "54b26646816af9960a4c64d8ceec75d6"
+      "Hash": "6a293995a66e12c48d13aa1f957d09c7"
     },
     "shinyFeedback": {
       "Package": "shinyFeedback",
@@ -2913,10 +2917,10 @@
     },
     "yaml": {
       "Package": "yaml",
-      "Version": "2.3.8",
+      "Version": "2.3.10",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "29240487a071f535f5e5d5a323b7afbd"
+      "Hash": "51dab85c6c98e50a18d7551e9d49f76c"
     },
     "zip": {
       "Package": "zip",

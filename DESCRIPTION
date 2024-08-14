@@ -44,9 +44,10 @@ Remotes:
     OHDSI/CohortGenerator,
     OHDSI/ResultModelManager,
     OHDSI/Eunomia,
+    OHDSI/OhdsiShinyModules,
     javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts,
-    FINNGEN/HadesExtras,
-    FINNGEN/FinnGenUtilsR@23-move-to-this-package-the-code-to-run-gwas
+    FINNGEN/HadesExtras@experimental-ak,
+    FINNGEN/FinnGenUtilsR
 Suggests: 
     gert,
     knitr,
