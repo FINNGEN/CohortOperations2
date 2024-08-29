@@ -1,6 +1,8 @@
 # build parameters --------------------------------------------------------------
 devtools::load_all(".")
-source(testthat::test_path("setup.R"))
+
+testConfigFile <- "devatlas_databasesConfig.yml"
+databasesConfig <- yaml::read_yaml(testthat::test_path("config", testConfigFile))
 source(testthat::test_path("helper.R"))
 
 logger <- fcr_setUpLogger()
@@ -26,10 +28,10 @@ app <- shiny::shinyApp(
     mod_importCohortsFromAtlas_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromAtlas_server("test", r_connectionHandlers, r_workbench, filterCohortsRegex='PENIS')
+    mod_importCohortsFromAtlas_server("test", r_connectionHandlers, r_workbench)
     mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
   },
-  options = list(launch.browser=TRUE)
+  options = list(launch.browser=TRUE, port = 8081)
 )
 
 pathToCohortOperationsConfigYalm = testthat::test_path("config", "cohortOperationsConfig.yml")

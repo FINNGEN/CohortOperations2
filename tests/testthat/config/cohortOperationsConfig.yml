@@ -1,2 +1,3 @@
 urlCohortOperationsViewer: "http://127.0.0.1:9998/?pathToResultsZip="
 webApiUrl: "https://api.ohdsi.org/WebAPI"
+# webApiUrl: "http://127.0.0.1:8787/WebAPI"

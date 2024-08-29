@@ -18,7 +18,6 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   databasesConfig <- yaml::read_yaml(pathToDatabasesConfigYalm)
   checkmate::assertList(databasesConfig, names = "named")
 
-
   # set shiny to accept large files
   options(shiny.maxRequestSize = 1000000000)
 

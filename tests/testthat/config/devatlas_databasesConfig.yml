@@ -20,6 +20,27 @@ BQ1:
     cohortTable:
       cohortDatabaseSchema: atlas-development-270609.sandbox
       cohortTableName: test_cohort_table
+BQ2:
+  cohortTableHandler:
+    database:
+      databaseId: BQ2
+      databaseName: bigquery2
+      databaseDescription: BigQuery database
+    connection:
+      connectionDetailsSettings:
+        dbms: bigquery
+        user: ""
+        password: ""
+        connectionString: jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/Users/javier/keys/atlas-development-270609-410deaacc58b.json;Timeout=100000;
+        pathToDriver: /Users/javier/.config/hades/bigquery
+      tempEmulationSchema: atlas-development-270609.sandbox #optional
+      useBigrqueryUpload: true #optional
+    cdm:
+      cdmDatabaseSchema: atlas-development-270609.etl_sam_r11_omop
+      vocabularyDatabaseSchema: atlas-development-270609.etl_sam_r11_omop
+    cohortTable:
+      cohortDatabaseSchema: atlas-development-270609.sandbox
+      cohortTableName: test_cohort_table
 #  atlasConfig:
 #     webapi:
 #     resultsshchema:
