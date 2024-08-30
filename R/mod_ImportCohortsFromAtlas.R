@@ -220,8 +220,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         cohortDefinitionSetCreate$cohortGenerated <- FALSE
 
         ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts (create new): ",
-                                cohortDefinitionSetCreate$cohortName,
-                                " with ids: ", cohortDefinitionSetCreate$cohortId,
+                                paste0(cohortDefinitionSetCreate$cohortName, collapse = ", "),
+                                " with ids: ", paste0(cohortDefinitionSetCreate$cohortId, collapse = ", "),
                                 " to database ", input$selectDatabases_pickerInput) # currently selected picker
 
       }
@@ -273,8 +273,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
 
         ParallelLogger::logInfo("[Import from Atlas-",
                                 filterCohortsRegex,"] Importing cohorts (copy existing): ",
-                                cohortDefinitionSetCopyExisting$cohortName,
-                                " with ids: ", cohortDefinitionSetCopyExisting$cohortId,
+                                paste0(cohortDefinitionSetCopyExisting$cohortName, collapse = ", "),
+                                " with ids: ", paste0(cohortDefinitionSetCopyExisting$cohortId, collapse = ", "),
                                 " to database", input$selectDatabases_pickerInput)
 
         tryCatch({
@@ -332,11 +332,10 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
     estimations <- c(estimations, e)
   }
 
-  totbytes <- sum(as.numeric(estimations))
+  totbytes <- round(sum(as.numeric(estimations)))
 
-  ParallelLogger::logInfo("[Import from Atlas] Importing existing
-                          cohorts billing estimation: ",
-                          totbytes * 1e-9, "GB")
+  ParallelLogger::logInfo("[Import from Atlas] Importing existing cohorts billing estimation: ",
+                          totbytes * 1e-9," GB (", totbytes, "b)")
 
 }
 
