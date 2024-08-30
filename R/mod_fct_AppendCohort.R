@@ -61,19 +61,20 @@ mod_fct_appendCohort_server <- function(id, r_connectionHandler, r_cohortDefinit
       sweetAlert_spinner("Processing cohorts")
       ParallelLogger::logInfo("[Import] Cohorts Replace", r$replaceQuestion)
 
-      #browser()
       if(r$replaceQuestion){
-        #browser()
+
         cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet
         # TEMP FIX this should be moved to HadesExtras::correctCohortDefinitioSet
         if (!("subsetDefinitionId" %in% names(cohortDefinitionSet))) {
           cohortDefinitionSet <- cohortDefinitionSet |> dplyr::mutate(subsetDefinitionId = cohortId)
         }
         # TEMP FIX
-        cohortDefinitionSet <- cohortDefinitionSet |>  dplyr::left_join(
-          r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::rename(existingCohortId = cohortId, existingSubsetDefinitionId = subsetDefinitionId),
-          by = "cohortName"
-        ) |>
+        cohortDefinitionSet <- cohortDefinitionSet |>
+          dplyr::left_join(
+            r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |>
+              dplyr::rename(existingCohortId = cohortId, existingSubsetDefinitionId = subsetDefinitionId),
+            by = "cohortName"
+          ) |>
           dplyr::mutate(
             cohortId = dplyr::if_else(!is.na(existingCohortId), existingCohortId, cohortId),
             subsetDefinitionId = dplyr::if_else(!is.na(existingSubsetDefinitionId), existingSubsetDefinitionId, subsetDefinitionId)

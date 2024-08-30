@@ -2,7 +2,7 @@
 mod_importCohortsFromCohortsTable_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
-    mod_appendCohort_ui(),
+    mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
     #
     shinyWidgets::pickerInput(
@@ -33,7 +33,7 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
       cohortDefinitionTable = NULL
     )
 
-    r_toAdd <- shiny::reactiveValues(
+    r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
       databaseName = NULL,
       cohortDefinitionSet = NULL
     )
@@ -139,11 +139,11 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
         newCohortDefinitionIds = unusedCohortIds
       )
 
-      r_toAdd$databaseName <- input$selectDatabases_pickerInput
-      r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+      r_cohortDefinitionSetToAdd$databaseName <- input$selectDatabases_pickerInput
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet
 
-      ParallelLogger::logInfo("[Import from Cohort Table] Importing cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
-                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+      ParallelLogger::logInfo("[Import from Cohort Table] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId,
                               " to database", input$selectDatabases_pickerInput)
 
       remove_sweetAlert_spinner()
@@ -152,11 +152,11 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    r_append_accepted_counter <- mod_appendCohort_server("import_atlas", r_connectionHandlers, r_workbench, r_toAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandlers, r_workbench, r_cohortDefinitionSetToAdd )
 
     # close and reset
-    shiny::observeEvent(r_append_accepted_counter(), {
-      r_toAdd$cohortDefinitionSet <- NULL
+    shiny::observeEvent(rf_append_accepted_counter(), {
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
       reactable::updateReactable("cohorts_reactable", selected = NA, session = session )
     })
 

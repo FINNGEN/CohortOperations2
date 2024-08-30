@@ -1,20 +1,14 @@
-# build parameters --------------------------------------------------------------
 devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
 logger <- fcr_setUpLogger()
 
-databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = FALSE)
+cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 
-cohortsSummaryDatabases <- fct_getCohortsSummariesFromDatabasesHandlers(databasesHandlers)
-
-r_connectionHandlers <- shiny::reactiveValues(
-  databasesHandlers = databasesHandlers
-)
-
-r_workbench <- shiny::reactiveValues(
-  cohortsSummaryDatabases = cohortsSummaryDatabases
+r_connectionHandler <- shiny::reactiveValues(
+  cohortTableHandler = cohortTableHandler,
+  hasChangeCounter = 0
 )
 
 # run module --------------------------------------------------------------
@@ -26,8 +20,8 @@ app <- shiny::shinyApp(
     mod_importCohortsFromFile_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromFile_server("test", r_connectionHandlers, r_workbench)
-    mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
+    mod_importCohortsFromFile_server("test", r_connectionHandler)
+    mod_cohortWorkbench_server("test", r_connectionHandler)
   },
   options = list(launch.browser=TRUE)
 )

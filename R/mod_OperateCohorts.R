@@ -13,7 +13,7 @@
 mod_operateCohorts_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
-    mod_appendCohort_ui(),
+    mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
     #
     shiny::tags$h4("Database"),
@@ -58,7 +58,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       operationStringError = NULL
     )
 
-    r_toAdd <- shiny::reactiveValues(
+    r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
       databaseName = NULL,
       cohortDefinitionSet = NULL
     )
@@ -247,11 +247,11 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(r$cohortDefinitionSet)
 
       ## copy selected to
-      r_toAdd$databaseName <- input$selectDatabases_pickerInput
-      r_toAdd$cohortDefinitionSet <-  r$cohortDefinitionSet
+      r_cohortDefinitionSetToAdd$databaseName <- input$selectDatabases_pickerInput
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <-  r$cohortDefinitionSet
 
-      ParallelLogger::logInfo("[Operate cohorts] Creating cohorts: ", r_toAdd$cohortDefinitionSet$cohortName,
-                              " with ids: ", r_toAdd$cohortDefinitionSet$cohortId,
+      ParallelLogger::logInfo("[Operate cohorts] Creating cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId,
                               " to database ", input$selectDatabases_pickerInput)
 
     })
@@ -259,10 +259,10 @@ mod_operateCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    r_append_accepted_counter <- mod_appendCohort_server("matchCohort", r_connectionHandlers, r_workbench, r_toAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("matchCohort", r_connectionHandlers, r_workbench, r_cohortDefinitionSetToAdd )
 
     # close and reset
-    shiny::observeEvent(r_append_accepted_counter(), {
+    shiny::observeEvent(rf_append_accepted_counter(), {
       # change in r_workbench$cohortsSummaryDatabases will update output$selectDatabases_pickerInput_uiOutput <- shiny::renderUI({
       # this will chain update the rest
       r$cohortDefinitionSet <- NULL
