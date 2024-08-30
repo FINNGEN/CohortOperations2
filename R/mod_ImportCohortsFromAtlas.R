@@ -89,7 +89,6 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         id = reactable::colDef(name = "Cohort ID", show = (filterCohortsRegex == '*') ),
         name = reactable::colDef(name = "Cohort Name"),
         description = reactable::colDef(name = "Description")
-
       )
 
       atlasCohortsTable |>
@@ -125,7 +124,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       sourcesAtlas <- as.data.frame(ROhdsiWebApi::getCdmSources(baseUrl = webApiUrl))
       rownames(sourcesAtlas) <- sourcesAtlas$sourceKey
 
-      # cdm schemas
+      # cdm schemas - selects value for the currently selected picker - loads all cohorts from a single OMOP
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandle
       cdmDatabaseSchema  <- cohortTableHandler$cdmDatabaseSchema
       vocabularyDatabaseSchema  <-  cohortTableHandler$vocabularyDatabaseSchema
@@ -187,6 +186,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         cohortInfo$cdmSourcesMapped <- unname(sapply(cohortInfo$cdmDatabaseSchema, function(k) length(grep(k, cdmDatabaseSchema))) > 0)
         cohortInfo <- cohortInfo[which(cohortInfo$cdmSourcesMapped), ]
 
+
+
         if (nrow(cohortInfo) >= 1){
 
           # take the latest generation information
@@ -221,7 +222,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts (create new): ",
                                 cohortDefinitionSetCreate$cohortName,
                                 " with ids: ", cohortDefinitionSetCreate$cohortId,
-                                " to database", input$selectDatabases_pickerInput)
+                                " to database", input$selectDatabases_pickerInput) # currently selected picker
 
       }
 
@@ -291,8 +292,10 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         cohortDefinitionSetCopyExisting, cohortDefinitionSetCreate
       )
 
+      browser()
+
       # add list
-      r_toAdd$cohortDefinitionSet <- cohortDefinitions
+      r_toAdd$cohortDefinitionSet <- NULL # cohortDefinitions
       remove_sweetAlert_spinner()
 
     })
@@ -332,10 +335,10 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
   }
 
   totbytes <- sum(as.numeric(estimations))
-  cost <- totbytes * 1e-12 * 6.25
 
-  ParallelLogger::logInfo("[Import from Atlas] Importing existing cohorts cost estimation: ",
-                          (cost),"$ (", totbytes * 1e-9, "GB of data)")
+  ParallelLogger::logInfo("[Import from Atlas] Importing existing
+                          cohorts billing estimation: ",
+                          totbytes * 1e-9, "GB")
 
 }
 
