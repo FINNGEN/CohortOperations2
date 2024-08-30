@@ -7,20 +7,23 @@
 #' @export
 #' @importFrom shiny shinyApp
 #' @importFrom golem with_golem_options
-run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm, ...) {
+run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm, pathToAnalysisModulesConfigYalm, ...) {
 
   # set up configuration
+  # TODO: check if the config files are correct
   checkmate::assertFileExists(pathToCohortOperationsConfigYalm, extension = "yml")
   cohortOperationsConfig <- yaml::read_yaml(pathToCohortOperationsConfigYalm)
-  checkmate::assertList(cohortOperationsConfig, names = "named")
 
   checkmate::assertFileExists(pathToDatabasesConfigYalm, extension = "yml")
   databasesConfig <- yaml::read_yaml(pathToDatabasesConfigYalm)
-  checkmate::assertList(databasesConfig, names = "named")
+
+  checkmate::assertFileExists(pathToAnalysisModulesConfigYalm, extension = "yml")
+  analysisModulesConfig <- yaml::read_yaml(pathToAnalysisModulesConfigYalm)
+
 
 
   # set shiny to accept large files
-  options(shiny.maxRequestSize = 1000000000)
+  options(shiny.maxRequestSize = 10*1000*1024^2) # 10GB
 
   # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
@@ -41,6 +44,7 @@ run_app <- function(pathToCohortOperationsConfigYalm, pathToDatabasesConfigYalm,
   # setup shiny options
   app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
   app$appOptions$databasesConfig  <- databasesConfig
+  app$appOptions$analysisModulesConfig  <- analysisModulesConfig
   # TEMP
   app$appOptions$logger  <- logger
   app$appOptions$cores  <- parallel::detectCores()-1

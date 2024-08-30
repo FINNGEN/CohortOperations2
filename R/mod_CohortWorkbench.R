@@ -10,7 +10,7 @@ mod_cohortWorkbench_ui <- function(id){
   )
 }
 
-mod_cohortWorkbench_server <- function(id, r_connectionHandlers, r_workbench,  table_editing=TRUE){
+mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=TRUE){
   shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -20,12 +20,14 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandlers, r_workbench,  t
       shortNames = NULL
     )
 
-
     #
     # Renders cohortsSummaryDatabases_reactable
     #
     output$cohortsSummaryDatabases_reactable <- reactable::renderReactable({
-      r_workbench$cohortsSummaryDatabases |>
+      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_connectionHandler$hasChangeCounter)
+
+      r_connectionHandler$cohortTableHandler$getCohortsSummary() |>
         HadesExtras::rectable_cohortsSummary(
           deleteButtonsShinyId = ns("cohortsWorkbenchDeleteButtons"),
           editButtonsShinyId = ns("cohortsWorkbenchEditButtons"))
@@ -36,10 +38,11 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandlers, r_workbench,  t
     #
     shiny::observeEvent(input$cohortsWorkbenchDeleteButtons, {
 
+      cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
       rowNumber <- input$cohortsWorkbenchDeleteButtons$index
-      databaseName <- r_workbench$cohortsSummaryDatabases |> purrr::pluck("databaseName", rowNumber)
-      cohortName <- r_workbench$cohortsSummaryDatabases |> purrr::pluck("cohortName", rowNumber)
-      shortName <- r_workbench$cohortsSummaryDatabases |> purrr::pluck("shortName", rowNumber)
+
+      cohortName <- cohortsSummary |> purrr::pluck("cohortName", rowNumber)
+      shortName <- cohortsSummary |> purrr::pluck("shortName", rowNumber)
 
       shinyWidgets::confirmSweetAlert(
         session = session,
@@ -47,7 +50,7 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandlers, r_workbench,  t
         type = "question",
         title = "Delete cohort ?",
         text = htmltools::HTML(paste0(
-          "Are you sure you want to delete cohort<br>", shortName,": '", cohortName, "'<br>from database<br>'", databaseName, "' ?"
+          "Are you sure you want to delete cohort<br>", shortName,": '", cohortName, "' ?"
         )),
         btn_labels = c("Cancel", "Delete"),
         html = TRUE
@@ -60,15 +63,15 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandlers, r_workbench,  t
     #
     shiny::observeEvent(input$confirmSweetAlert_CohortsWorkbenchDeleteButtons, {
       if (input$confirmSweetAlert_CohortsWorkbenchDeleteButtons == TRUE) {
+
+        cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
         rowNumber <- input$cohortsWorkbenchDeleteButtons$index
-        databaseName <- r_workbench$cohortsSummaryDatabases |> purrr::pluck("databaseName", rowNumber)
-        cohortId <- r_workbench$cohortsSummaryDatabases |> purrr::pluck("cohortId", rowNumber)
-        databaseId <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)[[databaseName]]
 
-        cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
-        cohortTableHandler$deleteCohorts(as.integer(cohortId))
+        databaseName <- cohortsSummary |> purrr::pluck("databaseName", rowNumber)
+        cohortId <- cohortsSummary |> purrr::pluck("cohortId", rowNumber)
 
-        r_workbench$cohortsSummaryDatabases <- fct_getCohortsSummariesFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
+        r_connectionHandler$cohortTableHandler$deleteCohorts(as.integer(cohortId))
+        r_connectionHandler$hasChangeCounter = r_connectionHandler$hasChangeCounter + 1
 
       }
     })
@@ -79,17 +82,18 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandlers, r_workbench,  t
     #
     shiny::observeEvent(input$cohortsWorkbenchEditButtons, {
 
+      cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
       rowNumber <- input$cohortsWorkbenchEditButtons$index
-      databaseId <- r_workbench$cohortsSummaryDatabases[["databaseId"]][rowNumber]
-      cohortName <- r_workbench$cohortsSummaryDatabases[["cohortName"]][rowNumber]
-      shortName <- r_workbench$cohortsSummaryDatabases[["shortName"]][rowNumber]
 
-      r_tmp$cohortNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter({{databaseId}} == databaseId) |> dplyr::pull("cohortName") |> setdiff(cohortName)
-      r_tmp$shortNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter({{databaseId}} == databaseId) |> dplyr::pull("shortName") |> setdiff(shortName)
+      cohortName <- cohortsSummary |> purrr::pluck("cohortName", rowNumber)
+      shortName <- cohortsSummary |> purrr::pluck("shortName", rowNumber)
+
+      r_tmp$cohortNames <- cohortsSummary |> dplyr::pull("cohortName") |> setdiff(cohortName)
+      r_tmp$shortNames <- cohortsSummary |> dplyr::pull("shortName") |> setdiff(shortName)
 
       shiny::showModal(
         shiny::modalDialog(
-          shiny::tags$h4("Edit cohort ", shortName, ":", cohortName, " in database ", databaseId),
+          shiny::tags$h4("Edit cohort ", shortName, ":", cohortName),
           shiny::textInput(ns("editShortName_textInput"), "Short name", value = shortName),
           shiny::textInput(ns("editCohortName_textInput"), "Cohort name", value = cohortName),
           shiny::actionButton(ns("editCohort_actionButton"), "Save"),
@@ -133,17 +137,17 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandlers, r_workbench,  t
     # Save cohort when editCohort_actionButton is clicked
     #
     shiny::observeEvent(input$editCohort_actionButton, {
+
+      cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
       rowNumber <- input$cohortsWorkbenchEditButtons$index
-      databaseId <- r_workbench$cohortsSummaryDatabases[["databaseId"]][rowNumber]
-      cohortId <- r_workbench$cohortsSummaryDatabases[["cohortId"]][rowNumber]
+
+      cohortId <- cohortsSummary |> purrr::pluck("cohortId", rowNumber)
 
       newShortName <- input$editShortName_textInput
       newCohortName <- input$editCohortName_textInput
 
-      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
-      cohortTableHandler$updateCohortNames(cohortId, newCohortName, newShortName)
-
-      r_workbench$cohortsSummaryDatabases <- fct_getCohortsSummariesFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
+      r_connectionHandler$cohortTableHandler$updateCohortNames(cohortId, newCohortName, newShortName)
+      r_connectionHandler$hasChangeCounter = r_connectionHandler$hasChangeCounter + 1
 
       shiny::removeModal()
     })

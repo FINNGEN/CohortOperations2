@@ -1,0 +1,14 @@
+cohortOverlaps_CO2AnalysisModule:
+  name: "Cohort Overlaps"
+  icon: "braille"
+  mod_analysisSettings_ui: CO2AnalysisModule::mod_analysisSettings_codeWAS_ui
+  mod_analysisSettings_server: CO2AnalysisModule::mod_analysisSettings_codeWAS_server
+  fct_executeAnalysis: CO2AnalysisModule::execute_CohortOverlaps
+  url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+cohortDemographics_CO2AnalysisModule:
+  name: "Cohort Demographics"
+  icon: "users"
+  mod_analysisSettings_ui: CO2AnalysisModule::mod_resultsVisualisation_CohortsDemographics_ui
+  mod_analysisSettings_server: CO2AnalysisModule::mod_resultsVisualisation_CohortsDemographics_server
+  fct_executeAnalysis: CO2AnalysisModule::execute_CohortDemographics
+  url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
