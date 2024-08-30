@@ -275,7 +275,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
                                 filterCohortsRegex,"] Importing cohorts (copy existing): ",
                                 paste0(cohortDefinitionSetCopyExisting$cohortName, collapse = ", "),
                                 " with ids: ", paste0(cohortDefinitionSetCopyExisting$cohortId, collapse = ", "),
-                                " to database", input$selectDatabases_pickerInput)
+                                " to database ", input$selectDatabases_pickerInput)
 
         tryCatch({
           .estimate_costs(cohortDefinitionSetCopyExisting$sql, cdmSchemaProjectId)
@@ -293,7 +293,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       )
 
       # add list
-      r_toAdd$cohortDefinitionSet <- NULL # cohortDefinitions
+      r_toAdd$cohortDefinitionSet <- cohortDefinitions
       remove_sweetAlert_spinner()
 
     })
