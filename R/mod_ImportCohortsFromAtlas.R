@@ -222,7 +222,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts (create new): ",
                                 cohortDefinitionSetCreate$cohortName,
                                 " with ids: ", cohortDefinitionSetCreate$cohortId,
-                                " to database", input$selectDatabases_pickerInput) # currently selected picker
+                                " to database ", input$selectDatabases_pickerInput) # currently selected picker
 
       }
 
@@ -291,8 +291,6 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
       cohortDefinitions <- dplyr::bind_rows(
         cohortDefinitionSetCopyExisting, cohortDefinitionSetCreate
       )
-
-      browser()
 
       # add list
       r_toAdd$cohortDefinitionSet <- NULL # cohortDefinitions
