@@ -14,7 +14,7 @@ mod_importCohortsFromAtlas_ui <- function(id) {
   )
 }
 
-mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbench, filterCohortsRegex='*') {
+mod_importCohortsFromAtlas_server <- function(id, r_connectionHandler, filterCohortsRegex='*') {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 

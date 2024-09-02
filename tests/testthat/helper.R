@@ -33,7 +33,7 @@ helper_createNewCohortTableHandler <- function(addCohorts = NULL){
         verbose = FALSE
       )
     }
-    if(addCohorts == "HadesExtrasFractureCohorts"){
+      if(addCohorts == "HadesExtrasFractureCohorts"){
       cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
         settingsFileName = "testdata/fracture/Cohorts.csv",
         jsonFolder = "testdata/fracture/cohorts",

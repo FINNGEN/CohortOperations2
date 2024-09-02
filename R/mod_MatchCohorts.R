@@ -15,16 +15,6 @@ mod_matchCohorts_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
-    #
-    shiny::tags$h4("Database"),
-    shiny::tags$h5("Select database where to work:"),
-    shiny::tags$h6("(Only cohort in the same database can be matched)"),
-    shinyWidgets::pickerInput(
-      inputId = ns("selectDatabases_pickerInput"),
-      label = NULL,
-      choices = NULL,
-      selected = NULL,
-      multiple = FALSE),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
     shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort:"),
@@ -117,7 +107,7 @@ mod_matchCohorts_ui <- function(id) {
 
 
 
-mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
+mod_matchCohorts_server <- function(id, r_connectionHandler) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -129,37 +119,21 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     )
 
     r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
-      databaseName = NULL,
       cohortDefinitionSet = NULL
     )
 
 
     #
-    # update selectDatabases_pickerInput with database names
+    # update selectControlCohort_pickerInput with cohort names in r_connectionHandler$cohortTableHandler
     #
     shiny::observe({
-      shiny::req(r_connectionHandlers$databasesHandlers)
+      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_connectionHandler$hasChangeCounter)
 
-      databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
-
-      shinyWidgets::updatePickerInput(
-        inputId = "selectDatabases_pickerInput",
-        choices = databaseIdNamesList,
-        selected = databaseIdNamesList[1]
-      )
-    })
-
-    #
-    # update selectControlCohort_pickerInput with cohort names in selectDatabases_pickerInput database
-    #
-    shiny::observe({
-      shiny::req(r_workbench$cohortsSummaryDatabases)
-      shiny::req(input$selectDatabases_pickerInput)
-
-      cohortIdAndNames <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$getCohortIdAndNames()
+      cohortIdAndNames <- r_connectionHandler$cohortTableHandler$getCohortIdAndNames()
       cohortIdAndNamesList <- list()
       if(nrow(cohortIdAndNames) != 0){
-        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖"  , cohortIdAndNames$cohortName)))
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
       }
 
       shinyWidgets::updatePickerInput(
@@ -174,20 +148,13 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # update matchToCohortId_pickerInput with cohort names not in selectControlCohort_pickerInput
     #
     shiny::observe({
-      shiny::req(r_workbench$cohortsSummaryDatabases)
-      shiny::req(input$selectDatabases_pickerInput)
+      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_connectionHandler$hasChangeCounter)
       shiny::req(input$selectControlCohort_pickerInput)
 
-      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
-
-      if(input$selectControlCohort_pickerInput != "NA"){
-        cohortIdAndNames <- cohortTableHandler$getCohortIdAndNames() |>
+      cohortIdAndNames <- r_connectionHandler$cohortTableHandler$getCohortIdAndNames()|>
           dplyr::filter(!(cohortId %in% input$selectControlCohort_pickerInput))
-        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "➖" , cohortIdAndNames$cohortName)))
-      }else{
-        cohortIdAndNamesList <- list()
-      }
-
+      cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
 
       shinyWidgets::updatePickerInput(
         inputId = "selectCaseCohort_pickerInput",
@@ -200,7 +167,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # activate settings if cohors have been selected
     #
     shiny::observe({
-      condition <- !is.null(input$selectCaseCohort_pickerInput) & input$selectCaseCohort_pickerInput!="NA"
+      condition <- !is.null(input$selectCaseCohort_pickerInput)
       shinyjs::toggleState("matchRatio_numericInput", condition = condition )
       shinyjs::toggleState("matchSex_switch", condition = condition )
       shinyjs::toggleState("matchBirthYear_switch", condition = condition )
@@ -215,15 +182,11 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # create temporal cohortDefinitionSet and render name
     #
     shiny::observe({
-      shiny::req(input$selectDatabases_pickerInput)
       shiny::req(input$selectControlCohort_pickerInput)
-      shiny::req(input$selectControlCohort_pickerInput!="NA")
       shiny::req(input$selectCaseCohort_pickerInput)
-      shiny::req(input$selectCaseCohort_pickerInput!="NA")
 
-      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
 
-      existingSubsetDefinitionIds <- cohortTableHandler$cohortDefinitionSet |>
+      existingSubsetDefinitionIds <- r_connectionHandler$cohortTableHandler$cohortDefinitionSet |>
         dplyr::filter(!is.na(subsetDefinitionId)) |>
         dplyr::pull(subsetDefinitionId)
 
@@ -248,7 +211,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       )
 
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
-        cohortDefinitionSet = cohortTableHandler$cohortDefinitionSet,
+        cohortDefinitionSet = r_connectionHandler$cohortTableHandler$cohortDefinitionSet,
         cohortSubsetDefintion = subsetDef,
         targetCohortIds = as.integer(input$selectControlCohort_pickerInput),
         overwriteExisting =  TRUE
@@ -278,14 +241,11 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     output$info_text <- shiny::renderText({
       shiny::req(r$cohortDefinitionSet)
-      shiny::req(input$selectDatabases_pickerInput)
       shiny::req(input$selectCaseCohort_pickerInput)
       shiny::req(input$selectControlCohort_pickerInput)
 
-      cohortTableHandler <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler
-
-      cohortsOverlap <- cohortTableHandler$getCohortsOverlap()
-      cohortCounts <-  cohortTableHandler$getCohortCounts()
+      cohortsOverlap <- r_connectionHandler$cohortTableHandler$getCohortsOverlap()
+      cohortCounts <-  r_connectionHandler$cohortTableHandler$getCohortCounts()
 
       nSubjectsOverlap <- cohortsOverlap |>
         dplyr::filter(
@@ -339,7 +299,6 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       shiny::req(r$cohortDefinitionSet)
 
       ## copy selected to
-      r_cohortDefinitionSetToAdd$databaseName <- input$selectDatabases_pickerInput
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <-  r$cohortDefinitionSet
 
       ParallelLogger::logInfo("[Match cohorts] Creating cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
@@ -351,7 +310,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("matchCohort", r_connectionHandlers, r_workbench, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandler, r_cohortDefinitionSetToAdd )
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {
