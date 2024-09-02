@@ -5,16 +5,11 @@ source(testthat::test_path("helper.R"))
 
 logger <- fcr_setUpLogger()
 
-databasesHandlers <- helper_createNewDatabaseHandlers(withEunomiaCohorts = FALSE, withCohortTableCohorts = TRUE)
+cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 
-cohortsSummaryDatabases <- fct_getCohortsSummariesFromDatabasesHandlers(databasesHandlers)
-
-r_connectionHandlers <- shiny::reactiveValues(
-  databasesHandlers = databasesHandlers
-)
-
-r_workbench <- shiny::reactiveValues(
-  cohortsSummaryDatabases = cohortsSummaryDatabases
+r_connectionHandler <- shiny::reactiveValues(
+  cohortTableHandler = cohortTableHandler,
+  hasChangeCounter = 0
 )
 
 # run module --------------------------------------------------------------
@@ -23,21 +18,18 @@ devtools::load_all(".")
 app <- shiny::shinyApp(
   shiny::fluidPage(
     mod_cohortWorkbench_ui("test"),
-    mod_importCohortsFromCohortsTable_ui("test")
+    mod_importCohortsFromAtlas_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromCohortsTable_server("test", r_connectionHandlers, r_workbench)
-    mod_cohortWorkbench_server("test", r_connectionHandlers, r_workbench)
+    mod_importCohortsFromAtlas_server("test", r_connectionHandler)
+    mod_cohortWorkbench_server("test", r_connectionHandler)
   },
   options = list(launch.browser=TRUE)
 )
 
-pathToCohortOperationsConfigYalm = testthat::test_path("config", "cohortOperationsConfig.yml")
-cohortOperationsConfig <- yaml::read_yaml(pathToCohortOperationsConfigYalm)
-
 app$appOptions$logger  <- logger
-app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
 app
+
 
 
 # test with 1778211, 1778212, 1778213

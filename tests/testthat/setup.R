@@ -8,17 +8,21 @@ testConfigFile <- "eunomia_databasesConfig.yml"
 #testConfigFile <- "atlasDevelopment_cohortTableHandlerConfig.yml"
 databasesConfig <- yaml::read_yaml(testthat::test_path("config", testConfigFile))
 
-
 # for each database, if using eunomia database create the file
 for(databaseId in names(databasesConfig)){
   cohortTableHandlerConfig <- databasesConfig[[databaseId]]$cohortTableHandler
   if(!is.null(cohortTableHandlerConfig$connection$connectionDetailsSettings$server) &&
     cohortTableHandlerConfig$connection$connectionDetailsSettings$server == "Eunomia"){
+    # create a new database and change the connection settings
     databaseName <- cohortTableHandlerConfig$connection$connectionDetailsSettings$databaseName
     eunomiaDatabaseFile  <- Eunomia::getDatabaseFile(databaseName, overwrite = FALSE)
     cohortTableHandlerConfig$connection$connectionDetailsSettings$server <- eunomiaDatabaseFile
     cohortTableHandlerConfig$connection$connectionDetailsSettings$databaseName <- NULL
+
+    helper_addCohortAndCohortDefinitionTables(cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes")
+
   }
+
   databasesConfig[[databaseId]]$cohortTableHandler <- cohortTableHandlerConfig
 }
 

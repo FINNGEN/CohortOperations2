@@ -7,6 +7,10 @@ logger <- fcr_setUpLogger()
 
 cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 
+# uncomment to test missing connection to table
+# cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort")
+# cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort_definition")
+
 r_connectionHandler <- shiny::reactiveValues(
   cohortTableHandler = cohortTableHandler,
   hasChangeCounter = 0
@@ -18,10 +22,10 @@ devtools::load_all(".")
 app <- shiny::shinyApp(
   shiny::fluidPage(
     mod_cohortWorkbench_ui("test"),
-    mod_importCohortsFromFile_ui("test")
+    mod_importCohortsFromCohortsTable_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromFile_server("test", r_connectionHandler)
+    mod_importCohortsFromCohortsTable_server("test", r_connectionHandler)
     mod_cohortWorkbench_server("test", r_connectionHandler)
   },
   options = list(launch.browser=TRUE)
@@ -30,15 +34,3 @@ app <- shiny::shinyApp(
 app$appOptions$logger  <- logger
 app
 
-
-# connectionStatus_reactable ----------------------------------------------
-# devtools::load_all(".")
-#
-# log <- HadesExtras::LogTibble$new()
-# log$INFO("step 1", "example info")
-# log$WARNING("step 2", "example warning")
-# log$ERROR("step 3", "example error")
-#
-# connectionStatusLogs <- log$logTibble |> dplyr::mutate(database="Database name")
-#
-# connectionStatus_reactable(connectionStatusLogs)

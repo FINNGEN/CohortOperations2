@@ -4,14 +4,6 @@ mod_importCohortsFromAtlas_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
-    #
-    shinyWidgets::pickerInput(
-      inputId = ns("selectDatabases_pickerInput"),
-      label = "Load patients into database:",
-      choices = NULL,
-      selected = NULL,
-      multiple = FALSE),
-    #
     htmltools::hr(),
     shiny::actionButton(ns("refreshDatabases_actionButton"), "Refresh Cohort List"),
     reactable::reactableOutput(ns("cohorts_reactable")) |>  ui_load_spinner(),
@@ -26,44 +18,28 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    webApiUrl <- shiny::getShinyOption("cohortOperationsConfig")$webApiUrl
+    webApiUrl <- "https://api.ohdsi.org/WebAPI"
 
     #
     # reactive variables
     #
     r <- shiny::reactiveValues(
+      selectedIndex = NULL,
       atlasCohortsTable = NULL
     )
 
     r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
-      databaseName = NULL,
       cohortDefinitionSet = NULL
     )
 
     #
-    # render selectDatabases_pickerInput
-    #
-    shiny::observe({
-      shiny::req(r_connectionHandlers$databasesHandlers)
-
-      databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
-
-      shinyWidgets::updatePickerInput(
-        inputId = "selectDatabases_pickerInput",
-        choices = databaseIdNamesList,
-        selected = databaseIdNamesList[1])
-    })
-
-
-
-    #
     # render cohorts_reactable
     #
-    output$cohorts_reactable <- reactable::renderReactable({
-      # trigger update by
+    shiny::observe({
+      shiny::req(r_connectionHandler$cohortTableHandler)
       input$refreshDatabases_actionButton
-      #
-      shiny::req(r_connectionHandlers$databasesHandlers)
+
+      r$atlasCohortsTable  <- NULL
 
       ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Load from url: ", webApiUrl)
 
@@ -77,12 +53,17 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         atlasCohortsTable <<- paste("Error connecting to Atlas. Check that Atlas is working.")
       })
 
+      r$atlasCohortsTable <- atlasCohortsTable
+    })
+
+
+    output$cohorts_reactable <- reactable::renderReactable({
+      atlasCohortsTable <- r$atlasCohortsTable
+
       if (is.character(atlasCohortsTable)) {
         ParallelLogger::logWarn("[Import from Atlas-", filterCohortsRegex,"] : ", atlasCohortsTable)
       }
       shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
-
-      r$atlasCohortsTable <- atlasCohortsTable
 
       colums <- list(
         id = reactable::colDef(name = "Cohort ID", show = (filterCohortsRegex == '*') ),
@@ -100,23 +81,27 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
         )
 
     })
-    # reactive function to get selected values
-    r_selectedIndex <- reactive(reactable::getReactableState("cohorts_reactable", "selected", session))
+    # Copy to reactive variable, (better than reactive value for testing)
+    shiny::observe({
+      selectedIndex <- reactable::getReactableState("cohorts_reactable", "selected", session)
+      r$selectedIndex <- selectedIndex
+    })
 
     #
     # button import selected: checks selected cohorts
     #
     observe({
-      shinyjs::toggleState("import_actionButton", condition = !is.null(r_selectedIndex()) )
+      shinyjs::toggleState("import_actionButton", condition = !is.null(r$selectedIndex) )
     })
 
     shiny::observeEvent(input$import_actionButton, {
-      shiny::req(r_selectedIndex())
+      shiny::req(r$atlasCohortsTable)
+      shiny::req(r$selectedIndex)
 
       sweetAlert_spinner("Processing cohorts")
 
       selectedCohortIds <- r$atlasCohortsTable |>
-        dplyr::slice(r_selectedIndex()) |>
+        dplyr::slice(r$selectedIndex) |>
         dplyr::pull(id)
 
       cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
@@ -137,7 +122,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandlers, r_workbe
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandlers, r_workbench, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandler, r_cohortDefinitionSetToAdd )
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {
