@@ -58,7 +58,7 @@ mod_fct_appendCohort_server <- function(id, r_connectionHandler, r_cohortDefinit
       shiny::req(r$replaceQuestion)
       shiny::req(r_cohortDefinitionSetToAdd$cohortDefinitionSet)
 
-      sweetAlert_spinner("Processing cohorts")
+      fct_sweetAlertSpinner("Processing cohorts")
       ParallelLogger::logInfo("[Import] Cohorts Replace", r$replaceQuestion)
 
       #browser()
@@ -90,7 +90,7 @@ mod_fct_appendCohort_server <- function(id, r_connectionHandler, r_cohortDefinit
       # pass action
       r$appendAcceptedCounter <- r$appendAcceptedCounter+1
 
-      remove_sweetAlert_spinner()
+      fct_removeSweetAlertSpinner()
     })
 
 

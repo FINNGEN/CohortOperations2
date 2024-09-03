@@ -58,5 +58,5 @@ app <- shiny::shinyApp(
   options = list(launch.browser=TRUE)
 )
 
-app$appOptions$logger  <- logger
+
 app

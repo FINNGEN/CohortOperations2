@@ -223,7 +223,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
       # update cohortId to non existing, to avoid overflow here
       # https://github.com/OHDSI/CohortGenerator/blob/e3efad630b8b2c0376431a88fde89e6c4bbac38c/R/SubsetDefinitions.R#L193
       previousCohortId <- cohortDefinitionSetOnlyNew$cohortId
-      unusedCohortId <- setdiff(1:1000, cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
+      unusedCohortId <- setdiff(1:1000, r_connectionHandler$cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
 
       cohortDefinitionSetOnlyNew <- cohortDefinitionSetOnlyNew |>
         dplyr::mutate(

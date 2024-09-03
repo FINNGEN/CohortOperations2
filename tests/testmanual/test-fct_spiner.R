@@ -1,7 +1,7 @@
 
 # setup  ------------------------------------------------------------------
 
-logger <- fcr_setUpLogger()
+fcr_setUpLogger()
  
 # run ---------------------------------------------------------------------
 devtools::load_all(".")
@@ -27,7 +27,7 @@ server <- function(input, output) {
   shiny::observeEvent(input$run,{
     shinyjs::disable("run")
 
-    sweetAlert_spinner("Counting down")
+    fct_sweetAlertSpinner("Counting down")
 
     for(i in 10:0){
       Sys.sleep(1)
@@ -35,7 +35,7 @@ server <- function(input, output) {
     }
     shinyjs::enable("run")
 
-    remove_sweetAlert_spinner()
+    fct_removeSweetAlertSpinner()
 
   })
 

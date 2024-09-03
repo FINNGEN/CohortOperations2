@@ -280,7 +280,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandler) {
       shiny::req(r_selectedIndex())
       shiny::req(r$cohortData)
 
-      sweetAlert_spinner("Importing cohorts")
+      fct_sweetAlertSpinner("Importing cohorts")
 
       selectedCohortNames <- r$cohortData |>
         dplyr::distinct(cohort_name) |>
@@ -305,7 +305,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandler) {
       ParallelLogger::logInfo("[Import File] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
                               " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId)
 
-      remove_sweetAlert_spinner()
+      fct_removeSweetAlertSpinner()
 
     })
 

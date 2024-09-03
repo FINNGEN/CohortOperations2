@@ -4,9 +4,14 @@ if( Sys.getenv("EUNOMIA_DATA_FOLDER") == "" ){
   stop()
 }
 
-testConfigFile <- "eunomia_databasesConfig.yml"
-#testConfigFile <- "atlasDevelopment_cohortTableHandlerConfig.yml"
-databasesConfig <- yaml::read_yaml(testthat::test_path("config", testConfigFile))
+
+#
+# Databases config
+#
+databasesConfigFileName <- "eunomia_databasesConfig.yml"
+#databasesConfigFileName <- "atlasDevelopment_cohortTableHandlerConfig.yml"
+pathToDatabasesConfigYalm <- testthat::test_path("config", databasesConfigFileName)
+databasesConfig <- yaml::read_yaml(pathToDatabasesConfigYalm)
 
 # for each database, if using eunomia database create the file
 for(databaseId in names(databasesConfig)){
@@ -26,10 +31,21 @@ for(databaseId in names(databasesConfig)){
   databasesConfig[[databaseId]]$cohortTableHandler <- cohortTableHandlerConfig
 }
 
+pathToDatabasesConfigYalm <- tempfile(fileext = ".yml")
+databasesConfig |> yaml::write_yaml(pathToDatabasesConfigYalm)
+
 # pick the one database to connect to
 cohortTableHandlerConfig <- databasesConfig$E1$cohortTableHandler
 
+#
+# Modules config
+#
+analysisModulesConfigFileName <- "test_analysisModulesConfig.yml"
+pathToAnalysisModulesConfigYalm <- testthat::test_path("config", analysisModulesConfigFileName)
+analysisModulesConfig <- yaml::read_yaml(pathToAnalysisModulesConfigYalm)
+
 
 # inform user
-message("************* Testing on Config file: ", testConfigFile, " Database: ", cohortTableHandlerConfig$database$databaseName, "*************")
-
+message("******* TESTING SETTINGS")
+message("******* Databases config file: ", databasesConfigFileName, " Database: ", cohortTableHandlerConfig$database$databaseName)
+message("******* Modules config: ", analysisModulesConfigFileName)

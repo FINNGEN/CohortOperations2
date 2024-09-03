@@ -256,7 +256,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     shiny::observeEvent(input$run_actionButton, {
 
-      sweetAlert_spinner("Preparing cohorts for submission to GWAS analysis")
+      fct_sweetAlertSpinner("Preparing cohorts for submission to GWAS analysis")
 
       cohortTableHandler <- r_connectionHandlers$databasesHandlers[[r_data$databaseId]]$cohortTableHandler
       cohorts <- r_workbench$cohortsSummaryDatabases[ r_workbench$cohortsSummaryDatabases$databaseId == r_data$databaseId, ]
@@ -306,7 +306,7 @@ mod_runGWAS_server <- function(id, r_connectionHandlers, r_workbench) {
         ParallelLogger::logError("[Run GWAS analysis]:  ", res$content)
       }
 
-      remove_sweetAlert_spinner()
+      fct_removeSweetAlertSpinner()
 
     })
 

@@ -107,7 +107,7 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
     shiny::observeEvent(input$import_actionButton, {
       shiny::req(r$selectedIndex)
 
-      sweetAlert_spinner("Processing cohorts")
+      fct_sweetAlertSpinner("Processing cohorts")
 
       # get connection
       connection  <- r_connectionHandler$cohortTableHandler$connectionHandler$getConnection()
@@ -134,7 +134,7 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
       ParallelLogger::logInfo("[Import from Cohort Table] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
                               " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId)
 
-      remove_sweetAlert_spinner()
+      fct_removeSweetAlertSpinner()
     })
 
     #

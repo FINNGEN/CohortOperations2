@@ -3,7 +3,7 @@ devtools::load_all(".")
 source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
-logger <- fcr_setUpLogger()
+fcr_setUpLogger()
 
 r_connectionHandler <- shiny::reactiveValues(
   cohortTableHandler = NULL,
@@ -24,7 +24,7 @@ app <- shiny::shinyApp(
   options = list(launch.browser=TRUE)
 )
 
-app$appOptions$logger  <- logger
+
 app
 
 

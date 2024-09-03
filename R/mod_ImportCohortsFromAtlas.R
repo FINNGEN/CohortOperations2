@@ -98,7 +98,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandler, filterCoh
       shiny::req(r$atlasCohortsTable)
       shiny::req(r$selectedIndex)
 
-      sweetAlert_spinner("Processing cohorts")
+      fct_sweetAlertSpinner("Processing cohorts")
 
       selectedCohortIds <- r$atlasCohortsTable |>
         dplyr::slice(r$selectedIndex) |>
@@ -116,7 +116,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandler, filterCoh
                               " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId,
                               " to database", input$selectDatabases_pickerInput)
 
-      remove_sweetAlert_spinner()
+      fct_removeSweetAlertSpinner()
     })
 
     #

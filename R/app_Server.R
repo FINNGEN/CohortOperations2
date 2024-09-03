@@ -20,52 +20,35 @@ app_server <- function(input, output, session) {
 
   mod_selectDatabases_server("selectDatabases", databasesConfig, r_connectionHandler)
 
-  mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_connectionHandlers)
-  mod_importCohortsFromFile_server("importCohortsFromFile", r_connectionHandlers)
-  # mod_importCohortsFromAtlas_server("importCohortsFromAtlas", r_connectionHandlers, r_workbench)
-  # mod_importCohortsFromCohortsTable_server("importCohortsFromEndpoints", r_connectionHandlers, r_workbench)
-  # mod_importCohortsFromAtlas_server("importCohortsFromLibrary", r_connectionHandlers, r_workbench, filterCohortsRegex = ".*\\[CohortLibrary]")
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_connectionHandlers, r_workbench)
-  # mod_matchCohorts_server("matchCohorts", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_operateCohorts", r_connectionHandlers, r_workbench)
-  # mod_operateCohorts_server("operateCohorts", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_exportsCohorts", r_connectionHandlers, r_workbench)
-  # mod_exportsCohorts_server("exportsCohorts", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_cohortDiagnostics", r_connectionHandlers, r_workbench)
-  # mod_cohortDiagnostics_server("cohortDiagnostics", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_cohortOverlaps", r_connectionHandlers, r_workbench)
-  # mod_cohortOverlaps_server("cohortOverlaps", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_cohortsIncidence", r_connectionHandlers, r_workbench)
-  # mod_cohortsIncidence_server("cohortsIncidence", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_timeCodeWAS", r_connectionHandlers, r_workbench)
-  # mod_timeCodeWAS_server("timeCodeWAS", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_codeWAS", r_connectionHandlers, r_workbench)
-  # mod_codeWAS_server("codeWAS", r_connectionHandlers, r_workbench)
-  #
-  # mod_cohortWorkbench_server("cohortWorkbench_runGWAS", r_connectionHandlers, r_workbench)
-  # mod_runGWAS_server("runGWAS", r_connectionHandlers, r_workbench)
-  #
-  #
-  # output$about <- shiny::renderUI({
-  #   # load news from shinyoption pathtomd
-  #
-  #   shiny::div(
-  #     shiny::markdown(readLines(shiny::getShinyOption("pathToNews"))),
-  #     shiny::br(),
-  #     shiny::p(shiny::getShinyOption("gitInfo"))
-  #   )
-  #
-  # })
+  mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_connectionHandler)
+  mod_importCohortsFromFile_server("importCohortsFromFile", r_connectionHandler)
+  mod_importCohortsFromAtlas_server("importCohortsFromAtlas", r_connectionHandler)
+  mod_importCohortsFromCohortsTable_server("importCohortsFromEndpoints", r_connectionHandler)
+  mod_importCohortsFromAtlas_server("importCohortsFromLibrary", r_connectionHandler, filterCohortsRegex = ".*\\[CohortLibrary]")
 
+  mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_connectionHandler)
+  mod_matchCohorts_server("matchCohorts", r_connectionHandler)
 
+  mod_cohortWorkbench_server("cohortWorkbench_operateCohorts", r_connectionHandler)
+  mod_operateCohorts_server("operateCohorts", r_connectionHandler)
+
+  mod_cohortWorkbench_server("cohortWorkbench_exportsCohorts", r_connectionHandler)
+  mod_exportsCohorts_server("exportsCohorts", r_connectionHandler)
+
+  # Dynamic analysis modules server
+  lapply(names(analysisModulesConfig), function(analysisKey) {
+    analysis <- analysisModulesConfig[[analysisKey]]
+    mod_cohortWorkbench_server(paste0("cohortWorkbench_", analysisKey), r_connectionHandler)
+
+    mod_analysisWrap_server(
+      id = paste0(analysisKey, "_analysis"),
+      r_connectionHandler = r_connectionHandler,
+      mod_analysisSettings_server = analysis$mod_analysisSettings_server |> fct_stringToFuction(),
+      fct_executeAnalysis = analysis$fct_executeAnalysis |> fct_stringToFuction(),
+      analysisName = analysis$analysisName,
+      url_visualiseResults = analysis$url_visualiseResults
+    )
+  })
 
 }
 

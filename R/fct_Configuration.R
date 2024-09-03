@@ -116,5 +116,49 @@ fcr_setUpLogger  <- function(){
 
 
 
+.createConsoleAppenderForSandboxLogging <- function(layout = ParallelLogger::layoutParallel) {
+  appendFunction <- function(this, level, message, echoToConsole) {
+    # Avoid note in check:
+    missing(this)
+    message <- paste0("[sandbox-co2-log] ", message)
+    writeLines(message, con = stdout())
+
+  }
+  appender <- list(appendFunction = appendFunction, layout = layout)
+  class(appender) <- "Appender"
+  return(appender)
+}
+
+
+fct_stringToFuction <- function(packageFunctionString) {
+
+  packageFunctionString |> checkmate::assertCharacter(pattern = "^\\w+::\\w+$")
+
+  packageName   <- packageFunctionString |> stringr::str_split("::") |> purrr::pluck(1,1)
+  functionName  <- packageFunctionString |> stringr::str_split("::") |> purrr::pluck(1,2)
+
+ resultFunction <- rlang::ns_env(packageName)  |> rlang::env_get(functionName)
+
+ return(resultFunction)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

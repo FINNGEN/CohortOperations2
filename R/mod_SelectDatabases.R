@@ -57,8 +57,8 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandler)
     shiny::observeEvent(c(input$selectDatabases_pickerInput,input$allChecks_checkbox), {
       shiny::req(input$selectDatabases_pickerInput)
 
-      remove_sweetAlert_spinner()
-      sweetAlert_spinner("Connecting to databases")
+      fct_removeSweetAlertSpinner()
+      fct_sweetAlertSpinner("Connecting to databases")
 
       cohortTableHandlerConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$cohortTableHandler
       ParallelLogger::logInfo("[Databases Connection] Connecting to: ", input$selectDatabases_pickerInput)
@@ -74,7 +74,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandler)
       # TEMP, trigger garbage collector to delete the old handlers
       gc()
 
-      remove_sweetAlert_spinner()
+      fct_removeSweetAlertSpinner()
 
     })
 

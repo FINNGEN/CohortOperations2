@@ -1,14 +1,28 @@
-cohortOverlaps_CO2AnalysisModule:
-  name: "Cohort Overlaps"
+cohortOverlaps_CO2AnalysisModules:
+  analysisName: "Cohort Overlaps"
   icon: "braille"
-  mod_analysisSettings_ui: CO2AnalysisModule::mod_analysisSettings_codeWAS_ui
-  mod_analysisSettings_server: CO2AnalysisModule::mod_analysisSettings_codeWAS_server
-  fct_executeAnalysis: CO2AnalysisModule::execute_CohortOverlaps
+  mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_cohortOverlaps_ui
+  mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_cohortOverlaps_server
+  fct_executeAnalysis: CO2AnalysisModules::execute_CohortOverlaps
   url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
-cohortDemographics_CO2AnalysisModule:
-  name: "Cohort Demographics"
+cohortDemographics_CO2AnalysisModules:
+  analysisName: "Cohort Demographics"
   icon: "users"
-  mod_analysisSettings_ui: CO2AnalysisModule::mod_resultsVisualisation_CohortsDemographics_ui
-  mod_analysisSettings_server: CO2AnalysisModule::mod_resultsVisualisation_CohortsDemographics_server
-  fct_executeAnalysis: CO2AnalysisModule::execute_CohortDemographics
+  mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_cohortDemographics_ui
+  mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_cohortDemographics_server
+  fct_executeAnalysis: CO2AnalysisModules::execute_CohortDemographics
   url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+# codeWAS_CO2AnalysisModules:
+#   analysisName: "Code WAS"
+#   icon: "tasks"
+#   mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_codeWAS_ui
+#   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_codeWAS_server
+#   fct_executeAnalysis: CO2AnalysisModules::execute_CodeWAS
+#   url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+# timeCodeWAS_CO2AnalysisModules:
+#   analysisName: "Time Code WAS"
+#   icon: "road"
+#   mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_timeCodeWAS_ui
+#   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_timeCodeWAS_server
+#   fct_executeAnalysis: CO2AnalysisModules::execute_timeCodeWAS
+#   url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=

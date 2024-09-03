@@ -36,7 +36,7 @@ mod_exportsCohorts_ui <- function(id) {
 }
 
 
-mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
+mod_exportsCohorts_server <- function(id, r_connectionHandler) {
 
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -53,18 +53,20 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     #
     # update selectCohorts_pickerInput with database/cohort names
     #
-    shiny::observeEvent(r_workbench$cohortsSummaryDatabases, {
+    shiny::observe({
+      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_connectionHandler$hasChangeCounter)
 
+      cohortIdAndNames <- r_connectionHandler$cohortTableHandler$getCohortIdAndNames()
       cohortIdAndNamesList <- list()
-      for(databaseId in unique(r_workbench$cohortsSummaryDatabases$databaseId)){
-        cohortIdAndNames <- r_workbench$cohortsSummaryDatabases |> dplyr::filter(databaseId == !!databaseId)
-        cohortIdAndNamesList[databaseId] <- list(as.list(setNames(paste0(databaseId, "@", cohortIdAndNames$cohortId), paste(cohortIdAndNames$shortName,  "➖" , cohortIdAndNames$cohortName))))
-     }
+      if(nrow(cohortIdAndNames) != 0){
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
+      }
+
       shinyWidgets::updatePickerInput(
-        session = session,
         inputId = "selectCohorts_pickerInput",
         choices = cohortIdAndNamesList,
-        selected = NULL
+        selected = character(0)
       )
     })
 
@@ -72,11 +74,9 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
     # prepare list of selected cohorts and filename
     #
     shiny::observeEvent(input$selectCohorts_pickerInput, {
-      shiny::req(r_workbench$cohortsSummaryDatabases)
-      shiny::req(input$selectCohorts_pickerInput)
 
-      selectedCohortsInfo <- r_workbench$cohortsSummaryDatabases  |>
-        dplyr::filter(paste0(databaseId, "@",cohortId) %in% input$selectCohorts_pickerInput) |>
+      selectedCohortsInfo <- r_connectionHandler$cohortTableHandler$getCohortsSummary()  |>
+        dplyr::filter(cohortId %in% input$selectCohorts_pickerInput) |>
         dplyr::select(databaseId, cohortId, cohortName, databaseName)
 
       name <- paste0(paste0(.format_str(selectedCohortsInfo$databaseId), "_", .format_str(selectedCohortsInfo$cohortName)), collapse = "_")
@@ -98,46 +98,39 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
       filename =  function() {r$filename},
       content = function(filename) {
 
-        sweetAlert_spinner("Preparing cohort for download")
+        fct_sweetAlertSpinner("Preparing cohort for download")
 
         selectedCohortsInfo <- r$selectedCohortsInfo
 
-        result <- tibble::tibble()
-        for (databaseId in unique(selectedCohortsInfo$databaseId)){
-          cohortIds <- selectedCohortsInfo  |> dplyr::filter(databaseId == {{databaseId}}) |> dplyr::pull(cohortId)
-          cohortNames <- selectedCohortsInfo  |> dplyr::filter(databaseId == {{databaseId}}) |> dplyr::pull(cohortName)
-          cohortTableHandler <- r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler
+        cohortIds <- selectedCohortsInfo  |> dplyr::pull(cohortId)
+        cohortNames <- selectedCohortsInfo  |>  dplyr::pull(cohortName)
 
-          cohortData <- HadesExtras::getCohortDataFromCohortTable(
-            connection = cohortTableHandler$connectionHandler$getConnection(),
-            cdmDatabaseSchema = cohortTableHandler$cdmDatabaseSchema,
-            cohortDatabaseSchema = cohortTableHandler$cohortDatabaseSchema,
-            cohortTable = cohortTableHandler$cohortTableNames$cohortTable,
-            cohortNameIds = tibble::data_frame(cohortId=cohortIds, cohortName=cohortNames)
-          )
+        cohortData <- HadesExtras::getCohortDataFromCohortTable(
+          connection = r_connectionHandler$cohortTableHandler$connectionHandler$getConnection(),
+          cdmDatabaseSchema = r_connectionHandler$cohortTableHandler$cdmDatabaseSchema,
+          cohortDatabaseSchema = r_connectionHandler$cohortTableHandler$cohortDatabaseSchema,
+          cohortTable = r_connectionHandler$cohortTableHandler$cohortTableNames$cohortTable,
+          cohortNameIds = tibble::tibble(cohortId=cohortIds, cohortName=cohortNames)
+        )
 
+        cohortData <- cohortData  |>
+          tibble::add_column( database_id = r_connectionHandler$cohortTableHandler$databaseId, .before = 1)
+
+        # TEMP to compatible with CO1
+        if (input$co1Compatible_checkbox){
           cohortData <- cohortData  |>
-            tibble::add_column( database_id = rep(databaseId, nrow(cohortData)), .before = 1)
-
-            # TEMP to compatible with CO1
-          if (input$co1Compatible_checkbox){
-            cohortData <- cohortData  |>
             dplyr::transmute(
               COHORT_SOURCE  = database_id,
               COHORT_NAME = cohort_name,
               FINNGENID = person_source_value,
               COHORT_START_DATE = cohort_start_date,
-              COHORT_END_DATE = cohort_end_date,
+              COHORT_END_DATE = cohort_end_date
             )
-          }
-
-          result <- rbind(result, cohortData)
-
         }
 
         writeErrorMessage <- ""
         tryCatch({
-          write.table(result, filename, row.names=FALSE, sep="\t", quote = F, append = F)
+          write.table(cohortData, filename, row.names=FALSE, sep="\t", quote = F, append = F)
         }, error=function(e) {
           writeErrorMessage <<- e$message
           ParallelLogger::logError("[Export Cohorts] write table: ", e$message)
@@ -148,13 +141,13 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
 
         r$writeErrorMessage <- writeErrorMessage
 
-        remove_sweetAlert_spinner()
+        fct_removeSweetAlertSpinner()
 
       }
     )
 
     shiny::observe({
-      shiny::req(r$writeErrorMessage)
+      shiny::req(!is.null(r$writeErrorMessage))
       if (r$writeErrorMessage == ""){
         shinyWidgets::show_alert(
           title = "Download completed successfully",
@@ -172,10 +165,16 @@ mod_exportsCohorts_server <- function(id, r_connectionHandlers, r_workbench) {
           type = "error"
         )
       }
+
+      # reset
+      shinyWidgets::updatePickerInput(
+        inputId = "selectCohorts_pickerInput",
+        selected = character(0)
+      )
+
       r$writeErrorMessage <- NULL
+
     })
-
-
   })
 
 
