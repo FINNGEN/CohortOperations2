@@ -17,11 +17,10 @@ test_that("mod_OperateCohorts produces output", {
       r_connectionHandler = r_connectionHandler
     ),
     {
-
       # initial state
       session$flushReact()
       r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
-        expect_equal(c(1,2,3))
+        expect_equal(c(1,2,3,4))
       output$newCohortName_text  |> expect_match("----")
       output$upsetPlot  |> class() |> expect_equal("list")
 
@@ -48,7 +47,7 @@ test_that("mod_OperateCohorts produces output", {
 
       # test output
       r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
-        expect_equal(c(1,2,3,4))
+        expect_equal(c(1,2,3,4,5))
 
     }
   )

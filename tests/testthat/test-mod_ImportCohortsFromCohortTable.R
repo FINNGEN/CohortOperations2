@@ -30,7 +30,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
 
       # test output
       r_cohortDefinitionSetToAdd$cohortDefinitionTable |> expect_null()
-      r_connectionHandler$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4))
+      r_connectionHandler$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4, 5))
 
     }
   )
