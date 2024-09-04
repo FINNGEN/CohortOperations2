@@ -1,3 +1,5 @@
+# CohortOperations2 1.0.0
+
 # CohortOperations2 0.3.0
 
 - Added Cohorts Overlaps
