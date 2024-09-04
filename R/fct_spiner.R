@@ -18,7 +18,7 @@ ui_load_spinner <- function(ui_element, ...) {
   )
 }
 
-#' sweetAlert_spinner
+#' fct_sweetAlertSpinner
 #'
 #' A sweet alert with a dna spinner
 #'
@@ -31,7 +31,7 @@ ui_load_spinner <- function(ui_element, ...) {
 #'
 #'
 #' @importFrom shinyWidgets show_alert
-sweetAlert_spinner <- function(message, logUrl = "/logs/log.txt", updateMiliseconds = 500, ...) {
+fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMiliseconds = 500, ...) {
 
   shinyWidgets::show_alert(
     title = NULL,
@@ -90,15 +90,15 @@ sweetAlert_spinner <- function(message, logUrl = "/logs/log.txt", updateMiliseco
   # }
 }
 
-#' remove_sweetAlert_spinner
+#' fct_removeSweetAlertSpinner
 #'
-#' Closes a sweetAlert_spinner
+#' Closes a fct_sweetAlertSpinner
 #'
 #' @return
 #' @export
 #'
 #' @importFrom shinyWidgets closeSweetAlert
-remove_sweetAlert_spinner <- function() {
+fct_removeSweetAlertSpinner <- function() {
   shinyWidgets::closeSweetAlert()
 }
 

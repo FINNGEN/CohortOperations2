@@ -8,26 +8,24 @@ The goal of CohortOperations2 is to ...
 
 ## Installation
 
-You can install the development version of CohortOperations2 like so:
+Clone repository, open project in RStudio and run 
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+renv::restore()
 ```
 
 ## Run
 
-## Developmet 
+Run  app in development Using Eunomia
 
-Run full app in development 
-
-Using Eunomia
 ```R
-devtools::load_all("."); run_app(testthat::test_path("config", "test_config_eunomia.yml"), options = list(launch.browser=TRUE))
-```
+devtools::load_all(".");
 
-Using AtlasDevelopment
-```R
-devtools::load_all("."); run_app(testthat::test_path("config", "test_config_devatlas.yml"), options = list(launch.browser=TRUE))
+run_app(
+  pathToCohortOperationsConfigYalm = testthat::test_path("config", "cohortOperationsConfig.yml"),
+  pathToDatabasesConfigYalm = testthat::test_path("config", "eunomia_databasesConfig.yml"),
+  options = list(port = 9999, launch.browser = TRUE)
+  )
 ```
 
 Run modules in development 

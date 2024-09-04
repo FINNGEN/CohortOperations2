@@ -6,13 +6,13 @@ mod_selectDatabases_ui <- function(id) {
     #
     shiny::h2("Databases connection"),
     shiny::br(),
-    shiny::p("CohortOperations can connect to one or more databases. By default, it will connect only to the top database."),
+    shiny::p("CohortOperations can connect to one database (at the moment). By default, it will connect only to the top database."),
     shiny::br(),
     shinyWidgets::pickerInput(
       inputId = ns("selectDatabases_pickerInput"),
-      label = "Connect to databases:",
+      label = "Connect to database:",
       choices = NULL,
-      multiple = TRUE),
+      multiple = FALSE),
     shiny::checkboxInput(
       inputId = ns("allChecks_checkbox"),
       label = "Perform all the checks on the databases (Slow, only for debugging)",
@@ -25,7 +25,7 @@ mod_selectDatabases_ui <- function(id) {
 }
 
 
-mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers) {
+mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandler) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -35,40 +35,32 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
         dplyr::relocate(databaseName, .before = 1)
     )
 
-
+    #
+    # update selectDatabases_pickerInput with database names
+    #
     shiny::observe({
-      databasesConfigChecks <- fct_checkdatabasesConfig(databasesConfig)
-
-      if (isFALSE(databasesConfigChecks)) {
-        shinyWidgets::sendSweetAlert(
-          session = session,
-          title = "Error reading the settings file.",
-          text = databasesConfigChecks,
-          type = "error"
-        )
-      }else{
-        databaseIdNamesList <- fct_getDatabaseIdNamesListFromdatabasesConfig(databasesConfig)
-        r$selectDatabases_pickerInput <- databaseIdNamesList[1]
-
-        shinyWidgets::updatePickerInput(
-          session = session,
-          inputId = "selectDatabases_pickerInput",
-          choices = databaseIdNamesList,
-          selected = databaseIdNamesList[1]
-        )
+      databaseIdNamesList <- list()
+      for(databaseId in names(databasesConfig)){
+        databaseIdNamesList[[databasesConfig[[databaseId]]$cohortTableHandler$database$databaseName]] <- databaseId
       }
+
+      r$selectDatabases_pickerInput <- databaseIdNamesList[1]
+
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "selectDatabases_pickerInput",
+        choices = databaseIdNamesList,
+        selected = databaseIdNamesList[1]
+      )
     })
 
-
-
-
-    shiny::observeEvent(c(input$selectDatabases_pickerInput, input$allChecks_checkbox), {
+    shiny::observeEvent(c(input$selectDatabases_pickerInput,input$allChecks_checkbox), {
       shiny::req(input$selectDatabases_pickerInput)
 
-      remove_sweetAlert_spinner()
-      sweetAlert_spinner("Connecting to databases")
+      fct_removeSweetAlertSpinner()
+      fct_sweetAlertSpinner("Connecting to databases")
 
-      selecteddatabasesConfig <- databasesConfig[input$selectDatabases_pickerInput]
+      cohortTableHandlerConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$cohortTableHandler
       ParallelLogger::logInfo("[Databases Connection] Connecting to: ", input$selectDatabases_pickerInput)
 
       loadConnectionChecksLevel <- "allChecks"
@@ -76,28 +68,20 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandlers
         loadConnectionChecksLevel <- "basicChecks"
       }
 
-      databasesHandlers <- fct_databasesConfigToDatabasesHandlers(selecteddatabasesConfig, loadConnectionChecksLevel)
-      r_connectionHandlers$databasesHandlers <- databasesHandlers
+      cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
+      r_connectionHandler$cohortTableHandler <- cohortTableHandler
+      r_connectionHandler$hasChangeCounter <- r_connectionHandler$hasChangeCounter + 1
       # TEMP, trigger garbage collector to delete the old handlers
       gc()
 
-      remove_sweetAlert_spinner()
+      fct_removeSweetAlertSpinner()
 
     })
 
-    shiny::observeEvent(r_connectionHandlers$databasesHandlers, {
+    shiny::observeEvent(r_connectionHandler$cohortTableHandler, {
+      shiny::req(input$selectDatabases_pickerInput)
 
-      connectionStatusLogs <- HadesExtras::LogTibble$new()$logTibble |>
-        dplyr::mutate(databaseName = "") |>
-        dplyr::relocate(databaseName, .before = 1)
-
-      for(databaseId in names(r_connectionHandlers$databasesHandlers)){
-        connectionStatusLogs <- dplyr::bind_rows(
-          connectionStatusLogs,
-          r_connectionHandlers$databasesHandlers[[databaseId]]$cohortTableHandler$connectionStatusLog
-        )
-      }
-
+      connectionStatusLogs <- r_connectionHandler$cohortTableHandler$connectionStatusLog
 
       ParallelLogger::logInfo("[Databases Connection] Connected to: ", connectionStatusLogs)
       r$connectionStatusLogs <- connectionStatusLogs
