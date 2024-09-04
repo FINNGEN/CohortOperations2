@@ -1,28 +1,143 @@
 
+helper_createNewCohortTableHandler <- function(addCohorts = NULL){
 
-helper_createNewDatabaseHandlers <- function(withEunomiaCohorts = FALSE, withCohortTableCohorts = FALSE) {
+  addCohorts |> checkmate::assertCharacter(len = 1, null.ok = TRUE)
+  addCohorts |> checkmate::assertSubset(c(
+    "EunomiaDefaultCohorts", "HadesExtrasFractureCohorts","HadesExtrasAsthmaCohorts",
+    "HadesExtrasFractureCohortsMatched","HadesExtrasAsthmaCohortsMatched"
+  ), empty.ok = TRUE)
 
-  databasesHandlers <- fct_databasesConfigToDatabasesHandlers(databasesConfig)
+  # by default use the one from setup.R
+  cohortTableHandlerConfig <- cohortTableHandlerConfig # set by setup.R
 
-  if(withEunomiaCohorts==TRUE){
+  loadConnectionChecksLevel = "basicChecks"
 
-    cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
-      settingsFileName = "testdata/name/Cohorts.csv",
-      jsonFolder = "testdata/name/cohorts",
-      sqlFolder = "testdata/name/sql/sql_server",
-      cohortFileNameFormat = "%s",
-      cohortFileNameValue = c("cohortName"),
-      packageName = "CohortGenerator",
-      verbose = FALSE
-    )
+  # TEMP
+  # name with current time with milisecond to avoid conflicts
+  cohortTableHandlerConfig$cohortTable$cohortTableName <- paste0(
+    cohortTableHandlerConfig$cohortTable$cohortTableName, "_",
+    gsub('\\.','',format(Sys.time(), "d%H%M%S%OS3"))
+  )
+  # END TEMP
+  cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
 
-    for (databaseId in names(databasesHandlers)) {
-      databasesHandlers[[databaseId]]$cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
+  if(!is.null(addCohorts) ){
+    if(addCohorts == "EunomiaDefaultCohorts"){
+      cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
+        settingsFileName = "testdata/name/Cohorts.csv",
+        jsonFolder = "testdata/name/cohorts",
+        sqlFolder = "testdata/name/sql/sql_server",
+        cohortFileNameFormat = "%s",
+        cohortFileNameValue = c("cohortName"),
+        packageName = "CohortGenerator",
+        verbose = FALSE
+      )
+    }
+      if(addCohorts == "HadesExtrasFractureCohorts"){
+      cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
+        settingsFileName = "testdata/fracture/Cohorts.csv",
+        jsonFolder = "testdata/fracture/cohorts",
+        sqlFolder = "testdata/fracture/sql/sql_server",
+        cohortFileNameFormat = "%s",
+        cohortFileNameValue = c("cohortId"),
+        subsetJsonFolder = "testdata/fracture/cohort_subset_definitions/",
+        packageName = "HadesExtras",
+        verbose = T
+      )
+    }
+    if(addCohorts == "HadesExtrasAsthmaCohorts"){
+      cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
+        settingsFileName = "testdata/asthma/Cohorts.csv",
+        jsonFolder = "testdata/asthma/cohorts",
+        sqlFolder = "testdata/asthma/sql/sql_server",
+        cohortFileNameFormat = "%s",
+        cohortFileNameValue = c("cohortId"),
+        subsetJsonFolder = "testdata/asthma/cohort_subset_definitions/",
+        packageName = "HadesExtras",
+        verbose = FALSE
+      )
+    }
+    if(addCohorts == "HadesExtrasFractureCohortsMatched"){
+      cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
+        settingsFileName = "testdata/fracture/Cohorts.csv",
+        jsonFolder = "testdata/fracture/cohorts",
+        sqlFolder = "testdata/fracture/sql/sql_server",
+        cohortFileNameFormat = "%s",
+        cohortFileNameValue = c("cohortId"),
+        subsetJsonFolder = "testdata/fracture/cohort_subset_definitions/",
+        packageName = "HadesExtras",
+        verbose = T
+      )
+
+      # Match
+      subsetDef <- CohortGenerator::createCohortSubsetDefinition(
+        name = "",
+        definitionId = 1,
+        subsetOperators = list(
+          HadesExtras::createMatchingSubset(
+            matchToCohortId = 1,
+            matchRatio = 10,
+            matchSex = TRUE,
+            matchBirthYear = TRUE,
+            matchCohortStartDateWithInDuration = FALSE,
+            newCohortStartDate = "asMatch",
+            newCohortEndDate = "keep"
+          )
+        )
+      )
+
+      cohortDefinitionSet <- cohortDefinitionSet |>
+        CohortGenerator::addCohortSubsetDefinition(subsetDef, targetCohortIds = 2)
+    }
+    if(addCohorts == "HadesExtrasAsthmaCohortsMatched"){
+      # cohorts from eunomia
+      cohortDefinitionSet <- CohortGenerator::getCohortDefinitionSet(
+        settingsFileName = "testdata/asthma/Cohorts.csv",
+        jsonFolder = "testdata/asthma/cohorts",
+        sqlFolder = "testdata/asthma/sql/sql_server",
+        cohortFileNameFormat = "%s",
+        cohortFileNameValue = c("cohortId"),
+        subsetJsonFolder = "testdata/asthma/cohort_subset_definitions/",
+        packageName = "HadesExtras",
+        verbose = FALSE
+      )
+
+      # Match to sex and bday, match ratio 10
+      subsetDef <- CohortGenerator::createCohortSubsetDefinition(
+        name = "",
+        definitionId = 1,
+        subsetOperators = list(
+          HadesExtras::createMatchingSubset(
+            matchToCohortId = 1,
+            matchRatio = 10,
+            matchSex = TRUE,
+            matchBirthYear = TRUE,
+            matchCohortStartDateWithInDuration = FALSE,
+            newCohortStartDate = "asMatch",
+            newCohortEndDate = "keep"
+          )
+        )
+      )
+
+      cohortDefinitionSet <- cohortDefinitionSet |>
+        CohortGenerator::addCohortSubsetDefinition(subsetDef, targetCohortIds = 2)
+
     }
 
+    cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
   }
 
-  if(withCohortTableCohorts==TRUE){
+  return(cohortTableHandler)
+}
+
+
+helper_addCohortAndCohortDefinitionTables <- function(cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes"){
+
+  connectionDetailsSettings <- cohortTableHandlerConfig$connection$connectionDetailsSettings
+  connectionDetails <- rlang::exec(DatabaseConnector::createConnectionDetails, !!!connectionDetailsSettings)
+  connection  <- DatabaseConnector::connect(connectionDetails)
+
+  if (cohortTablesToAdd == "Diabetes") {
 
     testCohortTable <-  tibble::tribble(
       ~cohort_definition_id, ~subject_id, ~cohort_start_date, ~cohort_end_date,
@@ -46,70 +161,19 @@ helper_createNewDatabaseHandlers <- function(withEunomiaCohorts = FALSE, withCoh
       2, 'Hypertension Cohort', 'Cohort of patients diagnosed with hypertension', 1234, 'SELECT * FROM patients WHERE diagnosis = "Hypertension"', 5678, as.Date('2022-01-01'),
       3, 'Obesity Cohort', 'Cohort of patients diagnosed with obesity', 1234, 'SELECT * FROM patients WHERE diagnosis = "Obesity"', 5678, as.Date('2022-01-01')
     )
-
-    for (databaseId in names(databasesHandlers)) {
-
-      DatabaseConnector::insertTable(
-        connection = databasesHandlers[[databaseId]]$cohortTableHandler$connectionHandler$getConnection(),
-        table = "cohort",
-        data = testCohortTable
-      )
-
-      DatabaseConnector::insertTable(
-        connection = databasesHandlers[[databaseId]]$cohortTableHandler$connectionHandler$getConnection(),
-        table = "cohort_definition",
-        data = testCohortDefinitionTable
-      )
-    }
-
   }
 
+  DatabaseConnector::insertTable(
+    connection = connection,
+    table = "cohort",
+    data = testCohortTable
+  )
 
-  return(databasesHandlers)
-
+  DatabaseConnector::insertTable(
+    connection = connection,
+    table = "cohort_definition",
+    data = testCohortDefinitionTable
+  )
 }
 
 
-#
-#
-# helper_createTestCohortTableHandler <- function(configCohortTableHandler, withEunomiaCohorts = FALSE) {
-#
-#   connectionHandler <- HadesExtras::ResultModelManager_createConnectionHandler(
-#     connectionDetailsSettings = configCohortTableHandler$connection$connectionDetailsSettings
-#   )
-#
-#   cohortTableHandler <- HadesExtras::CohortTableHandler$new(
-#     connectionHandler = connectionHandler,
-#     cdmDatabaseSchema = configCohortTableHandler$cdm$cdmDatabaseSchema,
-#     vocabularyDatabaseSchema = configCohortTableHandler$cdm$vocabularyDatabaseSchema,
-#     cohortDatabaseSchema = configCohortTableHandler$cohortTable$cohortDatabaseSchema,
-#     cohortTableName = configCohortTableHandler$cohortTable$cohortTableName
-#   )
-#
-#   if(withEunomiaCohorts==TRUE){
-#     eunomiaCohorts <- Eunomia::createCohorts(
-#       connectionDetails = cohortTableHandler$connectionHandler$connectionDetails,
-#       cohortTable = "cohort"
-#     )
-#
-#     sql <- "-- This code inserts records from an external cohort table into the cohort table of the cohort database schema.
-#             DELETE FROM @target_database_schema.@target_cohort_table where cohort_definition_id = @target_cohort_id;
-#             INSERT INTO @target_database_schema.@target_cohort_table (cohort_definition_id, subject_id, cohort_start_date, cohort_end_date)
-#             SELECT cohort_definition_id, subject_id, cohort_start_date, cohort_end_date
-#             FROM main.cohort
-#             WHERE cohort_definition_id = "
-#
-#     cohortDefinitionSet <- eunomiaCohorts |>
-#       dplyr::transmute(
-#         cohortId = as.double(cohortId),
-#         cohortName = name,
-#         sql = paste(sql, cohortId),
-#         json = " "
-#       )
-#
-#     cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
-#   }
-#
-#   return(cohortTableHandler)
-#
-# }

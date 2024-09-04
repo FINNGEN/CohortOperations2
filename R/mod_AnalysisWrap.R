@@ -1,0 +1,190 @@
+
+
+
+mod_analysisWrap_ui <- function(id, mod_analysisSettings_ui) {
+  ns <- shiny::NS(id)
+  htmltools::tagList(
+    shinyjs::useShinyjs(),
+    htmltools::hr(),
+    #
+    mod_analysisSettings_ui(ns("analysisWrap")),
+    #
+    shiny::actionButton(ns("runAnalysis_actionButton"), "Run Study"),
+    #
+    htmltools::hr(),
+    shiny::tags$h4("Results"),
+    shiny::verbatimTextOutput(ns("results_text")),
+    shiny::tags$br(),
+    shiny::downloadButton(ns("download_actionButton"), "Download to Sandbox"),
+    #shiny::downloadButton(ns("download_actionButton2"), "Download out of Sandbox"),
+    shiny::actionButton(ns("view_actionButton"), "Open Viewer"),
+  )
+}
+
+
+mod_analysisWrap_server <- function(id, r_connectionHandler, mod_analysisSettings_server, fct_executeAnalysis, analysisName, url_visualiseResults) {
+  shiny::moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+
+    #
+    # reactive variables
+    #
+    r <- shiny::reactiveValues(
+      analysisSettings = NULL,
+      analysisResults = NULL
+    )
+
+    #
+    # Call analysisSettings module
+    #
+    rf_analysisSettings <- mod_analysisSettings_server("analysisWrap", r_connectionHandler)
+    shiny::observe({
+      r$analysisSettings <- rf_analysisSettings()
+    })
+
+    #
+    # activate Run study if settings are valid
+    #
+    shiny::observe({
+      condition <- shiny::isTruthy(r$analysisSettings)
+      shinyjs::toggleState("runAnalysis_actionButton", condition = condition )
+    })
+
+    #
+    # click to run
+    #
+    shiny::observeEvent(input$runAnalysis_actionButton, {
+      shiny::req(r$analysisSettings)
+
+      exportFolder <- file.path(tempdir(), gsub("[^0-9]", "",format(Sys.time(), "d%H%M%S%OS3")))
+      dir.create(exportFolder)
+      ParallelLogger::logInfo("[Analysis: ", analysisName,"] Create tmp folder for analysis results: ", exportFolder)
+      cohortTableHandler <- r_connectionHandler$cohortTableHandler
+      analysisSettings <- r$analysisSettings
+
+      ParallelLogger::logInfo("[Analysis: ", analysisName,"] Start analysis")
+      fct_sweetAlertSpinner("Running Analysis")
+      startTime <- Sys.time()
+
+      pathToResultsDatabase <- NULL
+      analysisError <- NULL
+      pathToResultsDatabase <- tryCatch({
+        browser()
+        fct_executeAnalysis(
+          exportFolder = exportFolder,
+          cohortTableHandler = cohortTableHandler,
+          analysisSettings = analysisSettings
+        )
+      }, error = function(e) {
+        analysisError <<- e$message
+        pathToResultsDatabase <<- NULL
+      })
+
+      ParallelLogger::logInfo("[Analysis: ", analysisName,"] End analysis")
+      fct_removeSweetAlertSpinner()
+      analysisDuration <- Sys.time() - startTime
+
+      analysisResults <- list(
+        pathToResultsDatabase = pathToResultsDatabase,
+        analysisError = analysisError,
+        analysisDuration = analysisDuration
+      )
+
+      r$analysisResults <- analysisResults
+
+    })
+
+    #
+    # display results
+    #
+    output$results_text <- shiny::renderText({
+      if(!shiny::isTruthy(r$analysisResults)){
+        return(NULL)
+      }
+
+      analysisDurationMins <- r$analysisResults$analysisDuration |> as.numeric(units = "mins")
+      analysisDurationText <- paste0(
+        floor(analysisDurationMins), " minutes and ",
+        round((analysisDurationMins-floor(analysisDurationMins))*60), " seconds"
+      )
+
+      # if successful
+      if(is.null(r$analysisResults$analysisError)){
+        resultMessage <- paste0("✅ Success\n",
+                                "🕒 Running time: ", analysisDurationText, "\n"
+        )
+      }else{
+        resultMessage <- paste0("❌ Error\n",
+                                "📄 Message: ",  r$analysisResults$analysisError, "\n")
+      }
+
+      ParallelLogger::logInfo("[Analysis: ", analysisName,"] Results message: ", resultMessage)
+
+      resultMessage
+    })
+
+    #
+    # activate Run study if settings are valid
+    #
+    shiny::observe({
+      condition <- shiny::isTruthy(r$analysisResults) && is.null(r$analysisResults$analysisError)
+      shinyjs::toggleState("download_actionButton", condition = condition )
+      shinyjs::toggleState("view_actionButton", condition = condition )
+    })
+
+
+    #
+    # download results
+    #
+    output$download_actionButton <- shiny::downloadHandler(
+      filename = function(){paste0(analysisName, "_analysisResults.sqlite")},
+      content = function(fname){
+        condition <- shiny::isTruthy(r$analysisResults) && is.null(r$analysisResults$analysisError)
+
+        if(condition){
+          file.copy(r$analysisResults$pathToResultsDatabase, fname)
+        }
+
+        ParallelLogger::logInfo("[Analysis: ", analysisName,"] Download results")
+
+        return(fname)
+      }
+    )
+
+    #
+    # Launch viewer
+    #
+    shiny::observeEvent(input$view_actionButton, {
+      shiny::req(r$analysisResults)
+      shiny::req(r$analysisResults$pathToResultsDatabase)
+
+      ParallelLogger::logInfo("[Analysis: ", analysisName,"] Launch viewer")
+
+      url <- paste0(url_visualiseResults, r$analysisResults$pathToResultsDatabase)
+
+      shinyjs::runjs(paste0("window.open('", url, "')"))
+    })
+
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

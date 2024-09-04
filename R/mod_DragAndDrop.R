@@ -10,7 +10,7 @@ mod_dragAndDrop_ui <- function(id, testing = FALSE) {
   )}
 
 
-mod_dragAndDrop_server <- function(id, r_workbench) {
+mod_dragAndDrop_server <- function(id, r_connectionHandler) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -20,9 +20,10 @@ mod_dragAndDrop_server <- function(id, r_workbench) {
     # Update is not working, we build the ui in server
     #
     output$operation_expression <- shiny::renderUI({
-      shiny::req(r_workbench$cohortsSummaryDatabases)
+      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_connectionHandler$hasChangeCounter)
 
-      cohortData <- r_workbench$cohortsSummaryDatabases |>
+      cohortData <- r_connectionHandler$cohortTableHandler$getCohortsSummary() |>
         dplyr::select(cohortId, cohortName, shortName)
 
       htmltools::tagList(
@@ -65,33 +66,35 @@ mod_dragAndDrop_server <- function(id, r_workbench) {
     #
     # calculates cohort operation expression
     #
-    rf_operationExpresion <- shiny::reactive({
-      shiny::req(r_workbench$cohortsSummaryDatabases)
+    rf_operationExpression <- shiny::reactive({
+      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_connectionHandler$hasChangeCounter)
       shiny::req(input$dest_boxes)
       shiny::req(input$dest_boxes != placeholder)
 
-      cohortData <- r_workbench$cohortsSummaryDatabases |>
+      cohortData <- r_connectionHandler$cohortTableHandler$getCohortsSummary() |>
         dplyr::select(cohortId, cohortName, shortName)
 
       operation_expression <- input$dest_boxes
+
       for(i in 1:nrow(cohortData)) {
         operation_expression[which(operation_expression == cohortData$shortName[i])] <- cohortData$cohortId[i]
       }
 
-      paste(operation_expression, collapse = "")
+      paste(operation_expression, collapse = " ")
     })
 
     #
     # calculates cohort operation expression (just for testing)
     #
     output$test_displayOperationString <- shiny::renderText({
-      req(rf_operationExpresion())
-      rf_operationExpresion()
+      req(rf_operationExpression())
+      rf_operationExpression()
     })
 
     #
     # returns the operation expresion
     #
-    return(rf_operationExpresion)
+    return(rf_operationExpression)
   })
 }

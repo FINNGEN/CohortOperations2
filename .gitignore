@@ -11,3 +11,7 @@ inst/doc
 errorReportSql.txt
 *.log
 GITHUBPAT.txt
+
+renv/*
+renv.lock
+.Rprofile

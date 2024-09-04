@@ -3,11 +3,13 @@ E1:
   cohortTableHandler:
     database:
       databaseId: E1
-      databaseName: eunomia1
-      databaseDescription: Eunomia database 1
+      databaseName: GiBleed
+      databaseDescription: Eunomia database GiBleed
     connection:
       connectionDetailsSettings:
-          dbms: eunomia
+          dbms: sqlite
+          server: Eunomia
+          databaseName: GiBleed
     cdm:
         cdmDatabaseSchema: main
         vocabularyDatabaseSchema: main
@@ -23,11 +25,13 @@ E2:
   cohortTableHandler:
     database:
       databaseId: E2
-      databaseName: eunomia2
-      databaseDescription: Eunomia database 2
+      databaseName: MIMIC
+      databaseDescription: Eunomia database MIMIC
     connection:
       connectionDetailsSettings:
-          dbms: eunomia
+          dbms: sqlite
+          server: Eunomia
+          databaseName: MIMIC
     cdm:
         cdmDatabaseSchema: main
         vocabularyDatabaseSchema: main

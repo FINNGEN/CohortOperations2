@@ -2,16 +2,8 @@
 mod_importCohortsFromCohortsTable_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
-    mod_appendCohort_ui(),
+    mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
-    #
-    shinyWidgets::pickerInput(
-      inputId = ns("selectDatabases_pickerInput"),
-      label = "Load patients into database:",
-      choices = NULL,
-      selected = NULL,
-      multiple = FALSE),
-    #
     htmltools::hr(),
     reactable::reactableOutput(ns("cohorts_reactable")) |>  ui_load_spinner(),
     htmltools::hr(),
@@ -21,49 +13,35 @@ mod_importCohortsFromCohortsTable_ui <- function(id) {
   )
 }
 
-mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r_workbench) {
+mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
 
     #
     # reactive variables
     #
     r <- shiny::reactiveValues(
+      selectedIndex = NULL,
       cohortDefinitionTable = NULL
     )
 
-    r_toAdd <- shiny::reactiveValues(
-      databaseName = NULL,
+    r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
       cohortDefinitionSet = NULL
     )
 
     #
-    # render selectDatabases_pickerInput
+    # get cohorts table cohortDefinitionTable
     #
     shiny::observe({
-      shiny::req(r_connectionHandlers$databasesHandlers)
+      shiny::req(r_connectionHandler$cohortTableHandler)
 
-      databaseIdNamesList <- fct_getDatabaseIdNamesListFromDatabasesHandlers(r_connectionHandlers$databasesHandlers)
-
-      shinyWidgets::updatePickerInput(
-        inputId = "selectDatabases_pickerInput",
-        choices = databaseIdNamesList,
-        selected = databaseIdNamesList[1])
-    })
-
-
-
-    #
-    # render cohorts_reactable
-    #
-    output$cohorts_reactable <- reactable::renderReactable({
-      shiny::req(r_connectionHandlers$databasesHandlers)
-      shiny::req(input$selectDatabases_pickerInput)
+      ParallelLogger::logInfo("[Import from Cohort Table] : Getting cohort names from cohort table")
 
       # get connection
-      connection  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$connectionHandler$getConnection()
-      cohortDatabaseSchema  <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$cdmDatabaseSchema
+      connection  <- r_connectionHandler$cohortTableHandler$connectionHandler$getConnection()
+      cohortDatabaseSchema  <-  r_connectionHandler$cohortTableHandler$cdmDatabaseSchema
+
+      ParallelLogger::logInfo("[Import from Cohort Table] : Getting cohort names from cohort table from:", cohortDatabaseSchema)
 
       logTibble <- HadesExtras::checkCohortDefinitionTables(
         connection = connection,
@@ -71,7 +49,12 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
       )
 
       thereIsCohortTables <- (logTibble$logTibble$type[1] == "ERROR" | logTibble$logTibble$type[2] == "ERROR")
-      shiny::validate(shiny::need(!thereIsCohortTables, "Error connecting to Endpoint table."))
+
+      if (thereIsCohortTables) {
+        ParallelLogger::logWarn("[Import from Cohort Table] : Error connecting to Endpoint table.")
+        r$cohortDefinitionTable <- "Error connecting to Endpoint table."
+        return()
+      }
 
       cohortDefinitionTable <- HadesExtras::getCohortNamesFromCohortDefinitionTable(
         connection = connection,
@@ -79,6 +62,19 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
       ) |> dplyr::arrange(cohort_definition_name)
 
       r$cohortDefinitionTable <- cohortDefinitionTable
+
+    })
+
+    #
+    # If cohortDefinitionTable is available, render the reactable
+    #
+    output$cohorts_reactable <- reactable::renderReactable({
+      cohortDefinitionTable <- r$cohortDefinitionTable
+
+      if (is.character(cohortDefinitionTable)) {
+        ParallelLogger::logWarn("[Import from cohort table] : ", cohortDefinitionTable)
+      }
+      shiny::validate(shiny::need(!is.character(cohortDefinitionTable), cohortDefinitionTable))
 
       columns <- list(
         cohort_definition_id = reactable::colDef( show = FALSE),
@@ -95,53 +91,63 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandlers, r
         )
 
     })
-    # reactive function to get selected values
-    r_selectedIndex <- reactive(reactable::getReactableState("cohorts_reactable", "selected", session))
+    # Copy to reactive variable, (better than reactive value for testing)
+    shiny::observe({
+      selectedIndex <- reactable::getReactableState("cohorts_reactable", "selected", session)
+      r$selectedIndex <- selectedIndex
+    })
 
     #
     # button import selected: checks selected cohorts
     #
     observe({
-      shinyjs::toggleState("import_actionButton", condition = !is.null(r_selectedIndex()) )
+      shinyjs::toggleState("import_actionButton", condition = !is.null(r$selectedIndex) )
     })
 
     shiny::observeEvent(input$import_actionButton, {
-      shiny::req(r_selectedIndex())
+      shiny::req(r$selectedIndex)
 
-      sweetAlert_spinner("Processing cohorts")
+      fct_sweetAlertSpinner("Processing cohorts")
 
       # get connection
-     connection  <- r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$connectionHandler$getConnection()
-    cohortDatabaseSchema  <-  r_connectionHandlers$databasesHandlers[[input$selectDatabases_pickerInput]]$cohortTableHandler$cdmDatabaseSchema
+      connection  <- r_connectionHandler$cohortTableHandler$connectionHandler$getConnection()
+      cohortDatabaseSchema  <-  r_connectionHandler$cohortTableHandler$cdmDatabaseSchema
 
       cohortDefinitionTable <- r$cohortDefinitionTable
       selectedCohortIds <- cohortDefinitionTable |>
-        dplyr::slice(r_selectedIndex()) |>
+        dplyr::slice(r$selectedIndex) |>
         dplyr::pull(cohort_definition_id)
+
+      # calculate new cohorIds
+      numberNewCohorts <- length(selectedCohortIds)
+      unusedCohortIds <- setdiff(1:1000, r_connectionHandler$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
 
       cohortDefinitionSet  <- HadesExtras::cohortTableToCohortDefinitionSettings(
         cohortDatabaseSchema = cohortDatabaseSchema,
         cohortDefinitionTable = cohortDefinitionTable,
         cohortDefinitionIds = selectedCohortIds,
-        cohortIdOffset = 0L
+        newCohortDefinitionIds = unusedCohortIds
       )
 
-      r_toAdd$databaseName <- input$selectDatabases_pickerInput
-        r_toAdd$cohortDefinitionSet <- cohortDefinitionSet
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet
 
-      remove_sweetAlert_spinner()
+      ParallelLogger::logInfo("[Import from Cohort Table] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
+                              " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId)
+
+      fct_removeSweetAlertSpinner()
     })
 
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    r_append_accepted_counter <- mod_appendCohort_server("import_atlas", r_connectionHandlers, r_workbench, r_toAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandler, r_cohortDefinitionSetToAdd )
 
     # close and reset
-    shiny::observeEvent(r_append_accepted_counter(), {
-      r_toAdd$cohortDefinitionSet <- NULL
+    shiny::observeEvent(rf_append_accepted_counter(), {
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
       reactable::updateReactable("cohorts_reactable", selected = NA, session = session )
     })
+
 
   })
 
