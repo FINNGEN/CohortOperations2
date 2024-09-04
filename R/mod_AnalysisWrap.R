@@ -56,7 +56,7 @@ mod_analysisWrap_server <- function(id, r_connectionHandler, mod_analysisSetting
     shiny::observeEvent(input$runAnalysis_actionButton, {
       shiny::req(r$analysisSettings)
 
-      exportFolder <- file.path(tempdir(), format(Sys.time(), "d%H%M%S%OS3"))
+      exportFolder <- file.path(tempdir(), gsub("[^0-9]", "",format(Sys.time(), "d%H%M%S%OS3")))
       dir.create(exportFolder)
       ParallelLogger::logInfo("[Analysis: ", analysisName,"] Create tmp folder for analysis results: ", exportFolder)
       cohortTableHandler <- r_connectionHandler$cohortTableHandler
@@ -69,6 +69,7 @@ mod_analysisWrap_server <- function(id, r_connectionHandler, mod_analysisSetting
       pathToResultsDatabase <- NULL
       analysisError <- NULL
       pathToResultsDatabase <- tryCatch({
+        browser()
         fct_executeAnalysis(
           exportFolder = exportFolder,
           cohortTableHandler = cohortTableHandler,
@@ -97,7 +98,9 @@ mod_analysisWrap_server <- function(id, r_connectionHandler, mod_analysisSetting
     # display results
     #
     output$results_text <- shiny::renderText({
-      shiny::req(r$analysisResults)
+      if(!shiny::isTruthy(r$analysisResults)){
+        return(NULL)
+      }
 
       analysisDurationMins <- r$analysisResults$analysisDuration |> as.numeric(units = "mins")
       analysisDurationText <- paste0(
