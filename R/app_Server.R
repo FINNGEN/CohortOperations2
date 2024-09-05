@@ -7,6 +7,7 @@
 app_server <- function(input, output, session) {
   # get settings loaded from file
   databasesConfig <- shiny::getShinyOption("databasesConfig")
+  analysisModulesConfig <- shiny::getShinyOption("analysisModulesConfig")
 
   # This is a reactive value with cohortTableHandler and a counter to indicate a change with in the object
   # Because the cohortTableHandler is a pointe to an object, it changes only when the the selected database changes, but changes with in the object are not reflected
