@@ -45,14 +45,14 @@ run_app <- function(pathToDatabasesConfigYalm, pathToAnalysisModulesConfigYalm, 
   app$appOptions$analysisModulesConfig  <- analysisModulesConfig
 
   app$appOptions$pathToNews  <- here::here("NEWS.md")
-  app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
+  # app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
 
   #
   # Launch app
   #
 
   # log start
-  ParallelLogger::logInfo("[Start] Start logging on ", app$appOptions$gitInfo)
+  # ParallelLogger::logInfo("[Start] Start logging on ", app$appOptions$gitInfo)
 
   return(app)
 }
