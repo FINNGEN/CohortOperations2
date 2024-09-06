@@ -8,7 +8,7 @@
 #' @importFrom shiny shinyApp
 #' @importFrom golem with_golem_options
 run_app <- function(pathToDatabasesConfigYalm, pathToAnalysisModulesConfigYalm,
-                    pathToAtlasWebapiConfigYalm, ...) {
+                    pathToAtlasWebApiConfigYalm, ...) {
 
   # Check configuration files
   # TODO: check if the config files are correct
@@ -18,8 +18,8 @@ run_app <- function(pathToDatabasesConfigYalm, pathToAnalysisModulesConfigYalm,
   checkmate::assertFileExists(pathToAnalysisModulesConfigYalm, extension = "yml")
   analysisModulesConfig <- yaml::read_yaml(pathToAnalysisModulesConfigYalm)
 
-  checkmate::assertFileExists(pathToAtlasWebapiConfigYalm, extension = "yml")
-  atlasWebAPIConfig <- yaml::read_yaml(pathToAtlasWebapiConfigYalm)
+  checkmate::assertFileExists(pathToAtlasWebApiConfigYalm, extension = "yml")
+  atlasWebApiConfig <- yaml::read_yaml(pathToAtlasWebApiConfigYalm)
 
   #
   # GLOBAL SETTING
@@ -47,7 +47,7 @@ run_app <- function(pathToDatabasesConfigYalm, pathToAnalysisModulesConfigYalm,
   # setup shiny options
   app$appOptions$databasesConfig  <- databasesConfig
   app$appOptions$analysisModulesConfig  <- analysisModulesConfig
-  app$appOptions$atlasWebAPIConfig <- atlasWebAPIConfig
+  app$appOptions$atlasWebApiConfig <- atlasWebApiConfig
 
   app$appOptions$pathToNews  <- here::here("NEWS.md")
   # app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
