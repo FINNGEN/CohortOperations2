@@ -44,8 +44,15 @@ analysisModulesConfigFileName <- "test_analysisModulesConfig.yml"
 pathToAnalysisModulesConfigYalm <- testthat::test_path("config", analysisModulesConfigFileName)
 analysisModulesConfig <- yaml::read_yaml(pathToAnalysisModulesConfigYalm)
 
+#
+# ATLAS WebAPI config
+#
+tests/testthat/config/test_analysisModulesConfig.yml
+atlasWebapiConfigYalm <- "atlasWebapiConfig.yml"
+pathToAtlasWebApiConfigYalm <- testthat::test_path("config", atlasWebapiConfigYalm)
 
 # inform user
 message("******* TESTING SETTINGS")
 message("******* Databases config file: ", databasesConfigFileName, " Database: ", cohortTableHandlerConfig$database$databaseName)
 message("******* Modules config: ", analysisModulesConfigFileName)
+message("******* ATLAS WebAPI config: ", pathToAtlasWebApiConfigYalm)
