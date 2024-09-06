@@ -18,7 +18,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandler, filterCoh
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    webApiUrl <- shiny::getShinyOption("analysisModulesConfig")$webApiUrl
+    webApiUrl <- shiny::getShinyOption("atlasWebAPIConfig")$webApiUrl
 
     #
     # reactive variables
