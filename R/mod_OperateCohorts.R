@@ -35,7 +35,7 @@ mod_operateCohorts_ui <- function(id) {
   )
 }
 
-mod_operateCohorts_server <- function(id, r_connectionHandler) {
+mod_operateCohorts_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -55,7 +55,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandler) {
     #
     # get operation string from dragAndDrop module
     #
-    rf_operationString <- mod_dragAndDrop_server("dragAndDrop", r_connectionHandler)
+    rf_operationString <- mod_dragAndDrop_server("dragAndDrop", r_databaseConnection)
     # copy to reactive value for easier testing
     shiny::observe(
       r$operationString <- rf_operationString()
@@ -88,7 +88,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandler) {
       if(!is.null(r$operationStringError)){
         r$cohortDefinitionSet <- NULL
       }else{
-        existingSubsetDefinitionIds <- r_connectionHandler$cohortTableHandler$cohortDefinitionSet |>
+        existingSubsetDefinitionIds <- r_databaseConnection$cohortTableHandler$cohortDefinitionSet |>
           dplyr::filter(!is.na(subsetDefinitionId)) |>
           dplyr::pull(subsetDefinitionId)
 
@@ -109,7 +109,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandler) {
 
         # two adjacent cohorts crash the following function (malformed input)
         cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
-          cohortDefinitionSet = r_connectionHandler$cohortTableHandler$cohortDefinitionSet,
+          cohortDefinitionSet = r_databaseConnection$cohortTableHandler$cohortDefinitionSet,
           cohortSubsetDefintion = subsetDef,
           targetCohortIds = targetCohortIds,
           overwriteExisting =  TRUE
@@ -121,7 +121,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandler) {
         # update cohortId to non existing, to avoid overflow here
         # https://github.com/OHDSI/CohortGenerator/blob/e3efad630b8b2c0376431a88fde89e6c4bbac38c/R/SubsetDefinitions.R#L193
         previousCohortId <- cohortDefinitionSetOnlyNew$cohortId
-        unusedCohortId <- setdiff(1:1000, r_connectionHandler$cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
+        unusedCohortId <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
 
         cohortDefinitionSetOnlyNew <- cohortDefinitionSetOnlyNew |>
           dplyr::mutate(
@@ -164,7 +164,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandler) {
 
           s <- r$operationString
           cohortsInOperation <- as.character(stringr::str_extract_all(s, "\\d+")[[1]])
-          cohortOverlap <- r_connectionHandler$cohortTableHandler$getCohortsOverlap()
+          cohortOverlap <- r_databaseConnection$cohortTableHandler$getCohortsOverlap()
 
           # TEMP FIX
           # extract all numbers from string s
@@ -201,7 +201,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandler) {
             dplyr::group_by_if(is.logical) |>
             dplyr::summarise(numberOfSubjects = sum(numberOfSubjects), .groups = "drop")
 
-          .plot_upset_cohortsOverlap(cohortOverlap, r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::select(cohortId, shortName) )
+          .plot_upset_cohortsOverlap(cohortOverlap, r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |> dplyr::select(cohortId, shortName) )
         }
       }
     })
@@ -233,7 +233,7 @@ mod_operateCohorts_server <- function(id, r_connectionHandler) {
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("matchCohort", r_connectionHandler, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("matchCohort", r_databaseConnection, r_cohortDefinitionSetToAdd )
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {

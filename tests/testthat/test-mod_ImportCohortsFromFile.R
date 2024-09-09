@@ -5,7 +5,7 @@
 #   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 #   withr::defer({rm(cohortTableHandler);gc()})
 #
-#   r_connectionHandler <- shiny::reactiveValues(
+#   r_databaseConnection <- shiny::reactiveValues(
 #     cohortTableHandler = cohortTableHandler,
 #     hasChangeCounter = 0
 #   )
@@ -14,7 +14,7 @@
 #     mod_importCohortsFromFile_server,
 #     args = list(
 #       id = "test",
-#       r_connectionHandler = r_connectionHandler
+#       r_databaseConnection = r_databaseConnection
 #     ),
 #     {
 #       browser()

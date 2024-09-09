@@ -10,7 +10,7 @@ mod_cohortWorkbench_ui <- function(id){
   )
 }
 
-mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=TRUE){
+mod_cohortWorkbench_server <- function(id, r_databaseConnection,  table_editing=TRUE){
   shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -24,10 +24,10 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=T
     # Renders cohortsSummaryDatabases_reactable
     #
     output$cohortsSummaryDatabases_reactable <- reactable::renderReactable({
-      shiny::req(r_connectionHandler$cohortTableHandler)
-      shiny::req(r_connectionHandler$hasChangeCounter)
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      shiny::req(r_databaseConnection$hasChangeCounter)
 
-      r_connectionHandler$cohortTableHandler$getCohortsSummary() |>
+      r_databaseConnection$cohortTableHandler$getCohortsSummary() |>
         HadesExtras::rectable_cohortsSummary(
           deleteButtonsShinyId = ns("cohortsWorkbenchDeleteButtons"),
           editButtonsShinyId = ns("cohortsWorkbenchEditButtons"))
@@ -38,7 +38,7 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=T
     #
     shiny::observeEvent(input$cohortsWorkbenchDeleteButtons, {
 
-      cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
+      cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
       rowNumber <- input$cohortsWorkbenchDeleteButtons$index
 
       cohortName <- cohortsSummary |> purrr::pluck("cohortName", rowNumber)
@@ -64,14 +64,14 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=T
     shiny::observeEvent(input$confirmSweetAlert_CohortsWorkbenchDeleteButtons, {
       if (input$confirmSweetAlert_CohortsWorkbenchDeleteButtons == TRUE) {
 
-        cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
+        cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
         rowNumber <- input$cohortsWorkbenchDeleteButtons$index
 
         databaseName <- cohortsSummary |> purrr::pluck("databaseName", rowNumber)
         cohortId <- cohortsSummary |> purrr::pluck("cohortId", rowNumber)
 
-        r_connectionHandler$cohortTableHandler$deleteCohorts(as.integer(cohortId))
-        r_connectionHandler$hasChangeCounter = r_connectionHandler$hasChangeCounter + 1
+        r_databaseConnection$cohortTableHandler$deleteCohorts(as.integer(cohortId))
+        r_databaseConnection$hasChangeCounter = r_databaseConnection$hasChangeCounter + 1
 
       }
     })
@@ -82,7 +82,7 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=T
     #
     shiny::observeEvent(input$cohortsWorkbenchEditButtons, {
 
-      cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
+      cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
       rowNumber <- input$cohortsWorkbenchEditButtons$index
 
       cohortName <- cohortsSummary |> purrr::pluck("cohortName", rowNumber)
@@ -138,7 +138,7 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=T
     #
     shiny::observeEvent(input$editCohort_actionButton, {
 
-      cohortsSummary <- r_connectionHandler$cohortTableHandler$getCohortsSummary()
+      cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
       rowNumber <- input$cohortsWorkbenchEditButtons$index
 
       cohortId <- cohortsSummary |> purrr::pluck("cohortId", rowNumber)
@@ -146,8 +146,8 @@ mod_cohortWorkbench_server <- function(id, r_connectionHandler,  table_editing=T
       newShortName <- input$editShortName_textInput
       newCohortName <- input$editCohortName_textInput
 
-      r_connectionHandler$cohortTableHandler$updateCohortNames(cohortId, newCohortName, newShortName)
-      r_connectionHandler$hasChangeCounter = r_connectionHandler$hasChangeCounter + 1
+      r_databaseConnection$cohortTableHandler$updateCohortNames(cohortId, newCohortName, newShortName)
+      r_databaseConnection$hasChangeCounter = r_databaseConnection$hasChangeCounter + 1
 
       shiny::removeModal()
     })

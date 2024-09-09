@@ -1,10 +1,11 @@
 
 
-test_that("mod_cohortWorkbench_server updates r_connectionHandler when database selected", {
+test_that("mod_cohortWorkbench_server updates r_databaseConnection when database selected", {
 
   # setup
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = NULL,
+    atlasConfig = NULL,
     hasChangeCounter = 0
   )
 
@@ -14,7 +15,7 @@ test_that("mod_cohortWorkbench_server updates r_connectionHandler when database 
     args = list(
       id = "test",
       databasesConfig = databasesConfig,
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # inputs
@@ -25,8 +26,8 @@ test_that("mod_cohortWorkbench_server updates r_connectionHandler when database 
 
       # test
       output$connectionStatusLogs_reactable  |> expect_match('"databaseName":\\["GiBleed","GiBleed",')
-      r_connectionHandler$hasChangeCounter |> expect_equal(1)
-      r_connectionHandler$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
+      r_databaseConnection$hasChangeCounter |> expect_equal(1)
+      r_databaseConnection$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
 
       # inputs
       session$setInputs(
@@ -36,8 +37,8 @@ test_that("mod_cohortWorkbench_server updates r_connectionHandler when database 
 
       # test
       output$connectionStatusLogs_reactable  |> expect_match('"databaseName":\\["MIMIC","MIMIC",')
-      r_connectionHandler$hasChangeCounter |> expect_equal(2)
-      r_connectionHandler$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
+      r_databaseConnection$hasChangeCounter |> expect_equal(2)
+      r_databaseConnection$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
 
 
     }

@@ -36,7 +36,7 @@ mod_exportsCohorts_ui <- function(id) {
 }
 
 
-mod_exportsCohorts_server <- function(id, r_connectionHandler) {
+mod_exportsCohorts_server <- function(id, r_databaseConnection) {
 
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -54,10 +54,10 @@ mod_exportsCohorts_server <- function(id, r_connectionHandler) {
     # update selectCohorts_pickerInput with database/cohort names
     #
     shiny::observe({
-      shiny::req(r_connectionHandler$cohortTableHandler)
-      shiny::req(r_connectionHandler$hasChangeCounter)
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      shiny::req(r_databaseConnection$hasChangeCounter)
 
-      cohortIdAndNames <- r_connectionHandler$cohortTableHandler$getCohortIdAndNames()
+      cohortIdAndNames <- r_databaseConnection$cohortTableHandler$getCohortIdAndNames()
       cohortIdAndNamesList <- list()
       if(nrow(cohortIdAndNames) != 0){
         cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
@@ -75,7 +75,7 @@ mod_exportsCohorts_server <- function(id, r_connectionHandler) {
     #
     shiny::observeEvent(input$selectCohorts_pickerInput, {
 
-      selectedCohortsInfo <- r_connectionHandler$cohortTableHandler$getCohortsSummary()  |>
+      selectedCohortsInfo <- r_databaseConnection$cohortTableHandler$getCohortsSummary()  |>
         dplyr::filter(cohortId %in% input$selectCohorts_pickerInput) |>
         dplyr::select(databaseId, cohortId, cohortName, databaseName)
 
@@ -106,15 +106,15 @@ mod_exportsCohorts_server <- function(id, r_connectionHandler) {
         cohortNames <- selectedCohortsInfo  |>  dplyr::pull(cohortName)
 
         cohortData <- HadesExtras::getCohortDataFromCohortTable(
-          connection = r_connectionHandler$cohortTableHandler$connectionHandler$getConnection(),
-          cdmDatabaseSchema = r_connectionHandler$cohortTableHandler$cdmDatabaseSchema,
-          cohortDatabaseSchema = r_connectionHandler$cohortTableHandler$cohortDatabaseSchema,
-          cohortTable = r_connectionHandler$cohortTableHandler$cohortTableNames$cohortTable,
+          connection = r_databaseConnection$cohortTableHandler$connectionHandler$getConnection(),
+          cdmDatabaseSchema = r_databaseConnection$cohortTableHandler$cdmDatabaseSchema,
+          cohortDatabaseSchema = r_databaseConnection$cohortTableHandler$cohortDatabaseSchema,
+          cohortTable = r_databaseConnection$cohortTableHandler$cohortTableNames$cohortTable,
           cohortNameIds = tibble::tibble(cohortId=cohortIds, cohortName=cohortNames)
         )
 
         cohortData <- cohortData  |>
-          tibble::add_column( database_id = r_connectionHandler$cohortTableHandler$databaseId, .before = 1)
+          tibble::add_column( database_id = r_databaseConnection$cohortTableHandler$databaseId, .before = 1)
 
         # TEMP to compatible with CO1
         if (input$co1Compatible_checkbox){

@@ -22,7 +22,7 @@ mod_analysisWrap_ui <- function(id, mod_analysisSettings_ui) {
 }
 
 
-mod_analysisWrap_server <- function(id, r_connectionHandler, mod_analysisSettings_server, fct_executeAnalysis, analysisName, url_visualiseResults) {
+mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettings_server, fct_executeAnalysis, analysisName, url_visualiseResults) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -37,7 +37,7 @@ mod_analysisWrap_server <- function(id, r_connectionHandler, mod_analysisSetting
     #
     # Call analysisSettings module
     #
-    rf_analysisSettings <- mod_analysisSettings_server("analysisWrap", r_connectionHandler)
+    rf_analysisSettings <- mod_analysisSettings_server("analysisWrap", r_databaseConnection)
     shiny::observe({
       r$analysisSettings <- rf_analysisSettings()
     })
@@ -59,7 +59,7 @@ mod_analysisWrap_server <- function(id, r_connectionHandler, mod_analysisSetting
       exportFolder <- file.path(tempdir(), gsub("[^0-9]", "",format(Sys.time(), "d%H%M%S%OS3")))
       dir.create(exportFolder)
       ParallelLogger::logInfo("[Analysis: ", analysisName,"] Create tmp folder for analysis results: ", exportFolder)
-      cohortTableHandler <- r_connectionHandler$cohortTableHandler
+      cohortTableHandler <- r_databaseConnection$cohortTableHandler
       analysisSettings <- r$analysisSettings
 
       ParallelLogger::logInfo("[Analysis: ", analysisName,"] Start analysis")

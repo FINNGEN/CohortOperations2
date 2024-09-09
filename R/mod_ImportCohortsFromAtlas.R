@@ -14,11 +14,9 @@ mod_importCohortsFromAtlas_ui <- function(id) {
   )
 }
 
-mod_importCohortsFromAtlas_server <- function(id, r_connectionHandler, filterCohortsRegex='*') {
+mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCohortsRegex='*') {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
-    webApiUrl <- "https://api.ohdsi.org/WebAPI"
 
     #
     # reactive variables
@@ -36,8 +34,10 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandler, filterCoh
     # render cohorts_reactable
     #
     shiny::observe({
-      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_databaseConnection$cohortTableHandler)
       input$refreshDatabases_actionButton
+
+      webApiUrl <- r_databaseConnection$atlasConfig$webapiurl
 
       r$atlasCohortsTable  <- NULL
 
@@ -122,7 +122,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_connectionHandler, filterCoh
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandler, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_databaseConnection, r_cohortDefinitionSetToAdd )
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {

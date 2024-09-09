@@ -5,7 +5,7 @@ test_that("mod_MatchCohorts produces output", {
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasFractureCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
     hasChangeCounter = 0
   )
@@ -14,7 +14,7 @@ test_that("mod_MatchCohorts produces output", {
     mod_matchCohorts_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # initial state
@@ -30,7 +30,7 @@ test_that("mod_MatchCohorts produces output", {
         newCohortEndDate_option = "asMatch"
       )
 
-      r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
+      r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
         expect_equal(c(1,2))
 
       # set inputs and click add
@@ -41,7 +41,7 @@ test_that("mod_MatchCohorts produces output", {
       )
 
       # test output
-      r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
+      r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
         expect_equal(c(1,2,3))
 
     }
@@ -55,7 +55,7 @@ test_that("mod_MatchCohorts info text ", {
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasFractureCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
     hasChangeCounter = 0
   )
@@ -64,7 +64,7 @@ test_that("mod_MatchCohorts info text ", {
     mod_matchCohorts_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # initial state
@@ -108,7 +108,7 @@ test_that("mod_MatchCohorts info text 2", {
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasAsthmaCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
     hasChangeCounter = 0
   )
@@ -117,7 +117,7 @@ test_that("mod_MatchCohorts info text 2", {
     mod_matchCohorts_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # initial state

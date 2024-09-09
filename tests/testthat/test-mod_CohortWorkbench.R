@@ -5,8 +5,9 @@ test_that("mod_cohortWorkbench_server produces output", {
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
+    atlasConfig = NULL,
     hasChangeCounter = 0
   )
 
@@ -14,7 +15,7 @@ test_that("mod_cohortWorkbench_server produces output", {
     mod_cohortWorkbench_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
 

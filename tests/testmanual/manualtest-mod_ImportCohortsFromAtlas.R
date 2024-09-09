@@ -7,8 +7,11 @@ fcr_setUpLogger()
 
 cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 
-r_connectionHandler <- shiny::reactiveValues(
+r_databaseConnection <- shiny::reactiveValues(
   cohortTableHandler = cohortTableHandler,
+  atlasConfig = list(
+    webapiurl = "https://api.ohdsi.org/WebAPI"
+  ),
   hasChangeCounter = 0
 )
 
@@ -21,8 +24,8 @@ app <- shiny::shinyApp(
     mod_importCohortsFromAtlas_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromAtlas_server("test", r_connectionHandler)
-    mod_cohortWorkbench_server("test", r_connectionHandler)
+    mod_importCohortsFromAtlas_server("test", r_databaseConnection)
+    mod_cohortWorkbench_server("test", r_databaseConnection)
   },
   options = list(launch.browser=TRUE)
 )

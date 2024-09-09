@@ -107,7 +107,7 @@ mod_matchCohorts_ui <- function(id) {
 
 
 
-mod_matchCohorts_server <- function(id, r_connectionHandler) {
+mod_matchCohorts_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -124,13 +124,13 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
 
 
     #
-    # update selectControlCohort_pickerInput with cohort names in r_connectionHandler$cohortTableHandler
+    # update selectControlCohort_pickerInput with cohort names in r_databaseConnection$cohortTableHandler
     #
     shiny::observe({
-      shiny::req(r_connectionHandler$cohortTableHandler)
-      shiny::req(r_connectionHandler$hasChangeCounter)
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      shiny::req(r_databaseConnection$hasChangeCounter)
 
-      cohortIdAndNames <- r_connectionHandler$cohortTableHandler$getCohortIdAndNames()
+      cohortIdAndNames <- r_databaseConnection$cohortTableHandler$getCohortIdAndNames()
       cohortIdAndNamesList <- list()
       if(nrow(cohortIdAndNames) != 0){
         cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
@@ -148,11 +148,11 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
     # update matchToCohortId_pickerInput with cohort names not in selectControlCohort_pickerInput
     #
     shiny::observe({
-      shiny::req(r_connectionHandler$cohortTableHandler)
-      shiny::req(r_connectionHandler$hasChangeCounter)
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      shiny::req(r_databaseConnection$hasChangeCounter)
       shiny::req(input$selectControlCohort_pickerInput)
 
-      cohortIdAndNames <- r_connectionHandler$cohortTableHandler$getCohortIdAndNames()|>
+      cohortIdAndNames <- r_databaseConnection$cohortTableHandler$getCohortIdAndNames()|>
           dplyr::filter(!(cohortId %in% input$selectControlCohort_pickerInput))
       cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
 
@@ -186,7 +186,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
       shiny::req(input$selectCaseCohort_pickerInput)
 
 
-      existingSubsetDefinitionIds <- r_connectionHandler$cohortTableHandler$cohortDefinitionSet |>
+      existingSubsetDefinitionIds <- r_databaseConnection$cohortTableHandler$cohortDefinitionSet |>
         dplyr::filter(!is.na(subsetDefinitionId)) |>
         dplyr::pull(subsetDefinitionId)
 
@@ -211,7 +211,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
       )
 
       cohortDefinitionSet <- CohortGenerator::addCohortSubsetDefinition(
-        cohortDefinitionSet = r_connectionHandler$cohortTableHandler$cohortDefinitionSet,
+        cohortDefinitionSet = r_databaseConnection$cohortTableHandler$cohortDefinitionSet,
         cohortSubsetDefintion = subsetDef,
         targetCohortIds = as.integer(input$selectControlCohort_pickerInput),
         overwriteExisting =  TRUE
@@ -223,7 +223,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
       # update cohortId to non existing, to avoid overflow here
       # https://github.com/OHDSI/CohortGenerator/blob/e3efad630b8b2c0376431a88fde89e6c4bbac38c/R/SubsetDefinitions.R#L193
       previousCohortId <- cohortDefinitionSetOnlyNew$cohortId
-      unusedCohortId <- setdiff(1:1000, r_connectionHandler$cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
+      unusedCohortId <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
 
       cohortDefinitionSetOnlyNew <- cohortDefinitionSetOnlyNew |>
         dplyr::mutate(
@@ -244,8 +244,8 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
       shiny::req(input$selectCaseCohort_pickerInput)
       shiny::req(input$selectControlCohort_pickerInput)
 
-      cohortsOverlap <- r_connectionHandler$cohortTableHandler$getCohortsOverlap()
-      cohortCounts <-  r_connectionHandler$cohortTableHandler$getCohortCounts()
+      cohortsOverlap <- r_databaseConnection$cohortTableHandler$getCohortsOverlap()
+      cohortCounts <-  r_databaseConnection$cohortTableHandler$getCohortCounts()
 
       nSubjectsOverlap <- cohortsOverlap |>
         dplyr::filter(
@@ -310,7 +310,7 @@ mod_matchCohorts_server <- function(id, r_connectionHandler) {
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandler, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_databaseConnection, r_cohortDefinitionSetToAdd )
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {

@@ -5,8 +5,9 @@ test_that("mod_OperateCohorts produces output", {
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
+    atlasConfig = NULL,
     hasChangeCounter = 0
   )
 
@@ -14,12 +15,12 @@ test_that("mod_OperateCohorts produces output", {
     mod_operateCohorts_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # initial state
       session$flushReact()
-      r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
+      r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
         expect_equal(c(1,2,3,4))
       output$newCohortName_text  |> expect_match("----")
       output$upsetPlot  |> class() |> expect_equal("list")
@@ -46,7 +47,7 @@ test_that("mod_OperateCohorts produces output", {
       )
 
       # test output
-      r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
+      r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortId) |>
         expect_equal(c(1,2,3,4,5))
 
     }

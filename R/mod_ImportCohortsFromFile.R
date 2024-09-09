@@ -17,7 +17,7 @@ mod_importCohortsFromFile_ui <- function(id) {
   )
 }
 
-mod_importCohortsFromFile_server <- function(id, r_connectionHandler) {
+mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -48,7 +48,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandler) {
     # updates r$cohortDefinitionSetImported with uploaded file, or with error
     #
     shiny::observe({
-      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_databaseConnection$cohortTableHandler)
       shiny::req(r$uploadedFile)
 
       ParallelLogger::logInfo("[Import File] Opening file: ", r$uploadedFile)
@@ -293,7 +293,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandler) {
 
       # calculate new cohorIds
       numberNewCohorts <- selectedCohortData |> dplyr::distinct(cohort_name) |> nrow()
-      unusedCohortIds <- setdiff(1:1000, r_connectionHandler$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
+      unusedCohortIds <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
 
       ## copy selected to
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <-  HadesExtras::cohortDataToCohortDefinitionSet(
@@ -312,7 +312,7 @@ mod_importCohortsFromFile_server <- function(id, r_connectionHandler) {
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("impor_file", r_connectionHandler, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("impor_file", r_databaseConnection, r_cohortDefinitionSetToAdd )
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {

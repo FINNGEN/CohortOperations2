@@ -11,8 +11,9 @@ cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDe
 # cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort")
 # cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort_definition")
 
-r_connectionHandler <- shiny::reactiveValues(
+r_databaseConnection <- shiny::reactiveValues(
   cohortTableHandler = cohortTableHandler,
+  atlasConfig = NULL,
   hasChangeCounter = 0
 )
 
@@ -25,8 +26,8 @@ app <- shiny::shinyApp(
     mod_importCohortsFromCohortsTable_ui("test")
   ),
   function(input,output,session){
-    mod_importCohortsFromCohortsTable_server("test", r_connectionHandler)
-    mod_cohortWorkbench_server("test", r_connectionHandler)
+    mod_importCohortsFromCohortsTable_server("test", r_databaseConnection)
+    mod_cohortWorkbench_server("test", r_databaseConnection)
   },
   options = list(launch.browser=TRUE)
 )
