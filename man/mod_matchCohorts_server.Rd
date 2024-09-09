@@ -4,7 +4,7 @@
 \alias{mod_matchCohorts_server}
 \title{import_cohort_file Server Functions}
 \usage{
-mod_matchCohorts_server(id, r_connectionHandler)
+mod_matchCohorts_server(id, r_databaseConnection)
 }
 \description{
 import_cohort_file Server Functions

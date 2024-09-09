@@ -5,7 +5,7 @@
 #   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 #   withr::defer({rm(cohortTableHandler);gc()})
 #
-#   r_connectionHandler <- shiny::reactiveValues(
+#   r_databaseConnection <- shiny::reactiveValues(
 #     cohortTableHandler = cohortTableHandler,
 #     hasChangeCounter = 0
 #   )
@@ -14,7 +14,7 @@
 #     mod_importCohortsFromCohortsTable_server,
 #     args = list(
 #       id = "test",
-#       r_connectionHandler = r_connectionHandler
+#       r_databaseConnection = r_databaseConnection
 #     ),
 #     {
 #       # Test: initial state
@@ -30,7 +30,7 @@
 #
 #       # test output
 #       r_cohortDefinitionSetToAdd$cohortDefinitionTable |> expect_null()
-#       r_connectionHandler$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4))
+#       r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4))
 #
 #     }
 #   )
@@ -48,7 +48,7 @@
 #   cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort_definition")
 #   withr::defer({})
 #
-#   r_connectionHandler <- shiny::reactiveValues(
+#   r_databaseConnection <- shiny::reactiveValues(
 #     cohortTableHandler = cohortTableHandler,
 #     hasChangeCounter = 0
 #   )
@@ -57,7 +57,7 @@
 #     mod_importCohortsFromCohortsTable_server,
 #     args = list(
 #       id = "test",
-#       r_connectionHandler = r_connectionHandler
+#       r_databaseConnection = r_databaseConnection
 #     ),
 #     {
 #       # Test: initial state

@@ -36,7 +36,9 @@ Imports:
     ggupset, 
     httr, 
     rlang, 
-    tidyr
+    tidyr, 
+    ROhdsiWebApi,
+    DatabaseConnector
 Remotes: 
     FINNGEN/HadesExtras,
     OHDSI/ROhdsiWebApi
@@ -47,7 +49,8 @@ Suggests:
     testthat (>= 3.0.0),
     OhdsiShinyModules,
     Eunomia,
-    ResultModelManager
+    ResultModelManagerm,
+    withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 

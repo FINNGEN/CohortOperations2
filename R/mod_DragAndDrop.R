@@ -10,7 +10,7 @@ mod_dragAndDrop_ui <- function(id, testing = FALSE) {
   )}
 
 
-mod_dragAndDrop_server <- function(id, r_connectionHandler) {
+mod_dragAndDrop_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -20,10 +20,10 @@ mod_dragAndDrop_server <- function(id, r_connectionHandler) {
     # Update is not working, we build the ui in server
     #
     output$operation_expression <- shiny::renderUI({
-      shiny::req(r_connectionHandler$cohortTableHandler)
-      shiny::req(r_connectionHandler$hasChangeCounter)
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      shiny::req(r_databaseConnection$hasChangeCounter)
 
-      cohortData <- r_connectionHandler$cohortTableHandler$getCohortsSummary() |>
+      cohortData <- r_databaseConnection$cohortTableHandler$getCohortsSummary() |>
         dplyr::select(cohortId, cohortName, shortName)
 
       htmltools::tagList(
@@ -67,12 +67,12 @@ mod_dragAndDrop_server <- function(id, r_connectionHandler) {
     # calculates cohort operation expression
     #
     rf_operationExpression <- shiny::reactive({
-      shiny::req(r_connectionHandler$cohortTableHandler)
-      shiny::req(r_connectionHandler$hasChangeCounter)
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      shiny::req(r_databaseConnection$hasChangeCounter)
       shiny::req(input$dest_boxes)
       shiny::req(input$dest_boxes != placeholder)
 
-      cohortData <- r_connectionHandler$cohortTableHandler$getCohortsSummary() |>
+      cohortData <- r_databaseConnection$cohortTableHandler$getCohortsSummary() |>
         dplyr::select(cohortId, cohortName, shortName)
 
       operation_expression <- input$dest_boxes

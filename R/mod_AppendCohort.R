@@ -4,7 +4,7 @@ mod_fct_appendCohort_ui <- function() {
 }
 
 
-mod_fct_appendCohort_server <- function(id, r_connectionHandler, r_cohortDefinitionSetToAdd ){
+mod_fct_appendCohort_server <- function(id, r_databaseConnection, r_cohortDefinitionSetToAdd ){
   shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -24,7 +24,7 @@ mod_fct_appendCohort_server <- function(id, r_connectionHandler, r_cohortDefinit
 
       # ask if existing cohorts should be replaced
       namesExistInWorkbech <- intersect(
-        r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortName),
+        r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |> dplyr::pull(cohortName),
         r_cohortDefinitionSetToAdd$cohortDefinitionSet |> dplyr::pull(cohortName)
       )
 
@@ -71,7 +71,7 @@ mod_fct_appendCohort_server <- function(id, r_connectionHandler, r_cohortDefinit
         }
         # TEMP FIX
         cohortDefinitionSet <- cohortDefinitionSet |>  dplyr::left_join(
-          r_connectionHandler$cohortTableHandler$getCohortIdAndNames() |> dplyr::rename(existingCohortId = cohortId, existingSubsetDefinitionId = subsetDefinitionId),
+          r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |> dplyr::rename(existingCohortId = cohortId, existingSubsetDefinitionId = subsetDefinitionId),
           by = "cohortName"
         ) |>
           dplyr::mutate(
@@ -80,8 +80,8 @@ mod_fct_appendCohort_server <- function(id, r_connectionHandler, r_cohortDefinit
           ) |>
           dplyr::select(-existingCohortId, -existingSubsetDefinitionId)
 
-        r_connectionHandler$cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
-        r_connectionHandler$hasChangeCounter <- r_connectionHandler$hasChangeCounter + 1
+        r_databaseConnection$cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
+        r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1
       }
 
       # reset module

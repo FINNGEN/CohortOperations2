@@ -5,7 +5,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
     hasChangeCounter = 0
   )
@@ -14,7 +14,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
     mod_importCohortsFromCohortsTable_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # Test: initial state
@@ -30,7 +30,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
 
       # test output
       r_cohortDefinitionSetToAdd$cohortDefinitionTable |> expect_null()
-      r_connectionHandler$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4, 5))
+      r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4, 5))
 
     }
   )
@@ -50,7 +50,7 @@ test_that("mod_ImportCohortsFromCohortTable shows error when no cohort table exi
     helper_addCohortAndCohortDefinitionTables(cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes")
   })
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
     hasChangeCounter = 0
   )
@@ -59,7 +59,7 @@ test_that("mod_ImportCohortsFromCohortTable shows error when no cohort table exi
     mod_importCohortsFromCohortsTable_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # Test: initial state

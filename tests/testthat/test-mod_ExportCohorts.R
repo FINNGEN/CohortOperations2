@@ -5,8 +5,9 @@ test_that("mod_exportsCohorts produces file", {
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasFractureCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
-  r_connectionHandler <- shiny::reactiveValues(
+  r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
+    atlasConfig = NULL,
     hasChangeCounter = 0
   )
 
@@ -14,7 +15,7 @@ test_that("mod_exportsCohorts produces file", {
     mod_exportsCohorts_server,
     args = list(
       id = "test",
-      r_connectionHandler = r_connectionHandler
+      r_databaseConnection = r_databaseConnection
     ),
     {
       # select cohorts

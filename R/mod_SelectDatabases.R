@@ -25,7 +25,7 @@ mod_selectDatabases_ui <- function(id) {
 }
 
 
-mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandler) {
+mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -61,6 +61,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandler)
       fct_sweetAlertSpinner("Connecting to databases")
 
       cohortTableHandlerConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$cohortTableHandler
+      atlasConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$atlasConfig
       ParallelLogger::logInfo("[Databases Connection] Connecting to: ", input$selectDatabases_pickerInput)
 
       loadConnectionChecksLevel <- "allChecks"
@@ -69,8 +70,9 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandler)
       }
 
       cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
-      r_connectionHandler$cohortTableHandler <- cohortTableHandler
-      r_connectionHandler$hasChangeCounter <- r_connectionHandler$hasChangeCounter + 1
+      r_databaseConnection$cohortTableHandler <- cohortTableHandler
+      r_databaseConnection$atlasConfig <- atlasConfig
+      r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1
       # TEMP, trigger garbage collector to delete the old handlers
       gc()
 
@@ -78,10 +80,10 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_connectionHandler)
 
     })
 
-    shiny::observeEvent(r_connectionHandler$cohortTableHandler, {
+    shiny::observeEvent(r_databaseConnection$cohortTableHandler, {
       shiny::req(input$selectDatabases_pickerInput)
 
-      connectionStatusLogs <- r_connectionHandler$cohortTableHandler$connectionStatusLog
+      connectionStatusLogs <- r_databaseConnection$cohortTableHandler$connectionStatusLog
 
       ParallelLogger::logInfo("[Databases Connection] Connected to: ", connectionStatusLogs)
       r$connectionStatusLogs <- connectionStatusLogs

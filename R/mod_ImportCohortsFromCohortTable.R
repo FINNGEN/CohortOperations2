@@ -13,7 +13,7 @@ mod_importCohortsFromCohortsTable_ui <- function(id) {
   )
 }
 
-mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
+mod_importCohortsFromCohortsTable_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -33,13 +33,13 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
     # get cohorts table cohortDefinitionTable
     #
     shiny::observe({
-      shiny::req(r_connectionHandler$cohortTableHandler)
+      shiny::req(r_databaseConnection$cohortTableHandler)
 
       ParallelLogger::logInfo("[Import from Cohort Table] : Getting cohort names from cohort table")
 
       # get connection
-      connection  <- r_connectionHandler$cohortTableHandler$connectionHandler$getConnection()
-      cohortDatabaseSchema  <-  r_connectionHandler$cohortTableHandler$cdmDatabaseSchema
+      connection  <- r_databaseConnection$cohortTableHandler$connectionHandler$getConnection()
+      cohortDatabaseSchema  <-  r_databaseConnection$cohortTableHandler$cdmDatabaseSchema
 
       ParallelLogger::logInfo("[Import from Cohort Table] : Getting cohort names from cohort table from:", cohortDatabaseSchema)
 
@@ -110,8 +110,8 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
       fct_sweetAlertSpinner("Processing cohorts")
 
       # get connection
-      connection  <- r_connectionHandler$cohortTableHandler$connectionHandler$getConnection()
-      cohortDatabaseSchema  <-  r_connectionHandler$cohortTableHandler$cdmDatabaseSchema
+      connection  <- r_databaseConnection$cohortTableHandler$connectionHandler$getConnection()
+      cohortDatabaseSchema  <-  r_databaseConnection$cohortTableHandler$cdmDatabaseSchema
 
       cohortDefinitionTable <- r$cohortDefinitionTable
       selectedCohortIds <- cohortDefinitionTable |>
@@ -120,7 +120,7 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
 
       # calculate new cohorIds
       numberNewCohorts <- length(selectedCohortIds)
-      unusedCohortIds <- setdiff(1:1000, r_connectionHandler$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
+      unusedCohortIds <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
 
       cohortDefinitionSet  <- HadesExtras::cohortTableToCohortDefinitionSettings(
         cohortDatabaseSchema = cohortDatabaseSchema,
@@ -140,7 +140,7 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_connectionHandler) {
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_connectionHandler, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("import_atlas", r_databaseConnection, r_cohortDefinitionSetToAdd )
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {

@@ -7,8 +7,9 @@ fcr_setUpLogger()
 
 cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasFractureCohorts")
 
-r_connectionHandler <- shiny::reactiveValues(
+r_databaseConnection <- shiny::reactiveValues(
   cohortTableHandler = cohortTableHandler,
+  atlasConfig = NULL,
   hasChangeCounter = 0
 )
 
@@ -21,8 +22,8 @@ app <- shiny::shinyApp(
     mod_matchCohorts_ui("test")
   ),
   function(input,output,session){
-    mod_matchCohorts_server("test", r_connectionHandler)
-    mod_cohortWorkbench_server("test", r_connectionHandler)
+    mod_matchCohorts_server("test", r_databaseConnection)
+    mod_cohortWorkbench_server("test", r_databaseConnection)
   },
   options = list(launch.browser=TRUE)
 )
