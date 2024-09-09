@@ -100,6 +100,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
 
       fct_sweetAlertSpinner("Processing cohorts")
 
+      webApiUrl <- r_databaseConnection$atlasConfig$webapiurl
+
       selectedCohortIds <- r$atlasCohortsTable |>
         dplyr::slice(r$selectedIndex) |>
         dplyr::pull(id)
