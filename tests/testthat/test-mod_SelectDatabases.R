@@ -9,6 +9,8 @@ test_that("mod_cohortWorkbench_server updates r_databaseConnection when database
     hasChangeCounter = 0
   )
 
+  databasesConfig <- test_databasesConfig
+
   # run module
   shiny::testServer(
     mod_selectDatabases_server,

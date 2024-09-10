@@ -8,7 +8,7 @@ helper_createNewCohortTableHandler <- function(addCohorts = NULL){
   ), empty.ok = TRUE)
 
   # by default use the one from setup.R
-  cohortTableHandlerConfig <- cohortTableHandlerConfig # set by setup.R
+  cohortTableHandlerConfig <- test_cohortTableHandlerConfig # set by setup.R
 
   loadConnectionChecksLevel = "basicChecks"
 
@@ -19,7 +19,9 @@ helper_createNewCohortTableHandler <- function(addCohorts = NULL){
     gsub('\\.','',format(Sys.time(), "d%H%M%S%OS3"))
   )
   # END TEMP
+
   cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
+
 
   if(!is.null(addCohorts) ){
     if(addCohorts == "EunomiaDefaultCohorts"){

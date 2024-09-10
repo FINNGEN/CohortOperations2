@@ -4,7 +4,7 @@
 \alias{run_app}
 \title{Run the Shiny Application}
 \usage{
-run_app(pathToDatabasesConfigYalm, pathToAnalysisModulesConfigYalm, ...)
+run_app(databasesConfig, analysisModulesConfig, ...)
 }
 \arguments{
 \item{...}{arguments to pass to golem_opts.

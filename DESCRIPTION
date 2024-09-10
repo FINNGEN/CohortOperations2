@@ -41,7 +41,8 @@ Imports:
     DatabaseConnector
 Remotes: 
     FINNGEN/HadesExtras,
-    OHDSI/ROhdsiWebApi
+    OHDSI/ROhdsiWebApi,
+    OHDSI/CohortGenerator
 Suggests: 
     gert,
     knitr,
@@ -50,7 +51,8 @@ Suggests:
     OhdsiShinyModules,
     Eunomia,
     ResultModelManagerm,
-    withr
+    withr, 
+    CO2AnalysisModules
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 
