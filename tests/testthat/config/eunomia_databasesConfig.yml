@@ -8,8 +8,7 @@ E1:
     connection:
       connectionDetailsSettings:
           dbms: sqlite
-          server: Eunomia
-          databaseName: GiBleed
+          server: <pathToGiBleedEunomiaSqlite>
     cdm:
         cdmDatabaseSchema: main
         vocabularyDatabaseSchema: main
@@ -31,8 +30,7 @@ E2:
     connection:
       connectionDetailsSettings:
           dbms: sqlite
-          server: Eunomia
-          databaseName: MIMIC
+          server: <pathToMIMICEunomiaSqlite>
     cdm:
         cdmDatabaseSchema: main
         vocabularyDatabaseSchema: main

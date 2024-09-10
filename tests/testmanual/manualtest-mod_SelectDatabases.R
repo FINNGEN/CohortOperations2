@@ -11,6 +11,7 @@ r_databaseConnection <- shiny::reactiveValues(
   hasChangeCounter = 0
 )
 
+databasesConfig <- test_databasesConfig
 
 # run module --------------------------------------------------------------
 devtools::load_all(".")
