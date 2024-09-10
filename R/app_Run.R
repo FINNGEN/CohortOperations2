@@ -7,15 +7,12 @@
 #' @export
 #' @importFrom shiny shinyApp
 #' @importFrom golem with_golem_options
-run_app <- function(pathToDatabasesConfigYalm, pathToAnalysisModulesConfigYalm, ...) {
+run_app <- function(databasesConfig, analysisModulesConfig, ...) {
 
   # Check configuration files
   # TODO: check if the config files are correct
-  checkmate::assertFileExists(pathToDatabasesConfigYalm, extension = "yml")
-  databasesConfig <- yaml::read_yaml(pathToDatabasesConfigYalm)
-
-  checkmate::assertFileExists(pathToAnalysisModulesConfigYalm, extension = "yml")
-  analysisModulesConfig <- yaml::read_yaml(pathToAnalysisModulesConfigYalm)
+  databasesConfig  |> checkmate::assertList()
+  analysisModulesConfig |> checkmate::assertList()
 
   #
   # GLOBAL SETTING

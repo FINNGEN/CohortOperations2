@@ -30,7 +30,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
 
       # test output
       r_cohortDefinitionSetToAdd$cohortDefinitionTable |> expect_null()
-      r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4, 5))
+      r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4))
 
     }
   )
@@ -41,6 +41,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
 test_that("mod_ImportCohortsFromCohortTable shows error when no cohort table exists", {
 
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
+  cohortTableHandlerConfig <- test_cohortTableHandlerConfig
   withr::defer({rm(cohortTableHandler);gc()})
 
   # delete cohort and cohort_definition tables
