@@ -5,10 +5,9 @@
 #' @param ui_element ui_element to add spinner to
 #' @param ... other parameters to shinycustomloader::withLoader
 #'
-#' @return
-#' @export
-#'
 #' @importFrom shinycustomloader withLoader
+#'
+#' @export
 ui_load_spinner <- function(ui_element, ...) {
   shinycustomloader::withLoader(
     ui_element,
@@ -23,10 +22,10 @@ ui_load_spinner <- function(ui_element, ...) {
 #' A sweet alert with a dna spinner
 #'
 #' @param message  message to show in the alert
-#' @param wait_time_sec if not NULL shows a progress bar that loads in the given second
+#' @param logUrl URL to fetch text from
+#' @param updateMiliseconds time to update the text
 #' @param ... additional options for shinyWidgets::show_alert
 #'
-#' @return
 #' @export
 #'
 #'
@@ -94,7 +93,6 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
 #'
 #' Closes a fct_sweetAlertSpinner
 #'
-#' @return
 #' @export
 #'
 #' @importFrom shinyWidgets closeSweetAlert

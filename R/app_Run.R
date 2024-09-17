@@ -1,12 +1,18 @@
-#' Run the Shiny Application
+#' Run Shiny Application
 #'
-#' @param ... arguments to pass to golem_opts.
-#' See `?golem::get_golem_options` for more details.
-#' @inheritParams shiny::shinyApp
+#' This function initializes and runs a Shiny application with the specified configurations.
 #'
-#' @export
+#' @param databasesConfig A list containing the database configurations.
+#' @param analysisModulesConfig A list containing the analysis modules configurations.
+#' @param ... Additional arguments passed to `shiny::shinyApp`.
+#'
+#' @importFrom checkmate assertList
+#' @importFrom httr set_config config
 #' @importFrom shiny shinyApp
-#' @importFrom golem with_golem_options
+#' @importFrom ParallelLogger logInfo
+#' 
+#' @return A Shiny application object.
+#' @export
 run_app <- function(databasesConfig, analysisModulesConfig, ...) {
 
   # Check configuration files
@@ -50,4 +56,3 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
 
   return(app)
 }
-
