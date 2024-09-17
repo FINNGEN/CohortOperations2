@@ -35,4 +35,4 @@ Modules can be developed independently using the corresponding files in `test/te
 Each of these files has two parts. The first, generates all the inputs needed for the module with dummy data. The second, runs the module as a Shiny app. 
 This way is not necessary to lunch the full app and click all the way to get the initial state of the module. 
 
-Manual testing uses the Eunomia database for speed. However, that can be changed in `test/testthat/setup.R` following standart `testthat` practices. 
+Manual testing uses the Eunomia database for speed. However, that can be changed in `test/testthat/setup.R` following standard `testthat` practices. 

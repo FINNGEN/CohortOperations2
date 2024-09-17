@@ -1,4 +1,19 @@
-
+#' Cohort Workbench UI Module
+#'
+#' This module provides the UI for the Cohort Workbench.
+#'
+#' @param id A unique identifier for the module.
+#'
+#' @return A UI definition for the Cohort Workbench.
+#' 
+#' @importFrom shiny NS
+#' @importFrom htmltools tagList
+#' @importFrom shinyWidgets useSweetAlert
+#' @importFrom shinyjs useShinyjs
+#' @importFrom shinyFeedback useShinyFeedback
+#' @importFrom reactable reactableOutput
+#' 
+#' @export
 mod_cohortWorkbench_ui <- function(id){
   ns <- shiny::NS(id)
   htmltools::tagList(
@@ -9,11 +24,28 @@ mod_cohortWorkbench_ui <- function(id){
     reactable::reactableOutput(ns("cohortsSummaryDatabases_reactable"))
   )
 }
-
-mod_cohortWorkbench_server <- function(id, r_databaseConnection,  table_editing=TRUE){
-  shiny::moduleServer( id, function(input, output, session){
+#' Cohort Workbench Server Module
+#'
+#' This module provides the server logic for the Cohort Workbench.
+#'
+#' @param id A unique identifier for the module.
+#' @param r_databaseConnection A reactiveValues object containing the database connection and handlers.
+#' @param table_editing A logical value indicating whether table editing is enabled. Default is TRUE.
+#'
+#' @return A server module for the Cohort Workbench.
+#' 
+#' @importFrom shiny moduleServer reactiveValues observeEvent req showModal modalDialog textInput actionButton modalButton removeModal
+#' @importFrom shinyWidgets confirmSweetAlert
+#' @importFrom shinyFeedback showFeedbackDanger hideFeedback
+#' @importFrom shinyjs toggleState
+#' @importFrom reactable renderReactable
+#' @importFrom purrr pluck
+#' @importFrom dplyr pull setdiff
+#' 
+#' @export
+mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing = TRUE) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
 
     r_tmp <- shiny::reactiveValues(
       cohortNames = NULL,

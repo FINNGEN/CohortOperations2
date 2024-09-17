@@ -1,4 +1,16 @@
 
+#' Import Cohorts From File UI Module
+#'
+#' @description A shiny Module to import cohorts from a file.
+#'
+#' @param id Module ID
+#'
+#' @importFrom shiny NS tagList fileInput hr actionButton
+#' @importFrom shinyjs useShinyjs
+#' @importFrom reactable reactableOutput
+#' @importFrom htmltools hr
+#'
+#' @return A UI definition for the module.
 mod_importCohortsFromFile_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
@@ -16,7 +28,28 @@ mod_importCohortsFromFile_ui <- function(id) {
     shiny::actionButton(ns("import_actionButton"), "Import Selected")
   )
 }
-
+#' Import Cohorts From File Server Module
+#'
+#' @description A shiny Module to handle server-side operations for importing cohorts from a file.
+#'
+#' @param id Module ID
+#' @param r_databaseConnection A reactive database connection object
+#'
+#' @importFrom shiny moduleServer reactiveValues observe observeEvent req renderText validate need
+#' @importFrom shinyjs toggleState reset
+#' @importFrom shinyWidgets pickerInput
+#' @importFrom dplyr group_by summarise mutate arrange select sym distinct filter pull n
+#' @importFrom tools file_ext
+#' @importFrom stringr str_to_lower
+#' @importFrom ParallelLogger logInfo
+#' @importFrom HadesExtras readCohortData checkCohortData cohortDataToCohortDefinitionSet
+#' @importFrom reactable getReactableState updateReactable
+#' @importFrom shinyjs hidden
+#' @importFrom shinyWidgets pickerInput
+#' @importFrom shiny modalDialog modalButton actionButton fluidRow column textInput verbatimTextOutput
+#' @importFrom shinyjs toggle
+#'
+#' @return A server function for the module.
 mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns

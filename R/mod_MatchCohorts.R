@@ -2,14 +2,14 @@
 #'
 #' @description A shiny Module.
 #'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd
+#' @param id A module id.
 #'
 #' @importFrom shiny NS fileInput actionButton
 #' @importFrom htmltools tagList hr
 #' @importFrom shinyjs useShinyjs
 #' @importFrom reactable reactableOutput
+#'
+#' @export
 mod_matchCohorts_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
@@ -102,11 +102,24 @@ mod_matchCohorts_ui <- function(id) {
   )
 }
 
-#' import_cohort_file Server Functions
+
+#' matchCohorts Server Function
 #'
-
-
-
+#' @description A shiny Module server function.
+#'
+#' @param id A module id.
+#' @param r_databaseConnection A reactive database connection object.
+#'
+#' @importFrom shiny moduleServer reactiveValues observe observeEvent req renderText
+#' @importFrom shinyjs toggleState
+#' @importFrom shinyWidgets updatePickerInput
+#' @importFrom dplyr filter pull mutate
+#' @importFrom stringr str_replace str_detect
+#' @importFrom CohortGenerator createCohortSubsetDefinition addCohortSubsetDefinition
+#' @importFrom HadesExtras createMatchingSubset
+#' @importFrom ParallelLogger logInfo
+#'
+#' @export
 mod_matchCohorts_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -262,25 +275,25 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
         dplyr::pull(cohortSubjects)
 
       # name
-      message <- paste0("ℹ️ New cohort name : ", r$cohortDefinitionSet$cohortName, " \n")
+      message <- paste0("\u2139 New cohort name : ", r$cohortDefinitionSet$cohortName, " \n")
 
       # counts
       if( nSubjectsCase > nSubjectsControl ){
-        message <- paste0(message, "❌ There are more subjects in matching/case cohort (", nSubjectsCase,") that in target/control cohort (", nSubjectsControl,"). Are you sure they are correct?\n")
+        message <- paste0(message, "\u274C There are more subjects in matching/case cohort (", nSubjectsCase,") that in target/control cohort (", nSubjectsControl,"). Are you sure they are correct?\n")
       }else{
         if( nSubjectsCase * input$matchRatio_numericInput > nSubjectsControl){
-          message <- paste0(message, "⚠️There may be few subjects in target/control cohort (", nSubjectsControl,") to match from (number of subjects in matching/case * matching ratio = ",nSubjectsCase * input$matchRatio_numericInput,")\n")
+          message <- paste0(message, "\u26A0 There may be few subjects in target/control cohort (", nSubjectsControl,") to match from (number of subjects in matching/case * matching ratio = ",nSubjectsCase * input$matchRatio_numericInput,")\n")
         }
       }
 
       # overlap
       if(nSubjectsOverlap==0){
-        message <- paste0(message, "✅ No subjects overlap between matching/case and target/control \n")
+        message <- paste0(message, "\u2705 No subjects overlap between matching/case and target/control \n")
       }else{
         if(nSubjectsOverlap > nSubjectsCase * .20){
-          message <- paste0(message, "❌ There are many subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. Consider removing them in Operate Cohorts tab\n")
+          message <- paste0(message, "\u274C There are many subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. Consider removing them in Operate Cohorts tab\n")
         }else{
-          message <- paste0(message, "⚠️There are few subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. \n")
+          message <- paste0(message, "\u26A0 There are few subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. \n")
         }
       }
 

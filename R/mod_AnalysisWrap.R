@@ -1,6 +1,15 @@
-
-
-
+#' Analysis Wrap UI
+#'
+#' @param id A unique identifier for the module.
+#' @param mod_analysisSettings_ui A UI function for the analysis settings module.
+#'
+#' @return A UI definition for the analysis wrap module.
+#'
+#' @importFrom shiny NS actionButton verbatimTextOutput downloadButton tags
+#' @importFrom shinyjs useShinyjs
+#' @importFrom htmltools tagList hr
+#'
+#' @export
 mod_analysisWrap_ui <- function(id, mod_analysisSettings_ui) {
   ns <- shiny::NS(id)
   htmltools::tagList(
@@ -21,7 +30,22 @@ mod_analysisWrap_ui <- function(id, mod_analysisSettings_ui) {
   )
 }
 
-
+#' Analysis Wrap Server
+#'
+#' @param id A unique identifier for the module.
+#' @param r_databaseConnection A reactive database connection object.
+#' @param mod_analysisSettings_server A server function for the analysis settings module.
+#' @param fct_executeAnalysis A function to execute the analysis.
+#' @param analysisName The name of the analysis.
+#' @param url_visualiseResults The URL to visualize the results.
+#'
+#' @return A server function for the analysis wrap module.
+#'
+#' @importFrom shiny moduleServer reactiveValues observe observeEvent req renderText downloadHandler
+#' @importFrom shinyjs toggleState runjs
+#' @importFrom ParallelLogger logInfo
+#'
+#' @export
 mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettings_server, fct_executeAnalysis, analysisName, url_visualiseResults) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -110,12 +134,12 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       # if successful
       if(is.null(r$analysisResults$analysisError)){
-        resultMessage <- paste0("✅ Success\n",
-                                "🕒 Running time: ", analysisDurationText, "\n"
+        resultMessage <- paste0("\u2705 Success\n",
+                                "\u1F552 Running time: ", analysisDurationText, "\n"
         )
       }else{
-        resultMessage <- paste0("❌ Error\n",
-                                "📄 Message: ",  r$analysisResults$analysisError, "\n")
+        resultMessage <- paste0("\u274C Error\n",
+                                "\u1F4C4 Message: ",  r$analysisResults$analysisError, "\n")
       }
 
       ParallelLogger::logInfo("[Analysis: ", analysisName,"] Results message: ", resultMessage)

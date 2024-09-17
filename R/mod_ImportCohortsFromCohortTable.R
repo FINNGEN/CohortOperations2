@@ -1,4 +1,15 @@
-
+#' Import Cohorts from Cohort Table UI
+#'
+#' @param id Module ID
+#'
+#' @return A UI definition for the Import Cohorts from Cohort Table module
+#' 
+#' @importFrom shiny NS actionButton 
+#' @importFrom shinyjs useShinyjs
+#' @importFrom htmltools tagList hr
+#' @importFrom reactable reactableOutput
+#' 
+#' @export
 mod_importCohortsFromCohortsTable_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
@@ -9,10 +20,24 @@ mod_importCohortsFromCohortsTable_ui <- function(id) {
     htmltools::hr(),
     shiny::actionButton(ns("import_actionButton"), "Import Selected")
     # toggle import_actionButton
-
   )
 }
 
+#' Import Cohorts from Cohort Table Server
+#'
+#' @param id Module ID
+#' @param r_databaseConnection Reactive database connection object
+#'
+#' @return Server logic for the Import Cohorts from Cohort Table module
+#' 
+#' @importFrom shiny moduleServer reactiveValues observe observeEvent req validate need
+#' @importFrom shinyjs toggleState
+#' @importFrom reactable renderReactable getReactableState updateReactable
+#' @importFrom dplyr arrange slice pull
+#' @importFrom ParallelLogger logInfo logWarn
+#' @importFrom HadesExtras checkCohortDefinitionTables getCohortNamesFromCohortDefinitionTable cohortTableToCohortDefinitionSettings
+#'
+#' @export
 mod_importCohortsFromCohortsTable_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -153,19 +178,3 @@ mod_importCohortsFromCohortsTable_server <- function(id, r_databaseConnection) {
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
