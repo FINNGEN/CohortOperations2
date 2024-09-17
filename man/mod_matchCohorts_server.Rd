@@ -2,10 +2,15 @@
 % Please edit documentation in R/mod_MatchCohorts.R
 \name{mod_matchCohorts_server}
 \alias{mod_matchCohorts_server}
-\title{import_cohort_file Server Functions}
+\title{matchCohorts Server Function}
 \usage{
 mod_matchCohorts_server(id, r_databaseConnection)
 }
+\arguments{
+\item{id}{A module id.}
+
+\item{r_databaseConnection}{A reactive database connection object.}
+}
 \description{
-import_cohort_file Server Functions
+A shiny Module server function.
 }

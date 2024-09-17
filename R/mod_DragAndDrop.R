@@ -1,15 +1,43 @@
 
-
+#' Drag and Drop UI Module
+#'
+#' This module creates the UI for a drag and drop interface to define cohort operations.
+#'
+#' @param id A unique identifier for the module.
+#' @param testing A boolean indicating whether to include testing elements in the UI.
+#'
+#' @return A UI definition for the drag and drop module.
+#' 
+#' @importFrom shiny NS tagList uiOutput textOutput
+#' @importFrom shinyjs useShinyjs
+#' 
+#' @export
 mod_dragAndDrop_ui <- function(id, testing = FALSE) {
   ns <- shiny::NS(id)
   shiny::tagList(
     shinyjs::useShinyjs(),
     shiny::uiOutput(ns("operation_expression")),
-    #if testing add this line
+    # if testing add this line
     if(testing) shiny::textOutput(ns("test_displayOperationString"))
-  )}
+  )
+}
 
-
+#' Drag and Drop Server Module
+#'
+#' This module creates the server logic for a drag and drop interface to define cohort operations.
+#'
+#' @param id A unique identifier for the module.
+#' @param r_databaseConnection A reactive database connection object.
+#'
+#' @return A reactive expression that calculates the cohort operation expression.
+#' 
+#' @importFrom shiny moduleServer reactive req renderUI renderText
+#' @importFrom dplyr select
+#' @importFrom htmltools tagList
+#' @importFrom shinydashboard box
+#' @importFrom shinyjqui orderInput
+#' 
+#' @export
 mod_dragAndDrop_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns

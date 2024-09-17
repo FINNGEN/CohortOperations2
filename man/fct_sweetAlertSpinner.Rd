@@ -14,9 +14,11 @@ fct_sweetAlertSpinner(
 \arguments{
 \item{message}{message to show in the alert}
 
-\item{...}{additional options for shinyWidgets::show_alert}
+\item{logUrl}{URL to fetch text from}
 
-\item{wait_time_sec}{if not NULL shows a progress bar that loads in the given second}
+\item{updateMiliseconds}{time to update the text}
+
+\item{...}{additional options for shinyWidgets::show_alert}
 }
 \description{
 A sweet alert with a dna spinner

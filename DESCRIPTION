@@ -14,11 +14,9 @@ Imports:
     checkmate,
     dplyr, 
     htmltools,
-    lubridate,
     ParallelLogger,
     purrr,
     reactable,
-    readr,
     shiny,
     shinycustomloader,
     shinydashboard,
@@ -27,7 +25,6 @@ Imports:
     tibble,
     yaml,
     stringr,
-    HadesExtras,
     shinyjqui,
     shinyFeedback, 
     CohortGenerator, 
@@ -36,24 +33,19 @@ Imports:
     ggupset, 
     httr, 
     rlang, 
-    tidyr, 
-    ROhdsiWebApi,
-    DatabaseConnector
+    tidyr,
+    HadesExtras,
+    ROhdsiWebApi
 Remotes: 
     FINNGEN/HadesExtras,
-    OHDSI/ROhdsiWebApi,
-    OHDSI/CohortGenerator
+    OHDSI/ROhdsiWebApi
 Suggests: 
-    gert,
-    knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    OhdsiShinyModules,
     Eunomia,
-    ResultModelManagerm,
     withr, 
-    CO2AnalysisModules
-VignetteBuilder: knitr
+    CO2AnalysisModules,
+    DatabaseConnector
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
