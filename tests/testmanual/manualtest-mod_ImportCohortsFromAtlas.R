@@ -1,19 +1,31 @@
 # build parameters --------------------------------------------------------------
+
 devtools::load_all(".")
-source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
 fcr_setUpLogger()
 
-cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
+testConfigFile <- "devatlas_databasesConfig.yml"
+
+timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
+
+test_databasesConfig <- readAndParseYalm(
+  pathToYalmFile = testthat::test_path("config", testConfigFile),
+  OAuthPvtKeyPath = Sys.getenv("GCP_SERVICE_KEY"),
+  pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER"),
+  timestamp = timestamp
+)
+
+test_cohortTableHandlerConfig <- test_databasesConfig[[1]]$cohortTableHandler
+
+cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = NULL)
 
 r_databaseConnection <- shiny::reactiveValues(
   cohortTableHandler = cohortTableHandler,
-  atlasConfig = list(
-    webapiurl = "https://api.ohdsi.org/WebAPI"
-  ),
+  atlasConfig = test_databasesConfig[[1]]$atlasConfig,
   hasChangeCounter = 0
 )
+
 
 # run module --------------------------------------------------------------
 devtools::load_all(".")
@@ -35,16 +47,9 @@ app
 
 
 
-# test with 1778211, 1778212, 1778213
+# test with ids 1,2,6
+# Breast Cancer ICD10 Controls (id = 1) - copy cohort from prev generations
+# Breast Cancer ICD10 Cases (id = 2) - copy cohort from prev generations
+# Breast Cancer ICD10 Cases 2 (id = 6) - create new cohort
 
-# connectionStatus_reactable ----------------------------------------------
-# devtools::load_all(".")
-#
-# log <- HadesExtras::LogTibble$new()
-# log$INFO("step 1", "example info")
-# log$WARNING("step 2", "example warning")
-# log$ERROR("step 3", "example error")
-#
-# connectionStatusLogs <- log$logTibble |> dplyr::mutate(database="Database name")
-#
-# connectionStatus_reactable(connectionStatusLogs)
+
