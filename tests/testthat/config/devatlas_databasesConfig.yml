@@ -21,7 +21,7 @@ BQ1:
       cohortDatabaseSchema: atlas-development-270609.sandbox
       cohortTableName:  test_cohort_<timestamp>
   atlasConfig:
-    webapiurl: http://34.22.198.226:8787/WebAPI
+    webapiurl: http://localhost:8787/WebAPI
     sourcekey:
     resultsshchema:
 
@@ -48,6 +48,6 @@ BQ2:
       cohortDatabaseSchema: atlas-development-270609.sandbox
       cohortTableName: test_cohort_<timestamp>
   atlasConfig:
-    webapiurl: http://34.22.198.226:8787/WebAPI
+    webapiurl: http://localhost:8787/WebAPI
     sourcekey:
     resultsshchema:

@@ -1,22 +1,10 @@
 # build parameters --------------------------------------------------------------
 
 devtools::load_all(".")
+source(testthat::test_path("setup.R"))
 source(testthat::test_path("helper.R"))
 
 fcr_setUpLogger()
-
-testConfigFile <- "devatlas_databasesConfig.yml"
-
-timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
-
-test_databasesConfig <- readAndParseYalm(
-  pathToYalmFile = testthat::test_path("config", testConfigFile),
-  OAuthPvtKeyPath = Sys.getenv("GCP_SERVICE_KEY"),
-  pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER"),
-  timestamp = timestamp
-)
-
-test_cohortTableHandlerConfig <- test_databasesConfig[[1]]$cohortTableHandler
 
 cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = NULL)
 

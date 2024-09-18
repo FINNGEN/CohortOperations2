@@ -5,7 +5,7 @@ source(testthat::test_path("helper.R"))
 
 fcr_setUpLogger()
 
-cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
+cohortTableHandler <- helper_createNewCohortTableHandler()
 
 r_databaseConnection <- shiny::reactiveValues(
   cohortTableHandler = cohortTableHandler,
