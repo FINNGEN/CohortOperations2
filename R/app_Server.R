@@ -2,7 +2,7 @@
 #'
 #' @param input,output,session Internal parameters for {shiny}.
 #'     DO NOT REMOVE.
-#' @import shiny
+#' @importFrom shiny getShinyOption reactiveValues
 #' @noRd
 app_server <- function(input, output, session) {
   # get settings loaded from file

@@ -1,15 +1,16 @@
-#' operateCohorts UI Function
+
+#' Export Cohorts UI Module
 #'
-#' @description A shiny Module.
+#' @param id Module ID
 #'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd
-#'
-#' @importFrom shiny NS fileInput actionButton
-#' @importFrom htmltools tagList hr
+#' @return UI elements for the Export Cohorts module
+#' 
+#' @importFrom shiny NS tags h4 h5 checkboxInput downloadButton
 #' @importFrom shinyjs useShinyjs
-#' @importFrom reactable reactableOutput
+#' @importFrom shinyWidgets pickerInput
+#' @importFrom htmltools tagList hr
+#' 
+#' @export
 mod_exportsCohorts_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
@@ -25,7 +26,7 @@ mod_exportsCohorts_ui <- function(id) {
       options = list(
         `actions-box` = TRUE),
       multiple = TRUE),
-    # binary selection "make ourput compatible with CO1"
+    # binary selection "make output compatible with CO1"
     shiny::checkboxInput(
       inputId = ns("co1Compatible_checkbox"),
       label = "Make output colums compatible with CO1",
@@ -34,8 +35,22 @@ mod_exportsCohorts_ui <- function(id) {
     shiny::downloadButton(ns("downloadData_downloadButton"), "Export")
   )
 }
-
-
+#' Export Cohorts Server Module
+#'
+#' @param id Module ID
+#' @param r_databaseConnection Database connection object
+#'
+#' @return Server logic for the Export Cohorts module
+#' 
+#' @importFrom shiny moduleServer reactiveValues observe observeEvent isTruthy req
+#' @importFrom shinyjs toggleState
+#' @importFrom shinyWidgets updatePickerInput show_alert sendSweetAlert
+#' @importFrom dplyr filter select pull transmute
+#' @importFrom tibble add_column tibble
+#' @importFrom HadesExtras getCohortDataFromCohortTable
+#' @importFrom ParallelLogger logError logWarn
+#'
+#' @export
 mod_exportsCohorts_server <- function(id, r_databaseConnection) {
 
   shiny::moduleServer(id, function(input, output, session) {

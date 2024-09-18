@@ -1,9 +1,33 @@
-
+#' UI Module for Append Cohort
+#'
+#' This function creates the UI components necessary for appending cohorts.
+#'
+#' @return A UI component for appending cohorts.
+#' 
+#' @importFrom shinyWidgets useSweetAlert
+#' 
+#' @export
 mod_fct_appendCohort_ui <- function() {
   shinyWidgets::useSweetAlert()
 }
 
-
+#' Server Module for Append Cohort
+#'
+#' This function handles the server-side logic for appending cohorts.
+#'
+#' @param id A unique identifier for the module.
+#' @param r_databaseConnection A reactive database connection object.
+#' @param r_cohortDefinitionSetToAdd A reactive object containing the cohort definition set to add.
+#'
+#' @return A reactive value indicating the number of times cohorts have been appended.
+#' 
+#' @importFrom shiny moduleServer reactiveValues observeEvent observe req
+#' @importFrom shinyWidgets confirmSweetAlert
+#' @importFrom htmltools HTML
+#' @importFrom dplyr pull intersect mutate left_join rename if_else select
+#' @importFrom ParallelLogger logInfo
+#' 
+#' @export
 mod_fct_appendCohort_server <- function(id, r_databaseConnection, r_cohortDefinitionSetToAdd ){
   shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns

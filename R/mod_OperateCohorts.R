@@ -1,15 +1,16 @@
-#' operateCohorts UI Function
+
+#' Operate Cohorts UI Module
 #'
-#' @description A shiny Module.
+#' This module provides the UI for operating cohorts, including defining cohort operations,
+#' visualizing cohort intersections with an UpSet plot, and creating new cohorts.
 #'
-#' @param id,input,output,session Internal parameters for {shiny}.
+#' @param id A namespace identifier for the module.
 #'
-#' @noRd
-#'
-#' @importFrom shiny NS fileInput actionButton
-#' @importFrom htmltools tagList hr
+#' @importFrom shiny NS tagList tags plotOutput textOutput actionButton
+#' @importFrom htmltools hr div
 #' @importFrom shinyjs useShinyjs
-#' @importFrom reactable reactableOutput
+#'
+#' @return A UI definition for the operate cohorts module.
 mod_operateCohorts_ui <- function(id) {
   ns <- shiny::NS(id)
   htmltools::tagList(
@@ -31,10 +32,30 @@ mod_operateCohorts_ui <- function(id) {
     shiny::textOutput(ns("newCohortName_text")),
     shiny::tags$br(),
     shiny::actionButton(ns("create_actionButton"), "Create new cohort")
-
   )
 }
-
+#' Operate Cohorts Server Module
+#'
+#' This module provides the server logic for operating cohorts, including defining cohort operations,
+#' visualizing cohort intersections with an UpSet plot, and creating new cohorts.
+#'
+#' @param id A namespace identifier for the module.
+#' @param r_databaseConnection A reactive database connection object.
+#'
+#' @importFrom shiny moduleServer reactiveValues observe observeEvent renderText renderPlot req isTruthy
+#' @importFrom shinyjs toggleState
+#' @importFrom dplyr filter pull mutate select group_by summarise across all_of any_of
+#' @importFrom stringr str_extract str_replace_all str_detect str_c str_split
+#' @importFrom rlang syms
+#' @importFrom ggplot2 ggplot aes geom_bar guides geom_text scale_fill_grey labs theme_light theme element_text
+#' @importFrom ggupset scale_x_upset
+#' @importFrom forcats as_factor
+#' @importFrom tidyr unnest
+#' @importFrom CohortGenerator createCohortSubsetDefinition addCohortSubsetDefinition
+#' @importFrom HadesExtras operationStringToSQL createOperationSubset
+#' @importFrom ParallelLogger logInfo
+#'
+#' @return A server module for operating cohorts.
 mod_operateCohorts_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -142,10 +163,10 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
         stringToShow  <- "----"
       }
       if(!is.null(r$operationStringError)){
-        stringToShow  <- paste("❌", r$operationStringError)
+        stringToShow  <- paste("\u274C", r$operationStringError)
       }
       if(!is.null(r$cohortDefinitionSet)){
-        stringToShow  <- paste("✅", r$cohortDefinitionSet$cohortName)
+        stringToShow  <- paste("\u2705", r$cohortDefinitionSet$cohortName)
       }
 
       ParallelLogger::logInfo("[Operate cohorts] Operation: ", stringToShow)
@@ -243,6 +264,21 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
   })
 }
 
+#' Plot UpSet Cohorts Overlap
+#'
+#' This function generates an UpSet plot to visualize the overlap between different cohorts.
+#'
+#' @param cohortOverlap A data frame containing the overlap information between cohorts.
+#' @param nameToShortName A data frame mapping cohort names to their short names.
+#'
+#' @return A ggplot object representing the UpSet plot of cohort overlaps.
+#' @importFrom dplyr select mutate across all_of cur_column group_by summarise left_join
+#' @importFrom stringr str_c str_split
+#' @importFrom rlang syms
+#' @importFrom tidyr unnest
+#' @importFrom ggplot2 ggplot aes geom_bar guides geom_text scale_fill_grey labs theme_light theme element_text
+#' @importFrom ggupset scale_x_upset
+#' @importFrom forcats as_factor
 .plot_upset_cohortsOverlap <- function(cohortOverlap, nameToShortName) {
 
   # check if newset column is present
@@ -296,10 +332,3 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
 
   return(g)
 }
-
-
-
-
-
-
-
