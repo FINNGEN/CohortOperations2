@@ -35,7 +35,8 @@ Imports:
     rlang, 
     tidyr,
     HadesExtras,
-    ROhdsiWebApi
+    ROhdsiWebApi,
+    FinnGenUtilsR
 Remotes: 
     FINNGEN/HadesExtras,
     FINNGEN/FinnGenUtilsR,
