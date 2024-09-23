@@ -78,7 +78,6 @@ fcr_setUpLogger  <- function(){
 
   shiny::addResourcePath("logs", folderWithLog)
 
-  return(logger)
 }
 
 

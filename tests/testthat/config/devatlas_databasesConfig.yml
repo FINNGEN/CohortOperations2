@@ -1,9 +1,36 @@
-# EUNOMIA
+# BigQuery configuration
 BQ1:
   cohortTableHandler:
     database:
       databaseId: BQ1
       databaseName: bigquery1
+      databaseDescription: BigQuery database (dev ATLAS)
+    connection:
+      connectionDetailsSettings:
+        dbms: bigquery
+        user: ""
+        password: ""
+        connectionString: jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=<OAuthPvtKeyPath>;Timeout=100000;
+        pathToDriver: <pathToDriver>/bigquery
+      tempEmulationSchema: atlas-development-270609.sandbox #optional
+      useBigrqueryUpload: true #optional
+    cdm:
+      cdmDatabaseSchema: atlas-development-270609.etl_sam_r11_omop
+      vocabularyDatabaseSchema: atlas-development-270609.etl_sam_r11_omop
+    cohortTable:
+      cohortDatabaseSchema: atlas-development-270609.sandbox
+      cohortTableName:  test_cohort_<timestamp>
+  atlasConfig:
+    webapiurl: http://localhost:8787/WebAPI
+    sourcekey:
+    resultsshchema:
+
+# BigQuery configuration
+BQ2:
+  cohortTableHandler:
+    database:
+      databaseId: BQ2
+      databaseName: bigquery2
       databaseDescription: BigQuery database
     connection:
       connectionDetailsSettings:
@@ -19,7 +46,8 @@ BQ1:
       vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_r11
     cohortTable:
       cohortDatabaseSchema: atlas-development-270609.sandbox
-      cohortTableName: test_cohort_table
-#  atlasConfig:
-#     webapi:
-#     resultsshchema:
+      cohortTableName: test_cohort_<timestamp>
+  atlasConfig:
+    webapiurl: http://localhost:8787/WebAPI
+    sourcekey:
+    resultsshchema:
