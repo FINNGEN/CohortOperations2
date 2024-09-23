@@ -8,14 +8,27 @@
 mod_appVersion_ui <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
-    shiny::h4("System version:"),
-    shiny::htmlOutput(ns("systemVersion_textOutput")),
-    shiny::br(),
-    shiny::h4("App and AnalysisModules version:"),
-    reactable::reactableOutput(ns("appVersion_reactable")),
-    shiny::br(),
-    shiny::h4("Dependencies version:"),
-    reactable::reactableOutput(ns("dependencies_reactable"))
+    shiny::tabsetPanel(
+      shiny::tabPanel(
+        title = "NEWS: CohortOperations2",
+        htmltools::includeMarkdown(system.file("NEWS.md",package = 'CohortOperations2'))
+      ),
+      shiny::tabPanel(
+        title = "NEWS: CO2AnalysisModules",
+        htmltools::includeMarkdown(system.file("NEWS.md",package = 'CO2AnalysisModules'))
+      ),
+      shiny::tabPanel(
+        title = "System and Dependencies",
+        shiny::h4("System version:"),
+        shiny::htmlOutput(ns("systemVersion_textOutput")),
+        shiny::br(),
+        shiny::h4("App and AnalysisModules version:"),
+        reactable::reactableOutput(ns("appVersion_reactable")),
+        shiny::br(),
+        shiny::h4("Dependencies version:"),
+        reactable::reactableOutput(ns("dependencies_reactable"))
+      )
+    )
   )
 }
 
@@ -40,11 +53,11 @@ mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
       dependenciesTibble <- dplyr::bind_rows(
         dependenciesTibble,
         tibble::tibble(
-        Package = dependenciesList[[package]]$Package,
-        Version = dependenciesList[[package]]$Version,
-        Source = dependenciesList[[package]]$Source,
-        Repository = dependenciesList[[package]]$Repository,
-        Hash = dependenciesList[[package]]$Hash
+          Package = dependenciesList[[package]]$Package,
+          Version = dependenciesList[[package]]$Version,
+          Source = dependenciesList[[package]]$Source,
+          Repository = dependenciesList[[package]]$Repository,
+          Hash = dependenciesList[[package]]$Hash
         )
       )
     }
@@ -68,12 +81,13 @@ mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
 
     output$dependencies_reactable <- reactable::renderReactable({
       dependenciesTibble |>
-      dplyr::arrange(Package) |>
-      reactable::reactable(
-        filterable = TRUE,
-        pagination = TRUE
-      )
+        dplyr::arrange(Package) |>
+        reactable::reactable(
+          filterable = TRUE,
+          pagination = TRUE
+        )
     })
+
   })
 }
 

@@ -109,7 +109,7 @@ app_ui <- function(request) {
     shinydashboard::tabItem(
       tabName = "appVersion",
       shinydashboard::box(
-        title = "App version",
+        title = "App News",
         status = "primary", solidHeader = TRUE, width = 12,
         mod_appVersion_ui("appVersion")
       )
@@ -172,7 +172,8 @@ app_ui <- function(request) {
             )
           }),
           shiny::h5(" About"),
-          shinydashboard::menuItem("App version", tabName = "appVersion", icon = shiny::icon("info-circle"))
+          shinydashboard::menuItem("App News", tabName = "appVersion", icon = shiny::icon("info-circle")),
+          shinydashboard::menuItem("App Logs", icon = shiny::icon("info-circle"), href = "/logs/log.txt")
         )
       ),
 
