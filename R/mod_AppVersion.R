@@ -56,7 +56,7 @@ mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
           Package = dependenciesList[[package]]$Package,
           Version = dependenciesList[[package]]$Version,
           Source = dependenciesList[[package]]$Source,
-          Repository = dependenciesList[[package]]$Repository,
+          RemoteRef = dependenciesList[[package]]$RemoteRef,
           Hash = dependenciesList[[package]]$Hash
         )
       )
@@ -70,6 +70,7 @@ mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
 
     output$appVersion_reactable <- reactable::renderReactable({
       appVersion <- dependenciesTibble  |>
+        dplyr::select(Package, Version, Source, RemoteRef, Hash) |>
         # TEMP hard code CO2AnalysisModules
         dplyr::filter(Package %in% c("CohortOperations2", "CO2AnalysisModules"))
 
@@ -81,6 +82,7 @@ mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
 
     output$dependencies_reactable <- reactable::renderReactable({
       dependenciesTibble |>
+        dplyr::select(Package, Version, Source, RemoteRef, Hash) |>
         dplyr::arrange(Package) |>
         reactable::reactable(
           filterable = TRUE,
