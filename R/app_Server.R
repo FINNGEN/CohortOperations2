@@ -9,6 +9,7 @@ app_server <- function(input, output, session) {
   databasesConfig <- shiny::getShinyOption("databasesConfig")
   analysisModulesConfig <- shiny::getShinyOption("analysisModulesConfig")
 
+
   # This is a reactive value with cohortTableHandler and a counter to indicate a change with in the object
   # Because the cohortTableHandler is a pointe to an object, it changes only when the the selected database changes, but changes with in the object are not reflected
   # To comunicate changes with in the object, we use a counter: hasChangeCounter
@@ -16,9 +17,20 @@ app_server <- function(input, output, session) {
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = NULL,
     atlasConfig = NULL,
-    hasChangeCounter = 0
+    hasChangeCounter = 0,
+    connection_sandboxAPI = NULL
   )
 
+  # get connection sandbox API configured for running GWAS
+  tryCatch({
+    connection_sandboxAPI <- configGWAS()
+  }, error=function(e) {
+    ParallelLogger::logError("[configGWAS]: ", e$message)
+  }, warning=function(w) {
+    ParallelLogger::logWarn("[configGWAS]: ", w$message)
+  })
+
+  r_databaseConnection$connection_sandboxAPI = connection_sandboxAPI
 
   mod_selectDatabases_server("selectDatabases", databasesConfig, r_databaseConnection)
 

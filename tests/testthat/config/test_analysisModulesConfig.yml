@@ -32,4 +32,5 @@ runGWAS_CO2AnalysisModules:
   mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_GWAS_ui
   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_GWAS_server
   fct_executeAnalysis: CO2AnalysisModules::execute_GWAS
-  url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+  url_visualiseResults: https://pipelines.app.finngen.fi/pipelines
+  

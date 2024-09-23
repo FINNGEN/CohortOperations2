@@ -38,6 +38,7 @@ Imports:
     ROhdsiWebApi
 Remotes: 
     FINNGEN/HadesExtras,
+    FINNGEN/FinnGenUtilsR,
     OHDSI/ROhdsiWebApi
 Suggests: 
     rmarkdown,
