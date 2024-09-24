@@ -52,6 +52,8 @@ app_server <- function(input, output, session) {
     )
   })
 
+  mod_appVersion_server("appVersion")
+
 }
 
 
