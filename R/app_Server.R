@@ -21,6 +21,8 @@ app_server <- function(input, output, session) {
     connection_sandboxAPI = NULL
   )
 
+  connection_sandboxAPI  <- NULL
+
   # get connection sandbox API configured for running GWAS
   tryCatch({
     connection_sandboxAPI <- configGWAS()
