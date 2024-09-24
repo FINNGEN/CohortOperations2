@@ -64,7 +64,10 @@ fcr_setUpLogger  <- function(){
     threshold = "TRACE",
     appenders = list(
       # to console for tracking
-      .createConsoleAppenderForSandboxLogging(),
+      #.createConsoleAppenderForSandboxLogging(),
+      ParallelLogger::createConsoleAppender(
+        layout = ParallelLogger::layoutParallel()
+      ),
       # to file for showing in app
       ParallelLogger::createFileAppender(
         fileName = file.path(folderWithLog, "log.txt"),
