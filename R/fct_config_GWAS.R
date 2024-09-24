@@ -9,7 +9,7 @@ configGWAS <- function() {
 
   url <- "https://internal-api.app.finngen.fi/internal-api/"
 
-  path <- file.path(Sys.getenv("HOME"), '.sandbox_token')
+  path <- file.path(Sys.getenv("PATH_TO_SANDBOX_TOKEN"), '.sandbox_token')
 
   .sandbox_token <- readLines(path, warn=F)
 
