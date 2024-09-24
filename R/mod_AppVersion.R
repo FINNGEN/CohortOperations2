@@ -27,6 +27,14 @@ mod_appVersion_ui <- function(id) {
         shiny::br(),
         shiny::h4("Dependencies version:"),
         reactable::reactableOutput(ns("dependencies_reactable"))
+      ),
+      shiny::tabPanel(
+        title = "DatabasesConfig",
+        shiny::verbatimTextOutput(ns("databasesConfig_textOutput"))
+      ),
+      shiny::tabPanel(
+        title = "AnalysisModulesConfig",
+        shiny::verbatimTextOutput(ns("analysisModulesConfig_textOutput"))
       )
     )
   )
@@ -44,6 +52,9 @@ mod_appVersion_ui <- function(id) {
 mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    databasesConfig <- shiny::getShinyOption("databasesConfig")
+    analysisModulesConfig <- shiny::getShinyOption("analysisModulesConfig")
 
     rVersion  <- R.Version()
     dependenciesList <- renv::lockfile_read()$Packages
@@ -88,6 +99,14 @@ mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
           filterable = TRUE,
           pagination = TRUE
         )
+    })
+
+    output$databasesConfig_textOutput <- shiny::renderText({
+      yaml::as.yaml(databasesConfig)
+    })
+
+    output$analysisModulesConfig_textOutput <- shiny::renderText({
+      yaml::as.yaml(analysisModulesConfig)
     })
 
   })
