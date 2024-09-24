@@ -66,7 +66,7 @@ fcr_setUpLogger  <- function(){
       # to console for tracking
       #.createConsoleAppenderForSandboxLogging(),
       ParallelLogger::createConsoleAppender(
-        layout = ParallelLogger::layoutParallel()
+        layout = ParallelLogger::layoutParallel
       ),
       # to file for showing in app
       ParallelLogger::createFileAppender(
