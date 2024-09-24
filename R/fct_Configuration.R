@@ -64,10 +64,7 @@ fcr_setUpLogger  <- function(){
     threshold = "TRACE",
     appenders = list(
       # to console for tracking
-      #.createConsoleAppenderForSandboxLogging(),
-      ParallelLogger::createConsoleAppender(
-        layout = ParallelLogger::layoutParallel
-      ),
+      .createConsoleAppenderForSandboxLogging(),
       # to file for showing in app
       ParallelLogger::createFileAppender(
         fileName = file.path(folderWithLog, "log.txt"),
@@ -98,7 +95,7 @@ fcr_setUpLogger  <- function(){
     # Avoid note in check:
     missing(this)
     message <- paste0("[sandbox-co2-log] ", message)
-    writeLines(message, con = stdout())
+    writeLines(message, con = stderr())
   }
   appender <- list(appendFunction = appendFunction, layout = layout)
   class(appender) <- "Appender"

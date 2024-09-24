@@ -68,7 +68,7 @@ mod_appVersion_server <- function(id, databasesConfig, r_databaseConnection) {
           Version = dependenciesList[[package]]$Version,
           Source = dependenciesList[[package]]$Source,
           RemoteRef = dependenciesList[[package]]$RemoteRef,
-          Hash = dependenciesList[[package]]$Hash
+          RemoteSha = dependenciesList[[package]]$RemoteSha
         )
       )
     }
