@@ -17,8 +17,7 @@ app_server <- function(input, output, session) {
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = NULL,
     atlasConfig = NULL,
-    hasChangeCounter = 0,
-    connection_sandboxAPI = NULL
+    hasChangeCounter = 0
   )
 
   connection_sandboxAPI  <- NULL
@@ -32,7 +31,12 @@ app_server <- function(input, output, session) {
     ParallelLogger::logWarn("[configGWAS]: ", w$message)
   })
 
-  r_databaseConnection$connection_sandboxAPI = connection_sandboxAPI
+  ParallelLogger::logInfo("[configGWAS]: established connection using details",
+                          "\nnotification_email:", connection_sandboxAPI$notification_email,
+                          "\nname:", connection_sandboxAPI$name,
+                          "\nbase_url:", connection_sandboxAPI$base_url)
+
+  r_databaseConnection$connection_sandboxAPI <- connection_sandboxAPI
 
   mod_selectDatabases_server("selectDatabases", databasesConfig, r_databaseConnection)
 
