@@ -26,3 +26,11 @@ timeCodeWAS_CO2AnalysisModules:
   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_timeCodeWAS_server
   fct_executeAnalysis: CO2AnalysisModules::execute_timeCodeWAS
   url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+runGWAS_CO2AnalysisModules:
+  analysisName: "GWAS"
+  icon: "magnifying-glass-chart"
+  mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_GWAS_ui
+  mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_GWAS_server
+  fct_executeAnalysis: CO2AnalysisModules::execute_GWAS
+  url_visualiseResults: https://pipelines.app.finngen.fi/pipelines
+  
