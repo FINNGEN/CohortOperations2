@@ -1,10 +1,14 @@
 
-#' Title
+#' Configure GWAS API Connection
 #'
-#' @return
+#' This function configures and establishes a connection to the FinnGen internal GWAS API
+#' using the `FinnGenUtilsR` package. It retrieves the sandbox token from the environment
+#' and uses it to authenticate the connection to the sandbox API.
+#'
+#' @return A connection object to the FinnGen sandbox API.
+#'
+#' @importFrom FinnGenUtilsR createSandboxAPIConnection
 #' @export
-#'
-#' @examples
 configGWAS <- function() {
 
   url <- "https://internal-api.app.finngen.fi/internal-api/"

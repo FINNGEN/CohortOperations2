@@ -36,7 +36,9 @@ Imports:
     tidyr,
     HadesExtras,
     ROhdsiWebApi,
-    FinnGenUtilsR
+    FinnGenUtilsR,
+    bigrquery,
+    renv
 Remotes: 
     FINNGEN/HadesExtras,
     FINNGEN/FinnGenUtilsR,
