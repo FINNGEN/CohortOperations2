@@ -78,7 +78,6 @@ fcr_setUpLogger  <- function(){
 
   shiny::addResourcePath("logs", folderWithLog)
 
-  return(logger)
 }
 
 
@@ -95,7 +94,7 @@ fcr_setUpLogger  <- function(){
     # Avoid note in check:
     missing(this)
     message <- paste0("[sandbox-co2-log] ", message)
-    writeLines(message, con = stdout())
+    writeLines(message, con = stderr())
   }
   appender <- list(appendFunction = appendFunction, layout = layout)
   class(appender) <- "Appender"

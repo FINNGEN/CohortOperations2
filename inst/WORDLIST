@@ -3,6 +3,8 @@ AssertCollection
 CodeWAS
 CohortOperations
 Eunomia
+FinnGen
+GWAS
 Lifecycle
 OMOP
 ParallelLogger
@@ -10,6 +12,7 @@ RStudio
 UI
 UpSet
 YAML
+appVersion
 appender
 appenders
 dna

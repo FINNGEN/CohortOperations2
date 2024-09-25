@@ -136,19 +136,181 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
         dplyr::slice(r$selectedIndex) |>
         dplyr::pull(id)
 
-      cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
-        baseUrl = webApiUrl,
-        cohortIds = selectedCohortIds
+      # sources from atlas
+      sourcesAtlas <- as.data.frame(ROhdsiWebApi::getCdmSources(baseUrl = webApiUrl))
+      rownames(sourcesAtlas) <- sourcesAtlas$sourceKey
+
+      # cdm schemas - selects value for the currently selected picker
+      # loads all cohorts from a single OMOP
+      cohortTableHandler <- r_databaseConnection$cohortTableHandler
+      cdmDatabaseSchema  <- cohortTableHandler$cdmDatabaseSchema
+      vocabularyDatabaseSchema  <-  cohortTableHandler$vocabularyDatabaseSchema
+      cdmSchemaProjectId <- strsplit(cdmDatabaseSchema, "\\.")[[1]][1]
+
+      # cohort table configs
+      cohortTableNames <- cohortTableHandler$cohortTableNames
+      cohortDatabaseSchema <- cohortTableHandler$cohortDatabaseSchema
+
+      generateNewCohortIds <- NULL
+      validCohortGenerations <- NULL
+      cohortDefinitionSetCopyExisting <- NULL
+      cohortDefinitionSetCreate <- NULL
+
+      for (cohortId in selectedCohortIds){
+
+        cohortDef <- ROhdsiWebApi::getCohortDefinition(
+          cohortId = cohortId,
+          baseUrl = webApiUrl
+        )
+
+        if ('modifiedDate' %in% names(cohortDef)){
+          modifyOrCreateTimestamp <- cohortDef$modifiedDate
+        } else {
+          modifyOrCreateTimestamp <- cohortDef$createdDate
+        }
+
+        # extract info about generations
+        cohortInfo <- ROhdsiWebApi::getCohortGenerationInformation(
+          cohortId = cohortId,
+          baseUrl = webApiUrl
+        )
+
+        # add more description
+        cohortInfo$description <- cohortDef$description
+        cohortInfo$name <- cohortDef$name
+
+        if (nrow(cohortInfo) == 0){
+          generateNewCohortIds <- c(generateNewCohortIds, cohortId)
+          next
+        }
+
+        # Use atlas cohort generation if the generation was built using same
+        # OMOP CDM and if multiple generations are found the latest is chosen
+        cohortInfo <- cohortInfo[
+          which(cohortInfo$status == 'COMPLETE' &
+                  cohortInfo$isValid &
+                  !cohortInfo$isCanceled &
+                  cohortInfo$startTime > modifyOrCreateTimestamp), ]
+
+        cohortInfo$cdmDatabaseSchema <- sourcesAtlas[cohortInfo$sourceKey, 'cdmDatabaseSchema']
+        cohortInfo$vocabDatabaseSchema <- sourcesAtlas[cohortInfo$sourceKey, 'vocabDatabaseSchema']
+        cohortInfo$resultsDatabaseSchema <- sourcesAtlas[cohortInfo$sourceKey, 'resultsDatabaseSchema']
+
+        # check which ones of the previous generations were done
+        # in the same CDM used in current version of CO
+        cohortInfo$cdmSourcesMapped <- unname(sapply(
+          cohortInfo$cdmDatabaseSchema, function(k)
+            length(grep(k, cdmDatabaseSchema))) > 0
+        )
+
+        cohortInfo <- cohortInfo[which(cohortInfo$cdmSourcesMapped), ]
+
+        if (nrow(cohortInfo) >= 1){
+
+          # take the latest generation information
+          validCohortGeneration <- cohortInfo[1, ]
+
+          # copy to destination BQ table
+          if (validCohortGeneration$personCount > 0){
+            validCohortGenerations <- rbind(
+              validCohortGenerations, validCohortGeneration
+            )
+          } else {
+            ParallelLogger::logInfo(
+              "[Import Cohort] no persons in the cohort - skipping", cohortId
+            )
+          }
+
+        } else {
+          # no valid cohorts available - generate new cohort
+          generateNewCohortIds <- c(generateNewCohortIds, cohortId)
+        }
+
+      }
+
+      # generate new cohorts
+      if (length(generateNewCohortIds) > 0){
+
+        cohortDefinitionSetCreate <- ROhdsiWebApi::exportCohortDefinitionSet(
+          baseUrl = webApiUrl,
+          cohortIds = generateNewCohortIds
+        )
+
+        cohortDefinitionSetCreate$cdmDatabaseSchema <- cdmDatabaseSchema
+        cohortDefinitionSetCreate$vocabDatabaseSchema <- vocabularyDatabaseSchema
+        cohortDefinitionSetCreate$cohortGenerated <- FALSE
+
+        ParallelLogger::logInfo(
+          "[Import from Atlas-", filterCohortsRegex,"] Importing cohorts (create new): ",
+          paste0(cohortDefinitionSetCreate$cohortName, collapse = ", "),
+          " with ids: ", paste0(cohortDefinitionSetCreate$cohortId, collapse = ", "))
+
+      }
+
+      # copy existing cohorts
+      if (!is.null(validCohortGenerations)) {
+
+        numberNewCohorts <- length(validCohortGenerations$cohortDefinitionId)
+        unusedCohortIdsInTargetTable <- setdiff(1:10000, cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
+
+        atlasCohortDefinitionTable <- r$atlasCohortsTable
+        colnames(atlasCohortDefinitionTable) <- paste0(
+          "cohort_definition_", colnames(atlasCohortDefinitionTable)
+        )
+
+        # schema in which cohort entries are available
+        resultsDatabaseSchema <- unique(
+          paste0(cdmSchemaProjectId, ".", validCohortGenerations$resultsDatabaseSchema)
+        )
+
+        # Copy from atlas results BQ table
+        cohortDefinitionSetCopyExisting <- HadesExtras::cohortTableToCohortDefinitionSettings(
+          cohortDatabaseSchema = resultsDatabaseSchema,
+          cohortDefinitionTable = atlasCohortDefinitionTable,
+          cohortDefinitionIds = validCohortGenerations$cohortDefinitionId,
+          newCohortDefinitionIds = unusedCohortIdsInTargetTable
+        )
+
+        # add atlas ids and schema
+        cohortDefinitionSetCopyExisting$atlasId  <- validCohortGenerations$cohortDefinitionId
+        cohortDefinitionSetCopyExisting$logicDescription <- validCohortGenerations$description
+        cohortDefinitionSetCopyExisting$cdmDatabaseSchema <- paste0(
+          cdmSchemaProjectId, ".", validCohortGenerations$cdmDatabaseSchema
+        )
+
+        cohortDefinitionSetCopyExisting$vocabDatabaseSchema <- paste0(
+          cdmSchemaProjectId, ".", validCohortGenerations$vocabDatabaseSchema
+        )
+
+        cohortDefinitionSetCopyExisting$resultsDatabaseSchema <- paste0(
+          cdmSchemaProjectId, ".", validCohortGenerations$resultsDatabaseSchema
+        )
+
+        cohortDefinitionSetCopyExisting$cohortGenerated <- TRUE
+
+        ParallelLogger::logInfo("[Import from Atlas-",
+                                filterCohortsRegex,"] Importing cohorts (copy existing): ",
+                                paste0(cohortDefinitionSetCopyExisting$cohortName, collapse = ", "),
+                                " with ids: ", paste0(cohortDefinitionSetCopyExisting$cohortId, collapse = ", "))
+
+        tryCatch({
+          .estimate_costs(cohortDefinitionSetCopyExisting$sql, cdmSchemaProjectId)
+        }, error=function(e) {
+          ParallelLogger::logError("[Import from Atlas]: ", e$message)
+        }, warning=function(w) {
+          ParallelLogger::logWarn("[Import from Atlas]: ", w$message)
+        })
+
+      }
+
+      cohortDefinitions <- dplyr::bind_rows(
+        cohortDefinitionSetCopyExisting, cohortDefinitionSetCreate
       )
 
-      r_cohortDefinitionSetToAdd$databaseName <- input$selectDatabases_pickerInput
-      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet
-
-      ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex,"] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
-                              " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId,
-                              " to database", input$selectDatabases_pickerInput)
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitions
 
       fct_removeSweetAlertSpinner()
+
     })
 
     #
@@ -164,3 +326,30 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
 
   })
 }
+
+
+.estimate_costs <- function(queries, projectId){
+
+  options(gargle_oauth_cache = FALSE)
+  bigrquery::bq_auth(scopes = "https://www.googleapis.com/auth/bigquery")
+
+  estimations <- c()
+  for (i in 1:length(queries)){
+    query <- queries[i]
+
+    sp <- strsplit(queries, split = '\n')[[1]]
+    rowid <- grep("SELECT", sp)
+    sql <- paste0(sp[rowid:length(sp)], collapse = "\n")
+
+    e <- bigrquery::bq_perform_query_dry_run(sql, projectId)
+    estimations <- c(estimations, e)
+  }
+
+  totbytes <- round(sum(as.numeric(estimations)))
+
+  ParallelLogger::logInfo("[Import from Atlas] Importing existing cohorts billing estimation: ",
+                          totbytes * 1e-9," GB (", totbytes, "b)")
+
+}
+
+

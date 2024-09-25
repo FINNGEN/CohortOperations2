@@ -2,6 +2,7 @@
 # SELECT DATABASE and CO2 CONFIGURATION
 #
 testingDatabase <- "Eunomia"
+#testingDatabase <- "AtlasDevelopment"
 testingAnalysisModulesConfig <- "CO2AnalysisModulesOnly"
 
 # check correct settings
@@ -58,10 +59,11 @@ if (testingDatabase %in% c("AtlasDevelopment") ) {
   test_databasesConfig <- readAndParseYalm(
     pathToYalmFile = testthat::test_path("config", "devatlas_databasesConfig.yml"),
     OAuthPvtKeyPath = Sys.getenv("GCP_SERVICE_KEY"),
-    pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")
+    pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER"),
+    timestamp = as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
   )
 
-  test_test_cohortTableHandlerConfig  <- test_databasesConfig[[1]]$cohortTableHandler
+  test_cohortTableHandlerConfig  <- test_databasesConfig[[1]]$cohortTableHandler
 }
 
 #

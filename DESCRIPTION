@@ -35,9 +35,13 @@ Imports:
     rlang, 
     tidyr,
     HadesExtras,
-    ROhdsiWebApi
+    ROhdsiWebApi,
+    FinnGenUtilsR,
+    bigrquery,
+    renv
 Remotes: 
     FINNGEN/HadesExtras,
+    FINNGEN/FinnGenUtilsR,
     OHDSI/ROhdsiWebApi
 Suggests: 
     rmarkdown,
