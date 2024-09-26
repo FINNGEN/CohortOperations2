@@ -1,13 +1,13 @@
 #' @title mod_selectDatabases_ui
-#' 
+#'
 #' @description UI module for selecting and connecting to databases.
-#' 
+#'
 #' @param id Shiny module ID.
-#' 
+#'
 #' @importFrom shiny NS tagList h2 br p checkboxInput h4
 #' @importFrom shinyWidgets useSweetAlert pickerInput
 #' @importFrom reactable reactableOutput
-#' 
+#'
 #' @return Shiny UI elements for the database selection module.
 mod_selectDatabases_ui <- function(id) {
   ns <- shiny::NS(id)
@@ -36,20 +36,20 @@ mod_selectDatabases_ui <- function(id) {
 }
 
 #' @title mod_selectDatabases_server
-#' 
+#'
 #' @description Server module for handling database selection and connection.
-#' 
+#'
 #' @param id Shiny module ID.
 #' @param databasesConfig Configuration list for databases.
 #' @param r_databaseConnection Reactive values for database connection.
-#' 
+#'
 #' @importFrom shiny moduleServer reactiveValues observe observeEvent req
 #' @importFrom shinyWidgets updatePickerInput
 #' @importFrom ParallelLogger logInfo
 #' @importFrom HadesExtras LogTibble createCohortTableHandlerFromList reactable_connectionStatus
 #' @importFrom dplyr mutate relocate
 #' @importFrom reactable renderReactable
-#' 
+#'
 #' @return Shiny server logic for the database selection module.
 mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -102,24 +102,45 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
       # TEMP, trigger garbage collector to delete the old handlers
       gc()
 
-      fct_removeSweetAlertSpinner()
-
-    })
-
-    shiny::observeEvent(r_databaseConnection$cohortTableHandler, {
-      shiny::req(input$selectDatabases_pickerInput)
-
       connectionStatusLogs <- r_databaseConnection$cohortTableHandler$connectionStatusLog
-
       ParallelLogger::logInfo("[Databases Connection] Connected to: ", connectionStatusLogs)
+
+      # check Atlas config
+      webapiurl <- databasesConfig[[input$selectDatabases_pickerInput]]$atlasConfig$webapiurl
+      error <- NULL
+      tryCatch({
+        dummy  <- ROhdsiWebApi::getCdmSources(webapiurl)
+      }, error = function(e) {
+        error <<- e$message
+      })
+
+      atlasStatusLogs <- tibble::tibble(
+        databaseId = cohortTableHandlerConfig$database$databaseId,
+        databaseName = cohortTableHandlerConfig$database$databaseName,
+        type = "SUCCESS",
+        step = "Check Atlas connection",
+        message = "Connected"
+      )
+      if(!is.null(error)){
+        atlasStatusLogs <- atlasStatusLogs |>
+          dplyr::mutate(
+            type = "ERROR",
+            message = error
+          )
+      }
+      connectionStatusLogs <- connectionStatusLogs |>
+        dplyr::bind_rows(atlasStatusLogs)
+
       r$connectionStatusLogs <- connectionStatusLogs
 
     })
 
     output$connectionStatusLogs_reactable <- reactable::renderReactable({
+      fct_removeSweetAlertSpinner()
 
       r$connectionStatusLogs |>
         HadesExtras::reactable_connectionStatus()
+
     })
 
 
