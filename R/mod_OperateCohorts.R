@@ -22,15 +22,15 @@ mod_operateCohorts_ui <- function(id) {
                    mod_dragAndDrop_ui(ns("dragAndDrop"))
     ),
     #
+    shiny::tags$h4("New cohort name"),
+    shiny::textOutput(ns("newCohortName_text")),
+    #
     htmltools::hr(),
     shiny::tags$h4("Cohort intersections - UpSet plot"),
     htmltools::div(style = "width: 90%; height: 300; overflow: auto; margin-left: 30px; padding: 10px;",
                    shiny::plotOutput(ns("upsetPlot"), width = "80%", height = "250px"),
     ),
     htmltools::hr(),
-    shiny::tags$h4("New cohort name"),
-    shiny::textOutput(ns("newCohortName_text")),
-    shiny::tags$br(),
     shiny::actionButton(ns("create_actionButton"), "Create new cohort")
   )
 }

@@ -275,14 +275,14 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
         dplyr::pull(cohortSubjects)
 
       # name
-      message <- paste0("\u2139 New cohort name : ", r$cohortDefinitionSet$cohortName, " \n")
+      message <- paste0("\u2139\uFE0F New cohort name : ", r$cohortDefinitionSet$cohortName, " \n")
 
       # counts
       if( nSubjectsCase > nSubjectsControl ){
         message <- paste0(message, "\u274C There are more subjects in matching/case cohort (", nSubjectsCase,") that in target/control cohort (", nSubjectsControl,"). Are you sure they are correct?\n")
       }else{
         if( nSubjectsCase * input$matchRatio_numericInput > nSubjectsControl){
-          message <- paste0(message, "\u26A0 There may be few subjects in target/control cohort (", nSubjectsControl,") to match from (number of subjects in matching/case * matching ratio = ",nSubjectsCase * input$matchRatio_numericInput,")\n")
+          message <- paste0(message, "\u26A0\uFE0F There may be few subjects in target/control cohort (", nSubjectsControl,") to match from (number of subjects in matching/case * matching ratio = ",nSubjectsCase * input$matchRatio_numericInput,")\n")
         }
       }
 
@@ -293,7 +293,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
         if(nSubjectsOverlap > nSubjectsCase * .20){
           message <- paste0(message, "\u274C There are many subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. Consider removing them in Operate Cohorts tab\n")
         }else{
-          message <- paste0(message, "\u26A0 There are few subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. \n")
+          message <- paste0(message, "\u26A0\uFE0F There are few subjects, ",nSubjectsOverlap, ", that overlap between matching/case and target/control cohorts. \n")
         }
       }
 
