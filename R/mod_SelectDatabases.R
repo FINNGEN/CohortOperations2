@@ -84,7 +84,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
       shiny::req(input$selectDatabases_pickerInput)
 
       fct_removeSweetAlertSpinner()
-      fct_sweetAlertSpinner("Connecting to databases")
+      fct_sweetAlertSpinner("Connecting to database")
 
       cohortTableHandlerConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$cohortTableHandler
       atlasConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$atlasConfig
@@ -97,7 +97,12 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
 
       # TEMP, create a timestaped table
       timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
-      cohortTableHandlerConfig$cohortTable$cohortTableName <- paste0(cohortTableHandlerConfig$cohortTable$cohortTableName, timestamp)
+      cohortTableName <- cohortTableHandlerConfig$cohortTable$cohortTableName
+      if(cohortTableName  |> stringr::str_detect("<timestamp>")){
+        cohortTableName <- cohortTableName |> stringr::str_replace("<timestamp>", timestamp)
+      }
+      cohortTableHandlerConfig$cohortTable$cohortTableName <- cohortTableName
+      ParallelLogger::logInfo("[Databases Connection] Create new table: ", cohortTableName)
       # END TEMP
 
       cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)

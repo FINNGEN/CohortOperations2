@@ -14,7 +14,7 @@ E1:
         vocabularyDatabaseSchema: main
     cohortTable:
         cohortDatabaseSchema: main
-        cohortTableName: test_cohort_table
+        cohortTableName: test_cohort_table_<timestamp>
   atlasConfig:
     webapiurl: https://api.ohdsi.org/WebAPI
     sourcekey:
@@ -36,7 +36,7 @@ E2:
         vocabularyDatabaseSchema: main
     cohortTable:
         cohortDatabaseSchema: main
-        cohortTableName: test_cohort_table
+        cohortTableName: test_cohort_table_<timestamp>
   atlasConfig:
     webapiurl: https://api.ohdsi.org/WebAPI
     sourcekey:
@@ -58,7 +58,7 @@ E3:
         vocabularyDatabaseSchema: main
     cohortTable:
         cohortDatabaseSchema: main
-        cohortTableName: test_cohort_table
+        cohortTableName: test_cohort_table_<timestamp>
   atlasConfig:
     webapiurl: https://api.ohdsi.org/wrong
     sourcekey:
