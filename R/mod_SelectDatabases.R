@@ -95,6 +95,11 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         loadConnectionChecksLevel <- "basicChecks"
       }
 
+      # TEMP, create a timestaped table
+      timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
+      cohortTableHandlerConfig$cohortTable$cohortTableName <- paste0(cohortTableHandlerConfig$cohortTable$cohortTableName, timestamp)
+      # END TEMP
+
       cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
       r_databaseConnection$cohortTableHandler <- cohortTableHandler
       r_databaseConnection$atlasConfig <- atlasConfig

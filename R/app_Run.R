@@ -20,18 +20,6 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
   databasesConfig  |> checkmate::assertList()
   analysisModulesConfig |> checkmate::assertList()
 
-  # set cohort table name + timestamp
-  for(dbId in names(databasesConfig)){
-    timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
-    cohortTableName <- databasesConfig[[dbId]]$cohortTableHandler$cohortTable$cohortTableName
-    if(cohortTableName  |> stringr::str_detect("<timestamp>")){
-      cohortTableName <- cohortTableName |> stringr::str_replace("<timestamp>", timestamp)
-    }else{
-      cohortTableName <- paste0(cohortTableName, "_", timestamp)
-    }
-    databasesConfig[[dbId]]$cohortTableHandler$cohortTable$cohortTableName <- cohortTableName
-  }
-
   #
   # GLOBAL SETTING
   #
