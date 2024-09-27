@@ -5,6 +5,12 @@
 #' @importFrom shiny getShinyOption reactiveValues
 #' @noRd
 app_server <- function(input, output, session) {
+
+  # set up loger
+  fcr_setUpLogger()
+  # log start
+  ParallelLogger::logInfo("[Start] Start logging")
+
   # get settings loaded from file
   databasesConfig <- shiny::getShinyOption("databasesConfig")
   analysisModulesConfig <- shiny::getShinyOption("analysisModulesConfig")
