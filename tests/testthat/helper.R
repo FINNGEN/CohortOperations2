@@ -12,12 +12,13 @@ helper_createNewCohortTableHandler <- function(addCohorts = NULL){
 
   loadConnectionChecksLevel = "basicChecks"
 
-  # TEMP
-  # name with current time with milisecond to avoid conflicts
-  cohortTableHandlerConfig$cohortTable$cohortTableName <- paste0(
-    cohortTableHandlerConfig$cohortTable$cohortTableName, "_",
-    gsub('\\.','',format(Sys.time(), "d%H%M%S%OS3"))
-  )
+  # TEMP, create a timestaped table
+  timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
+  cohortTableName <- cohortTableHandlerConfig$cohortTable$cohortTableName
+  if(cohortTableName  |> stringr::str_detect("<timestamp>")){
+    cohortTableName <- cohortTableName |> stringr::str_replace("<timestamp>", timestamp)
+  }
+  cohortTableHandlerConfig$cohortTable$cohortTableName <- cohortTableName
   # END TEMP
 
   cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
