@@ -14,7 +14,7 @@ E1:
         vocabularyDatabaseSchema: main
     cohortTable:
         cohortDatabaseSchema: main
-        cohortTableName: test_cohort_table
+        cohortTableName: test_cohort_table_<timestamp>
   atlasConfig:
     webapiurl: https://api.ohdsi.org/WebAPI
     sourcekey:
@@ -36,9 +36,31 @@ E2:
         vocabularyDatabaseSchema: main
     cohortTable:
         cohortDatabaseSchema: main
-        cohortTableName: test_cohort_table
+        cohortTableName: test_cohort_table_<timestamp>
   atlasConfig:
     webapiurl: https://api.ohdsi.org/WebAPI
+    sourcekey:
+    resultsshchema:
+
+    # EUNOMIA 2
+E3:
+  cohortTableHandler:
+    database:
+      databaseId: E3
+      databaseName: MIMICwrong
+      databaseDescription: Eunomia database MIMIC wrong atlas
+    connection:
+      connectionDetailsSettings:
+          dbms: sqlite
+          server: <pathToMIMICEunomiaSqlite>
+    cdm:
+        cdmDatabaseSchema: main
+        vocabularyDatabaseSchema: main
+    cohortTable:
+        cohortDatabaseSchema: main
+        cohortTableName: test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: https://api.ohdsi.org/wrong
     sourcekey:
     resultsshchema:
 

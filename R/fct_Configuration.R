@@ -58,7 +58,9 @@ fct_assertdatabasesConfig  <- function(databasesConfig) {
 #'
 #' @export
 fcr_setUpLogger  <- function(){
-  folderWithLog <- file.path(tempdir(), "logs")
+
+  timestamp  <- timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
+  folderWithLog <- file.path(tempdir(),  paste0("logs", timestamp))
   dir.create(folderWithLog, showWarnings = FALSE)
   logger <- ParallelLogger::createLogger(
     threshold = "TRACE",
