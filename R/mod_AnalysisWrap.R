@@ -93,7 +93,6 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
       pathToResultsDatabase <- NULL
       analysisError <- NULL
       pathToResultsDatabase <- tryCatch({
-        browser()
         fct_executeAnalysis(
           exportFolder = exportFolder,
           cohortTableHandler = cohortTableHandler,
@@ -135,11 +134,11 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
       # if successful
       if(is.null(r$analysisResults$analysisError)){
         resultMessage <- paste0("\u2705 Success\n",
-                                "\u1F552 Running time: ", analysisDurationText, "\n"
+                                "\U0001F550 Running time: ", analysisDurationText, "\n"
         )
       }else{
         resultMessage <- paste0("\u274C Error\n",
-                                "\u1F4C4 Message: ",  r$analysisResults$analysisError, "\n")
+                                "\U0001F4C4 Message: ",  r$analysisResults$analysisError, "\n")
       }
 
       ParallelLogger::logInfo("[Analysis: ", analysisName,"] Results message: ", resultMessage)
