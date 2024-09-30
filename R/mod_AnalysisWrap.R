@@ -103,7 +103,7 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
         pathToResultsDatabase <<- NULL
       })
 
-      ParallelLogger::logInfo("[Analysis: ", analysisName,"] End analysis")
+      ParallelLogger::logInfo("[Analysis: ", analysisName,"] End analysis. Result: ", pathToResultsDatabase)
       fct_removeSweetAlertSpinner()
       analysisDuration <- Sys.time() - startTime
 
