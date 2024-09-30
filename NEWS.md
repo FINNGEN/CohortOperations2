@@ -1,3 +1,7 @@
+# CohortOperations2 1.0.1
+
+- Minor hot fixes
+
 # CohortOperations2 1.0.0
 - Major beta release
 - Analyses moved to `CO2AnalysisModules`
