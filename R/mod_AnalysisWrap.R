@@ -151,8 +151,7 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
     #
     shiny::observe({
       condition <- shiny::isTruthy(r$analysisResults) &&
-        is.null(r$analysisResults$analysisError) &&
-        !is.null(r$analysisResults$pathToResultsDatabase)
+        is.null(r$analysisResults$analysisError)
       shinyjs::toggleState("download_actionButton", condition = condition )
       shinyjs::toggleState("view_actionButton", condition = condition )
     })
@@ -165,8 +164,7 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
       filename = function(){paste0(analysisName, "_analysisResults.sqlite")},
       content = function(fname){
         condition <- shiny::isTruthy(r$analysisResults) &&
-          is.null(r$analysisResults$analysisError) &&
-          !is.null(r$analysisResults$pathToResultsDatabase)
+          is.null(r$analysisResults$analysisError)
 
         if(condition){
           file.copy(r$analysisResults$pathToResultsDatabase, fname)
