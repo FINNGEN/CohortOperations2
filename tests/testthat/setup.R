@@ -59,8 +59,7 @@ if (testingDatabase %in% c("AtlasDevelopment") ) {
   test_databasesConfig <- readAndParseYalm(
     pathToYalmFile = testthat::test_path("config", "devatlas_databasesConfig.yml"),
     OAuthPvtKeyPath = Sys.getenv("GCP_SERVICE_KEY"),
-    pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER"),
-    timestamp = as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
+    pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")
   )
 
   test_cohortTableHandlerConfig  <- test_databasesConfig[[1]]$cohortTableHandler

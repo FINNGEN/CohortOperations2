@@ -10,7 +10,7 @@
 #' @importFrom httr set_config config
 #' @importFrom shiny shinyApp
 #' @importFrom ParallelLogger logInfo
-#' 
+#'
 #' @return A Shiny application object.
 #' @export
 run_app <- function(databasesConfig, analysisModulesConfig, ...) {
@@ -30,9 +30,6 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
   # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
 
-  # set up loger
-  fcr_setUpLogger()
-
   #
   # Create app
   #
@@ -50,9 +47,5 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
   #
   # Launch app
   #
-
-  # log start
-  ParallelLogger::logInfo("[Start] Start logging on ", app$appOptions$gitInfo)
-
   return(app)
 }

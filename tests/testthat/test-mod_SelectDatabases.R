@@ -30,6 +30,7 @@ test_that("mod_cohortWorkbench_server updates r_databaseConnection when database
       output$connectionStatusLogs_reactable  |> expect_match('"databaseName":\\["GiBleed","GiBleed",')
       r_databaseConnection$hasChangeCounter |> expect_equal(1)
       r_databaseConnection$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
+      r$connectionStatusLogs  |> dplyr::filter(step == "Check Atlas connection")  |> dplyr::pull(message) |> expect_equal("Connected")
 
       # inputs
       session$setInputs(
@@ -41,6 +42,19 @@ test_that("mod_cohortWorkbench_server updates r_databaseConnection when database
       output$connectionStatusLogs_reactable  |> expect_match('"databaseName":\\["MIMIC","MIMIC",')
       r_databaseConnection$hasChangeCounter |> expect_equal(2)
       r_databaseConnection$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
+      r$connectionStatusLogs  |> dplyr::filter(step == "Check Atlas connection")  |> dplyr::pull(message) |> expect_equal("Connected")
+
+      # inputs
+      session$setInputs(
+        selectDatabases_pickerInput = databasesConfig |> names() |> dplyr::nth(3),
+        allChecks_checkbox = FALSE
+      )
+
+      # test
+      output$connectionStatusLogs_reactable  |> expect_match('"databaseName":\\["MIMICwrong","MIMICwrong",')
+      r_databaseConnection$hasChangeCounter |> expect_equal(3)
+      r_databaseConnection$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
+      r$connectionStatusLogs  |> dplyr::filter(step == "Check Atlas connection")  |> dplyr::pull(message) |> expect_match("Could not reach WebApi")
 
 
     }
