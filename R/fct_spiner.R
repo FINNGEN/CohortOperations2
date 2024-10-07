@@ -1,3 +1,16 @@
+
+fct_setUpSpinner <- function() {
+  # get path from inst
+  pathToLogo <- system.file("www", "finngen.gif", package = "CohortOperations2")
+  pathToServedLogo <- file.path(tempdir(), "www", "finngen.gif")
+  # create temp dir
+  dir.create(file.path(tempdir(), "www"))
+  file.copy(pathToLogo, pathToServedLogo, overwrite = TRUE)
+  shiny::addResourcePath("www", file.path(tempdir(), "www"))
+}
+
+
+
 #' ui_load_spinner
 #'
 #' Adds dna spinner to a ui_element
@@ -11,8 +24,9 @@
 ui_load_spinner <- function(ui_element, ...) {
   shinycustomloader::withLoader(
     ui_element,
-    type = "html",
-    loader = "dnaspin",
+    type = "image",
+    loader = "/www/finngen.gif",
+    proxy.height = "200px",
     ...
   )
 }

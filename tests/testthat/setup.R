@@ -2,7 +2,7 @@
 # SELECT DATABASE and CO2 CONFIGURATION
 #
 testingDatabase <- "Eunomia"
-#testingDatabase <- "AtlasDevelopment"
+testingDatabase <- "AtlasDevelopment"
 testingAnalysisModulesConfig <- "CO2AnalysisModulesOnly"
 
 # check correct settings

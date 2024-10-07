@@ -30,6 +30,9 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
   # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
 
+  # serve logo
+  fct_setUpSpinner()
+
   #
   # Create app
   #

@@ -2,7 +2,8 @@
 # setup  ------------------------------------------------------------------
 
 fcr_setUpLogger()
- 
+fct_setUpSpinner()
+
 # run ---------------------------------------------------------------------
 devtools::load_all(".")
 
@@ -54,7 +55,6 @@ app <- shiny::shinyApp(
   )
 )
 
-cohortOperationsConfig <- yaml::read_yaml(testthat::test_path("config", "cohortOperationsConfig.yml"))
-app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
+
 app
 
