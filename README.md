@@ -40,7 +40,7 @@ remotes::install_github("FINNGEN/CO2AnalysisModules")
 
 Run the demo:
 ``` r
-pathToCohortOperationsConfigYaml <- testthat::test_path("config", "devatlas_databasesConfig.yml")
+pathToCohortOperationsConfigYaml <- testthat::test_path("config", "eunomia_databasesConfig.yml")
 pathToDatabasesConfigYaml <- testthat::test_path("config", "test_analysisModulesConfig.yml")  
     
 CohortOperations2::runApp(
