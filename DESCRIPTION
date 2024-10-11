@@ -38,7 +38,8 @@ Imports:
     ROhdsiWebApi,
     FinnGenUtilsR,
     bigrquery,
-    renv
+    renv,
+    markdown
 Remotes: 
     FINNGEN/HadesExtras,
     FINNGEN/FinnGenUtilsR,

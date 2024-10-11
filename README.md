@@ -24,33 +24,64 @@ Sources for analyses modules can be found in:
 
 ## Demo
 
+A demo configuration is provided using Eunomia databases (GiBleed and MIMIC) and the [public ATLAS instance](https://atlas-demo.ohdsi.org/).
+
+Demo can be run using Docker, which is more convenient, or R.
+
+### Using Docker 
+
 A demo app can be run using the following Docker project:
 
 [FINNGEN/CO2DockerDemo](https://github.com/FINNGEN/CO2DockerDemo)
+
+### Using R
 
 Alternatively, it can be run locally using the following R commands:
 
 Install the package and dependencies:
 ``` r
-install.packages("remotes")
-remotes::install_github("FINNGEN/CohortOperations2")
-# necessary to run the demo with the CO2AnalysisModules
-remotes::install_github("FINNGEN/CO2AnalysisModules")
+install.packages("renv")
+renv::init()
+renv::install("FINNGEN/CohortOperations2", prompt = FALSE, lock = TRUE)
+renv::install("FINNGEN/CO2AnalysisModules", prompt = FALSE, lock = TRUE)
+# TEMPORARY FIX, atm it needs some specific versions of dbplyr and FeatureExtraction
+renv::install("dbplyr@2.4.0", prompt = FALSE, lock = TRUE)
+renv::install("FeatureExtraction@3.6.0", prompt = FALSE, lock = TRUE)
 ```
 
-Run the demo:
+Get the config files from github:
+``` bash
+wget https://raw.githubusercontent.com/FINNGEN/CohortOperations2/master/tests/testthat/config/eunomia_databasesConfig.yml
+wget https://raw.githubusercontent.com/FINNGEN/CohortOperations2/master/tests/testthat/config/test_analysisModulesConfig.yml
+```
+
+Prepare config:
 ``` r
-pathToCohortOperationsConfigYaml <- testthat::test_path("config", "eunomia_databasesConfig.yml")
-pathToDatabasesConfigYaml <- testthat::test_path("config", "test_analysisModulesConfig.yml")  
-    
-CohortOperations2::runApp(
-    pathToCohortOperationsConfigYaml = pathToCohortOperationsConfigYaml,
-    pathToDatabasesConfigYaml = pathToDatabasesConfigYaml,
-    options = list(port = 9999, launch.browser = TRUE)
+pathToGiBleedEunomiaSqlite <- Eunomia::getDatabaseFile("GiBleed")
+pathToMIMICEunomiaSqlite <- Eunomia::getDatabaseFile("MIMIC")
+
+databasesConfig <- CohortOperations2::readAndParseYalm(
+    pathToYalmFile =  "eunomia_databasesConfig.yml",
+    pathToGiBleedEunomiaSqlite = pathToGiBleedEunomiaSqlite,
+    pathToMIMICEunomiaSqlite = pathToMIMICEunomiaSqlite
+)
+
+analysisModulesConfig <- CohortOperations2::readAndParseYalm(
+    pathToYalmFile =  "test_analysisModulesConfig.yml"
 )
 ```
 
-This demo is configured to run using the Eunomia databases, GiBleed and MIMIC, connect to the [public ATLAS instance](https://atlas-demo.ohdsi.org/) and include all the analyses from the [CO2AnalysisModules package](https://github.com/FINNGEN/CO2AnalysisModules).
+Run the app:
+``` r
+CohortOperations2::run_app(
+  databasesConfig = databasesConfig,
+  analysisModulesConfig = analysisModulesConfig,
+  options = list(port = 9999, launch.browser = TRUE)
+)
+```
+
+This allows to run the CohortOperations2 app. However, to open the viewers, the corresponding viewer apps need to be running in the port stated in the analysisModulesConfig.yml file. For example using an other Rstudio
+
 
 ## Customization
 
