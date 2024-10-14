@@ -44,8 +44,7 @@ Remotes:
     FINNGEN/HadesExtras,
     FINNGEN/FinnGenUtilsR,
     OHDSI/ROhdsiWebApi
-Suggests: 
-    rmarkdown,
+Suggests:  
     testthat (>= 3.0.0),
     Eunomia,
     withr, 
