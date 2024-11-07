@@ -1,3 +1,7 @@
+# CohortOperations2 1.0.2
+
+- Fix 0 subjects when import cohort after matching
+
 # CohortOperations2 1.0.1
 
 - Minor hot fixes
