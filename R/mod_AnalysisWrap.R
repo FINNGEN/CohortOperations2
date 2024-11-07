@@ -70,6 +70,7 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
     # activate Run study if settings are valid
     #
     shiny::observe({
+      ParallelLogger::logInfo("[Analysis: ", analysisName,"] Analysis Settings changed: ", r$analysisSettings)
       condition <- shiny::isTruthy(r$analysisSettings)
       shinyjs::toggleState("runAnalysis_actionButton", condition = condition )
     })
