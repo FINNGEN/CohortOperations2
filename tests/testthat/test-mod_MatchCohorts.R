@@ -85,7 +85,7 @@ test_that("mod_MatchCohorts info text ", {
         selectControlCohort_pickerInput = 2,
         selectCaseCohort_pickerInput = 1
       )
-
+      
       output$info_text |> expect_match("New cohort name")
       output$info_text |> expect_no_match("There are more subjects in matching/case cohort")
       output$info_text |> expect_match("No subjects overlap between matching/case and target/control")

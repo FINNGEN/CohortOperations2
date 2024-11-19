@@ -41,9 +41,10 @@ Imports:
     renv,
     markdown
 Remotes: 
-    FINNGEN/HadesExtras,
+    FINNGEN/HadesExtras@towards_v2,
     FINNGEN/FinnGenUtilsR,
-    OHDSI/ROhdsiWebApi
+    OHDSI/ROhdsiWebApi,
+    javier-gracia-tabuenca-tuni/DatabaseConnector@BQ-DBI
 Suggests: 
     testthat (>= 3.0.0),
     Eunomia,
