@@ -43,6 +43,7 @@ Imports:
 Remotes: 
     FINNGEN/HadesExtras@towards_v2,
     FINNGEN/FinnGenUtilsR,
+    FINNGEN/CO2AnalysisModules,
     OHDSI/ROhdsiWebApi,
     javier-gracia-tabuenca-tuni/DatabaseConnector@BQ-DBI
 Suggests: 
