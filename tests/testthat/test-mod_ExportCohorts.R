@@ -11,6 +11,8 @@ test_that("mod_exportsCohorts produces file", {
     hasChangeCounter = 0
   )
 
+  # ignore warnings
+  withr::local_options(warn = 2)
   shiny::testServer(
     mod_exportsCohorts_server,
     args = list(
