@@ -57,7 +57,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       data = NULL,
       name = NULL
     )
-    
+
     r_dataToMap <- shiny::reactiveValues(
       data = NULL,
       name = NULL
@@ -133,11 +133,11 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       # if it has 4 columns or more check if it is cohortData
       if (ncol(importedTable) >= 4) {
         # TEMP: Check if FINNGENID column exists and rename to person_source_value
-        if ("FINNGENID" %in% colnames(importedTable) ) {
+        if ("FINNGENID" %in% colnames(importedTable)) {
           importedTable <- importedTable |>
             dplyr::rename(person_source_value = FINNGENID)
         }
-        if ("finngenid" %in% colnames(importedTable) ) {
+        if ("finngenid" %in% colnames(importedTable)) {
           importedTable <- importedTable |>
             dplyr::rename(person_source_value = finngenid)
         }

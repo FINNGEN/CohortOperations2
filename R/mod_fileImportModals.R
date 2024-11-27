@@ -219,7 +219,6 @@ mapping_ui <- function(id) {
 
 mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
   shiny::moduleServer(id, function(input, output, session) {
-
     # Summary table
     output$input_table <- reactable::renderReactable({
       shiny::req(r_dataToMap$data)
