@@ -53,7 +53,7 @@ app_ui <- function(request) {
         #### panel Library
         shiny::tabPanel(
           "from Library",
-          mod_importCohortsFromAtlas_ui("importCohortsFromLibrary")
+          mod_importCohortsFromCohortsTable_ui("importCohortsFromLibrary")
         )
       )
     ),
