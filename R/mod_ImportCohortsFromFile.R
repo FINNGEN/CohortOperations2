@@ -1,4 +1,3 @@
-
 #' Import Cohorts From File UI Module
 #'
 #' @description A shiny Module to import cohorts from a file.
@@ -16,14 +15,9 @@ mod_importCohortsFromFile_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
-    #
-    shiny::fileInput(ns("uploadedFile"), "Choose a file in cohortData format:",
-                     multiple = FALSE,
-                     accept = c("text/tsv", "text/tabular-separated-values,text/plain", ".tsv",
-                                "text/csv", "text/comma-separated-values,text/plain", ".csv")
-    ),
+    shiny::actionButton(ns("importModal_button"), "Import Data"),
     htmltools::hr(),
-    reactable::reactableOutput(ns("cohorts_reactable")), # |> ui_load_spiner(),
+    reactable::reactableOutput(ns("cohorts_reactable")),
     htmltools::hr(),
     shiny::actionButton(ns("import_actionButton"), "Import Selected")
   )
@@ -54,15 +48,24 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    regex_person_id <- shiny::reactive(r_databaseConnection$atlasConfig$regexPersonSourceValue)
+
     #
     # reactive variables
     #
-    r <- shiny::reactiveValues(
-      uploadedFile = NULL,
-      cohortDataUploaded = NULL,
-      cohortData = NULL,
-      original_colnames = NULL,
-      columnNamesOK = FALSE
+    r_importedData <- shiny::reactiveValues(
+      data = NULL,
+      name = NULL
+    )
+    
+    r_dataToMap <- shiny::reactiveValues(
+      data = NULL,
+      name = NULL
+    )
+
+    r_cohortData <- shiny::reactiveValues(
+      data = NULL,
+      validated = FALSE
     )
 
     r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
@@ -70,229 +73,135 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     )
 
     #
-    # just pass the info to make it writable
+    # open the import modal
     #
-    shiny::observe({
-      r$uploadedFile <- input$uploadedFile
+    shiny::observeEvent(input$importModal_button, {
+      import_modal(id = ns("importModal"))
     })
 
+    import_server("importModal", r_importedData)
+
 
     #
-    # updates r$cohortDefinitionSetImported with uploaded file, or with error
+    # Evaluate the imported table
+    # We try to automatically detect the type of data and convert it to a cohortData format
+    # - if it has 1 column check if it is a list of person_ids
+    # - if it has 4 columns or more check if it is cohortData
+    # if this fails we open the mapping dialog
     #
-    shiny::observe({
-      shiny::req(r_databaseConnection$cohortTableHandler)
-      shiny::req(r$uploadedFile)
+    shiny::observeEvent(r_importedData$data, {
+      shiny::req(r_importedData$data)
+      importedTable <- r_importedData$data |> tibble::as_tibble()
+      fileName <- r_importedData$name
 
-      ParallelLogger::logInfo("[Import File] Opening file: ", r$uploadedFile)
+      cohortDataUploaded <- NULL
+      # if it only has one column it is probably a list of person_ids
+      if (ncol(importedTable) == 1) {
+        # if the column name matches the regex_person_id, it has not header, so we add one
+        if (stringr::str_detect(colnames(importedTable)[1], regex_person_id())) {
+          importedTable <- dplyr::bind_rows(
+            tibble::tibble(person_source_value = colnames(importedTable)[1]),
+            importedTable |> dplyr::rename(person_source_value = 1)
+          )
+        } else {
+          importedTable <- importedTable |> dplyr::rename(person_source_value = 1)
+        }
 
-      ext <- tools::file_ext(r$uploadedFile$datapath)
+        shinyWidgets::sendSweetAlert(
+          session = session,
+          type = "info",
+          title = "Imported data",
+          text = shiny::HTML(
+            "<small>Data has been detected as a list of person_ids. ", "<ul>",
+            "<li> This will create a cohort with all persons in the list.</li>",
+            "<li> Cohort name will be set to the name of the imported file.</li>",
+            "<li> Cohort start and end date will be set to the first and last observation date of the person.</li>",
+            "</ul></small>"
+          ),
+          html = TRUE
+        )
 
-      # passing error to shiny::validate
-      if(ext != "tsv" & ext != "csv"){
-        r$cohortDefinitionSetImported <- "ERROR READING FILE:\nI need to know if the file is in .tsv or .csv format, please set the extension accordingly"
-        return()
+        cohortDataUploaded <- importedTable |>
+          dplyr::transmute(
+            cohort_name = as.character(fileName),
+            person_source_value = as.character(person_source_value),
+            cohort_start_date = as.Date(NA),
+            cohort_end_date = as.Date(NA)
+          )
       }
 
-      if(ext == "tsv"){ cohortData <- HadesExtras::readCohortData(r$uploadedFile$datapath, delim = "\t") }
-      if(ext == "csv"){ cohortData <- HadesExtras::readCohortData(r$uploadedFile$datapath, delim = ",") }
+      # if it has 4 columns or more check if it is cohortData
+      if (ncol(importedTable) >= 4) {
+        # TEMP: Check if FINNGENID column exists and rename to person_source_value
+        if ("FINNGENID" %in% colnames(importedTable) ) {
+          importedTable <- importedTable |>
+            dplyr::rename(person_source_value = FINNGENID)
+        }
+        if ("finngenid" %in% colnames(importedTable) ) {
+          importedTable <- importedTable |>
+            dplyr::rename(person_source_value = finngenid)
+        }
+        # check if it is cohortData
+        if (all(c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date") %in% stringr::str_to_lower(colnames(importedTable)))) {
+          colnames(importedTable) <- tolower(colnames(importedTable))
+          cohortDataUploaded <- importedTable |>
+            dplyr::transmute(
+              cohort_name = as.character(cohort_name),
+              person_source_value = as.character(person_source_value),
+              cohort_start_date = as.Date(cohort_start_date),
+              cohort_end_date = as.Date(cohort_end_date)
+            )
 
-      # we expect lowercase names
-      colnames(cohortData) <- stringr::str_to_lower(colnames(cohortData))
+          isCohortData <- HadesExtras::checkCohortData(cohortDataUploaded)
+          if (is.character(isCohortData)) {
+            cohortDataUploaded <- NULL
+          }
+        }
+      }
 
-      r$original_colnames <- colnames(cohortData)
-      r$cohortDataUploaded <- cohortData
-
-      if(!all(c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date") %in% colnames(cohortData))){
-          ParallelLogger::logInfo("[Import File] File needs column remaping ")
-          showModal(assignmentDialog())
+      # if all the above automatic checks succeed set to cohortDataUploaded, if not open the mapping dialog
+      if (!is.null(cohortDataUploaded)) {
+        r_cohortData$data <- cohortDataUploaded
       } else {
-        # we have the correct column names
-        r$cohortDataUploaded <- dplyr::select(cohortData, "cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date")
-        r$columnNamesOK <- TRUE
+        r_dataToMap$data <- importedTable
+        r_dataToMap$name <- fileName
+        mapping_modal(id = ns("mappingModal"))
       }
+      r_importedData$data <- NULL
+      r_importedData$name <- NULL
     })
 
-    #
-    # helper function for the assignment dialog
-    #
-    assignmentDialog <- function(failed = FALSE, message = ""){
-      modalDialog(
-        title = "Data is not in 'cohortData' format - assign columns to correct names",
-        fluidRow(column(6, div(style = "margin-left:20px;",
-                               shinyWidgets::pickerInput(
-                                 inputId = ns("cohort_name"),
-                                 label = "Column for cohort name",
-                                 choices = c("", r$original_colnames),
-                                 selected = ifelse("cohort_name" %in% r$original_colnames, "cohort_name", ""),
-                                 inline = FALSE,
-                                 width = '300px'
-                               ))),
-                 column(4, offset = 0, div(style = "margin-left:10px;",
-                                           shiny::textInput(
-                                             inputId = ns("default_cohort_name"),
-                                             label = "Cohort name (single cohort)",
-                                             width = "300px",
-                                             value = isolate(input$default_cohort_name)
-                                           ))),
-        ),
-        fluidRow(column(6, div(style = "margin-left:20px;",
-                               shinyWidgets::pickerInput(
-                                 inputId = ns("person_source_value"),
-                                 label = "Column for person identifier",
-                                 choices = c("", r$original_colnames),
-                                 selected = ifelse("finngenid" %in% r$original_colnames, "finngenid",
-                                                   ifelse("person_source_value" %in% r$original_colnames, "person_source_value", "")),
-                                 inline = FALSE,
-                                 width = '300px'
-                               )))
-        ),
-        fluidRow(column(6, div(style = "margin-left:20px;",
-                               shinyWidgets::pickerInput(
-                                 inputId = ns("cohort_start_date"),
-                                 label = "Column for cohort start date",
-                                 choices = c("", r$original_colnames),
-                                 selected = ifelse("cohort_start_date" %in% r$original_colnames, "cohort_start_date", ""),
-                                 inline = FALSE,
-                                 width = '300px'
-                               )))
-        ),
-        fluidRow(column(6, div(style = "margin-left:20px;",
-                               shinyWidgets::pickerInput(
-                                 inputId = ns("cohort_end_date"),
-                                 label = "Column for cohort end date",
-                                 choices = c("", r$original_colnames),
-                                 selected = ifelse("cohort_end_date" %in% r$original_colnames, "cohort_end_date", ""),
-                                 inline = FALSE,
-                                 width = '300px'
-                               )))
-        ),
-        shiny::actionButton(ns("import_help_button"), "Help"),
-        shinyjs::hidden(
-          shiny::verbatimTextOutput(ns("import_help"))
-        ),
-        footer = tagList(
-          modalButton("Cancel"),
-          actionButton(ns("ok"), "OK")
-        ),
-        size = "l",
-        if (failed)
-          div(tags$br(), tags$b(message, style = "color: red;"), tags$br()),
-      )
-    }
+    mapping_server("mappingModal", r_dataToMap, r_cohortData, regex_person_id)
 
-    #
-    # check the current assignment, revisit if needed
-    #
-    observeEvent(input$ok, {
-      removeModal()
-
-      cohort_name <- isolate(input$cohort_name)
-      default_cohort_name <- isolate(input$default_cohort_name)
-      person_source_value <- isolate(input$person_source_value)
-      cohort_start_date <- isolate(input$cohort_start_date)
-      cohort_end_date <- isolate(input$cohort_end_date)
-
-      all_names <- c(cohort_name, default_cohort_name, person_source_value, cohort_start_date, cohort_end_date)
-      all_names <- all_names[all_names != ""]
-
-      cohortData <- r$cohortDataUploaded
-
-      # check if there are duplicate assignments
-      if(length(all_names) != length(unique(all_names))){
-        showModal(assignmentDialog(failed = TRUE, "You have assigned the same name to multiple columns"))
-        return()
-      }
-      # cohort name is required
-      if(cohort_name == "" & default_cohort_name == ""){
-        showModal(assignmentDialog(failed = TRUE, "You must assign a cohort name, either a column or a default one"))
-        return()
-      }
-      if(cohort_name != "" & default_cohort_name != ""){
-        showModal(assignmentDialog(failed = TRUE, "You can give either a cohort column or a default name, not both"))
-        return()
-      }
-      if(cohort_name == "" & default_cohort_name != ""){
-        cohort_name <- "cohort_name"
-        cohortData$cohort_name <- default_cohort_name
-      }
-
-      # is everything defined
-      if((cohort_name == "" & default_cohort_name == "") | person_source_value == ""){
-        showModal(assignmentDialog(failed = TRUE, "You must assign at least a person identifier and a cohort name"))
-        return()
-      }
-
-      # check if cohort_start_date and cohort_end_date are empty, replace them with NA
-      if(cohort_start_date == ""){
-        cohort_start_date <- "cohort_start_date"
-        cohortData$cohort_start_date <- as.Date(NA)
-      }
-      if(cohort_end_date == ""){
-        cohort_end_date <- "cohort_end_date"
-        cohortData$cohort_end_date <- as.Date(NA)
-      }
-
-      # change the column names
-      cohortData <- cohortData |>
-        dplyr::select(dplyr::sym(cohort_name), dplyr::sym(person_source_value), dplyr::sym(cohort_start_date), dplyr::sym(cohort_end_date))
-      names(cohortData) <- c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date")
-
-      # force date columns to be Dates
-      cohortData$cohort_start_date <- as.Date(cohortData$cohort_start_date)
-      cohortData$cohort_end_date <- as.Date(cohortData$cohort_end_date)
-
-      # we are done
-      r$cohortDataUploaded <- cohortData
-      r$columnNamesOK <- TRUE
-    })
-
-    #
-    # check the cohortData
-    #
     shiny::observe({
-      shiny::req(r$columnNamesOK)
-      shiny::req(r$cohortDataUploaded)
+      shiny::req(r_cohortData$data)
+      cohortData <- r_cohortData$data
 
-      cohortData <- r$cohortDataUploaded
-
-      r$columnNamesOK <- FALSE
-
-      isCohortData <- HadesExtras::checkCohortData(cohortData)
-
-      # passing error to shiny::validate
-      if(is.character(isCohortData)){
-        r$cohortData <- paste(c("ERROR READING COHORTDATA FILE:", isCohortData), sep = "\n")
-      }else{
-        r$cohortData <- cohortData
+      check <- HadesExtras::checkCohortData(cohortData)
+      if (is.character(check)) {
+        shinyWidgets::sendSweetAlert(
+          session = session,
+          type = "error",
+          title = "Unexpected error importing data",
+          text = check
+        )
+        r_cohortData$validated <- FALSE
+      } else {
+        r_cohortData$validated <- TRUE
       }
+
+      r_dataToMap$data <- NULL
+      r_dataToMap$name <- NULL
     })
 
     #
     # updates output$cohorts_reactable with r$cohortDefinitionSetImported
     #
     output$cohorts_reactable <- reactable::renderReactable({
-      shiny::req(r$cohortData)
+      shiny::req(r_cohortData$data)
+      shiny::req(r_cohortData$validated == TRUE)
 
-      shiny::validate(
-        shiny::need(!is.character(r$cohortData), r$cohortData)
-      )
-
-      .reactatable_cohortData(r$cohortData)
-
-    })
-
-    output$import_help <- shiny::renderText({
-      paste(
-        "Cohort Operations expects the file in 'cohortData' format.",
-        "There should be column names 'cohort_name', 'person_source_value', 'cohort_start_date', 'cohort_end_date',",
-        "but there can be others as well.",
-        "This dialog will help you to assign the columns to the correct names (does not change your file).",
-        "You can select one of the columns to be the cohort name, or give a default name.",
-        "The cohort start and end dates can be left empty, ",
-        "then they will be set to the minimum and maximum dates in the cohort.",
-        sep = "\n"
-      )
+      .reactatable_cohortData(r_cohortData$data)
     })
 
     # reactive function to get selected values
@@ -302,7 +211,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     # button import selected: checks selected cohorts
     #
     shiny::observe({
-      shinyjs::toggleState("import_actionButton", condition = !is.null(r_selectedIndex()) )
+      shinyjs::toggleState("import_actionButton", condition = !is.null(r_selectedIndex()))
     })
 
     shiny::observeEvent(input$import_help_button, {
@@ -311,52 +220,54 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
     shiny::observeEvent(input$import_actionButton, {
       shiny::req(r_selectedIndex())
-      shiny::req(r$cohortData)
+      shiny::req(r_cohortData$data)
 
       fct_sweetAlertSpinner("Importing cohorts")
 
-      selectedCohortNames <- r$cohortData |>
+      selectedCohortNames <- r_cohortData$data |>
         dplyr::distinct(cohort_name) |>
         dplyr::arrange(cohort_name) |>
         dplyr::slice(r_selectedIndex()) |>
         dplyr::pull(cohort_name)
 
-      selectedCohortData <- r$cohortData |>
+      selectedCohortData <- r_cohortData$data |>
         dplyr::filter(cohort_name %in% selectedCohortNames)
 
       # calculate new cohorIds
-      numberNewCohorts <- selectedCohortData |> dplyr::distinct(cohort_name) |> nrow()
+      numberNewCohorts <- selectedCohortData |>
+        dplyr::distinct(cohort_name) |>
+        nrow()
       unusedCohortIds <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
 
       ## copy selected to
-      r_cohortDefinitionSetToAdd$cohortDefinitionSet <-  HadesExtras::cohortDataToCohortDefinitionSet(
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- HadesExtras::cohortDataToCohortDefinitionSet(
         cohortData = selectedCohortData,
         newCohortIds = unusedCohortIds,
         skipCohortDataCheck = TRUE
       )
 
-      ParallelLogger::logInfo("[Import File] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
-                              " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId)
+      ParallelLogger::logInfo(
+        "[Import File] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
+        " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId
+      )
 
       fct_removeSweetAlertSpinner()
-
     })
 
     #
     # evaluate the cohorts to append; if accepted increase output to trigger closing actions
     #
-    rf_append_accepted_counter <- mod_fct_appendCohort_server("impor_file", r_databaseConnection, r_cohortDefinitionSetToAdd )
+    rf_append_accepted_counter <- mod_fct_appendCohort_server("impor_file", r_databaseConnection, r_cohortDefinitionSetToAdd)
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {
-      shinyjs::reset("uploadedFile")
-      r$uploadedFile <- NULL
-      r$cohortDataUploaded <- NULL
-      r$cohortData <- NULL
+      r_dataToMap$data <- NULL
+      r_dataToMap$name <- NULL
+      r_cohortData$data <- NULL
+      r_cohortData$validated <- FALSE
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
-      reactable::updateReactable("cohorts_reactable", selected = NA, session = session )
+      reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
     })
-
   })
 }
 
@@ -373,9 +284,8 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     dplyr::mutate(
       n_str = paste0(n_subjects, " (", n_entries, ")")
     ) |>
-    dplyr::arrange(cohort_name)|>
+    dplyr::arrange(cohort_name) |>
     dplyr::select(cohort_name, n_str) |>
-    #
     reactable::reactable(
       columns = list(
         cohort_name = reactable::colDef(
@@ -385,29 +295,9 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
           name = "N Subjects (N Entries)"
         )
       ),
-      #
       selection = "multiple",
       onClick = "select"
     )
 
   return(table)
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

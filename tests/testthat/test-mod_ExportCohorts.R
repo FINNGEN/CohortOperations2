@@ -12,7 +12,7 @@ test_that("mod_exportsCohorts produces file", {
   )
 
   # ignore warnings
-  withr::local_options(warn = 2)
+  suppressWarnings({
   shiny::testServer(
     mod_exportsCohorts_server,
     args = list(
@@ -33,6 +33,6 @@ test_that("mod_exportsCohorts produces file", {
       expect_true(file.exists(output$downloadData_downloadButton))
 
     }
-  )
-
+    )
+  })
 })

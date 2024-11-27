@@ -39,7 +39,10 @@ Imports:
     FinnGenUtilsR,
     bigrquery,
     renv,
-    markdown
+    markdown, 
+    lubridate,
+    datamods, 
+    phosphoricons
 Remotes: 
     FINNGEN/HadesExtras@towards_v2,
     FINNGEN/FinnGenUtilsR,
