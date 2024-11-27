@@ -27,6 +27,9 @@ mod_importCohortsFromCohortsTable_ui <- function(id) {
 #'
 #' @param id Module ID
 #' @param r_databaseConnection Reactive database connection object
+#' @param filterCohortsRegex Regular expression to filter cohorts
+#' @param filterCohortsRegexRemove Regular expression to remove cohorts from filter
+#' @param filterCohortsName Name filter for cohorts
 #'
 #' @return Server logic for the Import Cohorts from Cohort Table module
 #'
@@ -41,7 +44,7 @@ mod_importCohortsFromCohortsTable_ui <- function(id) {
 mod_importCohortsFromCohortsTable_server <- function(
     id,
     r_databaseConnection,
-    filterCohortsRegex = "*",
+    filterCohortsRegex = ".*",
     filterCohortsRegexRemove = "()", # default to remove nothing
     filterCohortsName = "Endpoint") {
   shiny::moduleServer(id, function(input, output, session) {
