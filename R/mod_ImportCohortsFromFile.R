@@ -222,7 +222,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       shiny::req(r_selectedIndex())
       shiny::req(r_cohortData$data)
 
-        fct_sweetAlertSpinner("Importing cohorts")
+      fct_sweetAlertSpinner("Importing cohorts")
 
       selectedCohortNames <- r_cohortData$data |>
         dplyr::distinct(cohort_name) |>
