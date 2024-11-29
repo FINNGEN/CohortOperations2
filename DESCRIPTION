@@ -39,11 +39,16 @@ Imports:
     FinnGenUtilsR,
     bigrquery,
     renv,
-    markdown
+    markdown, 
+    lubridate,
+    datamods, 
+    phosphoricons
 Remotes: 
     FINNGEN/HadesExtras,
     FINNGEN/FinnGenUtilsR,
-    OHDSI/ROhdsiWebApi
+    FINNGEN/CO2AnalysisModules,
+    OHDSI/ROhdsiWebApi,
+    javier-gracia-tabuenca-tuni/DatabaseConnector@BQ-DBI
 Suggests: 
     testthat (>= 3.0.0),
     Eunomia,

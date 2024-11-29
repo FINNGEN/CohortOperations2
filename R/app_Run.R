@@ -14,10 +14,9 @@
 #' @return A Shiny application object.
 #' @export
 run_app <- function(databasesConfig, analysisModulesConfig, ...) {
-
   # Check configuration files
   # TODO: check if the config files are correct
-  databasesConfig  |> checkmate::assertList()
+  databasesConfig |> checkmate::assertList()
   analysisModulesConfig |> checkmate::assertList()
 
   #
@@ -25,7 +24,7 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
   #
 
   # set shiny to accept large files
-  options(shiny.maxRequestSize = 10*1000*1024^2) # 10GB
+  options(shiny.maxRequestSize = 10 * 1000 * 1024^2) # 10GB
 
   # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
@@ -34,15 +33,15 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
   # Create app
   #
 
-  app  <- shiny::shinyApp(
+  app <- shiny::shinyApp(
     ui = app_ui,
     server = app_server,
     ...
   )
 
   # setup shiny options
-  app$appOptions$databasesConfig  <- databasesConfig
-  app$appOptions$analysisModulesConfig  <- analysisModulesConfig
+  app$appOptions$databasesConfig <- databasesConfig
+  app$appOptions$analysisModulesConfig <- analysisModulesConfig
 
   #
   # Launch app

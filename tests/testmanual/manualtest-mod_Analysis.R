@@ -7,22 +7,16 @@ fcr_setUpLogger()
 
 cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 
-r_databaseConnection <- shiny::reactiveValues(
-  cohortTableHandler = cohortTableHandler,
-  atlasConfig = NULL,
-  hasChangeCounter = 0
-)
-
 # run module --------------------------------------------------------------
 devtools::load_all(".")
 
 # set module
-selectedAnalysisModulesConfig <- analysisModulesConfig[["cohortOverlaps_CO2AnalysisModules"]]
+selectedAnalysisModulesConfig <- test_analysisModulesConfig[["cohortOverlaps_CO2AnalysisModules"]]
 
-analysisName  <- selectedAnalysisModulesConfig$analysisName
-mod_analysisSettings_ui  <- selectedAnalysisModulesConfig$mod_analysisSettings_ui  |> fct_stringToFuction()
-mod_analysisSettings_server  <- selectedAnalysisModulesConfig$mod_analysisSettings_server  |> fct_stringToFuction()
-fct_executeAnalysis  <- selectedAnalysisModulesConfig$fct_executeAnalysis  |> fct_stringToFuction()
+analysisName <- selectedAnalysisModulesConfig$analysisName
+mod_analysisSettings_ui <- selectedAnalysisModulesConfig$mod_analysisSettings_ui |> fct_stringToFuction()
+mod_analysisSettings_server <- selectedAnalysisModulesConfig$mod_analysisSettings_server |> fct_stringToFuction()
+fct_executeAnalysis <- selectedAnalysisModulesConfig$fct_executeAnalysis |> fct_stringToFuction()
 url_visualiseResults <- selectedAnalysisModulesConfig$url_visualiseResults
 
 app <- shiny::shinyApp(
@@ -30,11 +24,16 @@ app <- shiny::shinyApp(
     mod_cohortWorkbench_ui("test"),
     mod_analysisWrap_ui("test", mod_analysisSettings_ui)
   ),
-  function(input,output,session){
+  function(input, output, session) {
+    r_databaseConnection <- shiny::reactiveValues(
+      cohortTableHandler = cohortTableHandler,
+      atlasConfig = NULL,
+      hasChangeCounter = 0
+    )
     mod_analysisWrap_server("test", r_databaseConnection, mod_analysisSettings_server, fct_executeAnalysis, analysisName, url_visualiseResults)
     mod_cohortWorkbench_server("test", r_databaseConnection)
   },
-  options = list(launch.browser=TRUE)
+  options = list(launch.browser = TRUE)
 )
 
 app

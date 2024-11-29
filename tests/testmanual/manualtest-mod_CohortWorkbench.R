@@ -7,24 +7,24 @@ fcr_setUpLogger()
 
 cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
 
-r_databaseConnection <- shiny::reactiveValues(
-  cohortTableHandler = cohortTableHandler,
-  atlasConfig = NULL,
-  hasChangeCounter = 0
-)
 
 # run module --------------------------------------------------------------
 devtools::load_all(".")
 
-shiny::shinyApp(
+app <- shiny::shinyApp(
   shiny::fluidPage(
     mod_cohortWorkbench_ui("test")
   ),
-  function(input,output,session){
-    mod_cohortWorkbench_server("test", r_databaseConnection, table_editing=TRUE)
-  },
-  options = list(launch.browser=TRUE)
-)
+  function(input, output, session) {
+    r_databaseConnection <- shiny::reactiveValues(
+      cohortTableHandler = cohortTableHandler,
+      atlasConfig = NULL,
+      hasChangeCounter = 0
+    )
 
+    mod_cohortWorkbench_server("test", r_databaseConnection, table_editing = TRUE)
+  },
+  options = list(launch.browser = TRUE)
+)
 
 app
