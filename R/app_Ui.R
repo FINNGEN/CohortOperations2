@@ -113,6 +113,15 @@ app_ui <- function(request) {
         status = "primary", solidHeader = TRUE, width = 12,
         mod_appVersion_ui("appVersion")
       )
+    ),
+    ## TAB View Results
+    shinydashboard::tabItem(
+      tabName = "viewResults",
+      shinydashboard::box(
+        title = "View Results",
+        status = "primary", solidHeader = TRUE, width = 12,
+        mod_viewResults_ui("viewResults")
+      )
     )
   )
 
@@ -171,6 +180,8 @@ app_ui <- function(request) {
               icon = shiny::icon(analysis$icon)
             )
           }),
+          shiny::h5(" Results"),
+          shinydashboard::menuItem("View Results", tabName = "viewResults", icon = shiny::icon("eye")),
           shiny::h5(" About"),
           shinydashboard::menuItem("App News", tabName = "appVersion", icon = shiny::icon("info-circle")),
           shinydashboard::menuItem("App Logs", icon = shiny::icon("info-circle"), href = "/logs/log.txt")

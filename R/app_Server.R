@@ -46,6 +46,9 @@ app_server <- function(input, output, session) {
   mod_cohortWorkbench_server("cohortWorkbench_exportsCohorts", r_databaseConnection)
   mod_exportsCohorts_server("exportsCohorts", r_databaseConnection)
 
+  # Add the new module server
+  mod_viewResults_server("viewResults")
+
   # Dynamic analysis modules server
   lapply(names(analysisModulesConfig), function(analysisKey) {
     analysis <- analysisModulesConfig[[analysisKey]]
