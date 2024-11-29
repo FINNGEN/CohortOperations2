@@ -16,11 +16,11 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}) - ${{ matrix.env_config.name }}
 
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 2
       matrix:
         config:
           - {os: ubuntu-latest, r: 'release'}
@@ -30,16 +30,25 @@ jobs:
           # - {os: windows-latest, r: 'release'}
         env_config:
           - {name: 'Eunomia', HADESEXTAS_TESTING_ENVIRONMENT: 'Eunomia-GiBleed'}
-          - {name: 'AtlasDev', HADESEXTAS_TESTING_ENVIRONMENT: 'AtlasDevelopment-DBI'}
-
+         # - {name: 'FinnGen', HADESEXTAS_TESTING_ENVIRONMENT: 'Eunomia-FinnGen'}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       GCP_SERVICE_KEY_JSON: ${{ secrets.GCP_SERVICE_KEY_JSON }}
       GCP_SERVICE_KEY: /tmp/gcp-credentials.json
       R_KEEP_PKG_SOURCE: yes
+      HADESEXTAS_TESTING_ENVIRONMENT: ${{ matrix.env_config.HADESEXTAS_TESTING_ENVIRONMENT }}
+      EUNOMIA_DATA_FOLDER: ${{ github.workspace }}/eunomia_data
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache Eunomia data
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/eunomia_data
+          key: eunomia-data-${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+          restore-keys: |
+            eunomia-data-${{ runner.os }}-
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -54,7 +63,7 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - name: Create GCP service key and forder for drivers
+      - name: Create GCP service key
         run: echo $GCP_SERVICE_KEY_JSON  > /tmp/gcp-credentials.json
 
       - uses: r-lib/actions/check-r-package@v2

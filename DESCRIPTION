@@ -44,9 +44,9 @@ Imports:
     datamods, 
     phosphoricons
 Remotes: 
-    FINNGEN/HadesExtras@towards_v2,
+    FINNGEN/HadesExtras,
     FINNGEN/FinnGenUtilsR,
-    FINNGEN/CO2AnalysisModules@towards_v2,
+    FINNGEN/CO2AnalysisModules,
     OHDSI/ROhdsiWebApi,
     javier-gracia-tabuenca-tuni/DatabaseConnector@BQ-DBI
 Suggests: 
