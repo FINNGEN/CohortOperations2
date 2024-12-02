@@ -69,6 +69,7 @@ mod_viewResults_server <- function(id) {
         return(NULL)
       }
       analysisInfo <- analysisResults |> dplyr::tbl("analysisInfo") |> dplyr::collect()
+      DBI::dbDisconnect(analysisResults)
       if (!("analysisType" %in% names(analysisInfo))) {
         output$alert_error <- shiny::renderUI({
           shinyWidgets::alert(
