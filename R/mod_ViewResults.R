@@ -25,7 +25,11 @@ mod_viewResults_ui <- function(id) {
 #'
 #' @importFrom shiny moduleServer reactiveValues observeEvent
 #' @importFrom reactable reactableOutput renderReactable
-#'
+#' @importFrom duckdb dbConnect 
+#' @importFrom tibble tibble
+#' @importFrom dplyr bind_rows filter pull arrange
+#' @importFrom DBI dbListTables dbDisconnect
+#' 
 #' @return A server function for the module.
 mod_viewResults_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -69,6 +73,7 @@ mod_viewResults_server <- function(id) {
         return(NULL)
       }
       analysisInfo <- analysisResults |> dplyr::tbl("analysisInfo") |> dplyr::collect()
+      DBI::dbDisconnect(analysisResults)
       if (!("analysisType" %in% names(analysisInfo))) {
         output$alert_error <- shiny::renderUI({
           shinyWidgets::alert(

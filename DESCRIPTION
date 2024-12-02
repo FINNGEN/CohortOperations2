@@ -42,7 +42,9 @@ Imports:
     markdown, 
     lubridate,
     datamods, 
-    phosphoricons
+    phosphoricons, 
+    duckdb,
+    DBI
 Remotes: 
     FINNGEN/HadesExtras,
     FINNGEN/FinnGenUtilsR,
