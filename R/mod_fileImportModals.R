@@ -87,23 +87,8 @@ import_ui <- function(id) {
 
 import_server <- function(id, r_importedData) {
   shiny::moduleServer(id, function(input, output, session) {
-    # Reset reactive values when modal opens
-    shiny::observeEvent(input$confirm_import, {
-      r_importedData$data <- NULL
-      r_importedData$name <- NULL
-    }, once = TRUE)
-    
     rf_importedTableFile <- datamods::import_file_server("file", trigger_return = "change", btn_show_data = FALSE)
     rf_importedTableCopypaste <- datamods::import_copypaste_server("copypaste", trigger_return = "change", btn_show_data = FALSE)
-
-    # Reset the selected tab to "file" when modal opens
-    shiny::observeEvent(input$confirm_import, {
-      shinyWidgets::updateRadioGroupButtons(
-        session = session,
-        inputId = "from",
-        selected = "file"
-      )
-    }, once = TRUE)
 
     # Add observer to update selected tab
     shiny::observeEvent(input$from, {
