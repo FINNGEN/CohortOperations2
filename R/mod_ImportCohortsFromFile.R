@@ -261,6 +261,8 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
     # close and reset
     shiny::observeEvent(rf_append_accepted_counter(), {
+      r_importedData$data <- NULL
+      r_importedData$name <- NULL
       r_dataToMap$data <- NULL
       r_dataToMap$name <- NULL
       r_cohortData$data <- NULL
