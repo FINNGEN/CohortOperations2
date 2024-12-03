@@ -19,7 +19,11 @@ mod_importCohortsFromFile_ui <- function(id) {
     htmltools::hr(),
     reactable::reactableOutput(ns("cohorts_reactable")),
     htmltools::hr(),
-    shiny::actionButton(ns("import_actionButton"), "Import Selected")
+    shiny::actionButton(ns("import_actionButton"), "Import Selected"),
+    # TEMP add dummy tooltip, otherwise the import modal stops working on the second import
+    # dirty hack ever, but i dont see other solution
+    .tippyText('','')
+    # END TEMP
   )
 }
 #' Import Cohorts From File Server Module
@@ -76,11 +80,11 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     # open the import modal
     #
     shiny::observeEvent(input$importModal_button, {
-      import_modal(id = ns("importModal"))
+      import_modal(id = ns("importFile_modal"))
+
+       
     })
-
-    import_server("importModal", r_importedData)
-
+      import_server("importFile_modal", r_importedData)
 
     #
     # Evaluate the imported table
@@ -213,11 +217,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     shiny::observe({
       shinyjs::toggleState("import_actionButton", condition = !is.null(r_selectedIndex()))
     })
-
-    shiny::observeEvent(input$import_help_button, {
-      shinyjs::toggle("import_help")
-    })
-
+    
     shiny::observeEvent(input$import_actionButton, {
       shiny::req(r_selectedIndex())
       shiny::req(r_cohortData$data)
@@ -259,17 +259,15 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     #
     rf_append_accepted_counter <- mod_fct_appendCohort_server("impor_file", r_databaseConnection, r_cohortDefinitionSetToAdd)
 
-    # close and reset
-    shiny::observeEvent(rf_append_accepted_counter(), {
-      r_importedData$data <- NULL
-      r_importedData$name <- NULL
-      r_dataToMap$data <- NULL
-      r_dataToMap$name <- NULL
-      r_cohortData$data <- NULL
-      r_cohortData$validated <- FALSE
-      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
-      reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
-    })
+    # # close and reset
+    # shiny::observeEvent(rf_append_accepted_counter(), {
+    #   r_dataToMap$data <- NULL
+    #   r_dataToMap$name <- NULL
+    #   r_cohortData$data <- NULL
+    #   r_cohortData$validated <- FALSE
+    #   r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
+    #   reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
+    # })
   })
 }
 
@@ -302,4 +300,16 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     )
 
   return(table)
+}
+
+
+
+.tippyText <- function(text, tooltip) {
+  tippy::tippy(
+    text = text,
+    tooltip = paste0("<div style='text-align: left; font-size:16px;'>", tooltip, "<div>"),
+    allowHTML = TRUE,
+    theme = "light",
+    arrow = TRUE
+  )
 }

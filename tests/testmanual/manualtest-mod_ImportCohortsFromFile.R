@@ -14,7 +14,7 @@ devtools::load_all(".")
  
 app <- shiny::shinyApp(
   shiny::fluidPage(
-    mod_cohortWorkbench_ui("test"),
+    mod_cohortWorkbench_ui("teste"),
     mod_importCohortsFromFile_ui("test")
   ),
   function(input, output, session) {
@@ -25,8 +25,9 @@ app <- shiny::shinyApp(
       ),
       hasChangeCounter = 0
     )
+
+    mod_cohortWorkbench_server("teste", r_databaseConnection)
     mod_importCohortsFromFile_server("test", r_databaseConnection)
-    mod_cohortWorkbench_server("test", r_databaseConnection)
   },
   options = list(launch.browser = TRUE)
 )

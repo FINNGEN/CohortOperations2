@@ -3,28 +3,28 @@
 #
 import_ui <- function(id) {
   ns <- shiny::NS(id)
-  from <- c("file", "copypaste")
+  from <- c("file_choice", "copypaste_choice")
   file_extensions <- c(".tsv", ".csv", ".txt", ".xls", ".xlsx")
 
   file <- shiny::tabPanelBody(
-    value = "file",
+    value = "file_choice",
     shiny::tags$br(),
-    datamods::import_file_ui(id = ns("file"), title = NULL, file_extensions = file_extensions, preview_data = FALSE)
+    datamods::import_file_ui(id = ns("file_datamods"), title = NULL, file_extensions = file_extensions, preview_data = FALSE)
   )
 
   copypaste <- shiny::tabPanelBody(
-    value = "copypaste",
+    value = "copypaste_choice",
     shiny::tags$br(),
-    datamods::import_copypaste_ui(id = ns("copypaste"), title = NULL, name_field = FALSE)
+    datamods::import_copypaste_ui(id = ns("copypaste_datamods"), title = NULL, name_field = FALSE)
   )
 
   labsImport <- list(
-    "file" = "External file",
-    "copypaste" = "Copy / Paste"
+    "file_choice" = "External file",
+    "copypaste_choice" = "Copy / Paste"
   )
   iconsImport <- list(
-    "file" = phosphoricons::ph("file-arrow-down", title = labsImport$file),
-    "copypaste" = phosphoricons::ph("clipboard-text", title = labsImport$copypaste)
+    "file_choice" = phosphoricons::ph("file-arrow-down", title = labsImport$file_choice),
+    "copypaste_choice" = phosphoricons::ph("clipboard-text", title = labsImport$copypaste_choice)
   )
 
   tabsetPanelArgs <- (list(
@@ -43,11 +43,11 @@ import_ui <- function(id) {
       width = 3,
       shiny::tags$br(),
       shiny::tags$style(
-        shiny::HTML(sprintf("#%s>.btn-group-vertical {width: 100%%;}", ns("from"))),
+        shiny::HTML(sprintf("#%s>.btn-group-vertical {width: 100%%;}", ns("from_radiogroup"))),
         shiny::HTML(sprintf(".btn-group-vertical>.btn-group>.btn {text-align: left;}"))
       ),
       shinyWidgets::radioGroupButtons(
-        inputId = ns("from"),
+        inputId = ns("from_radiogroup"),
         label = ("How to import data?"),
         choiceValues = from,
         choiceNames = lapply(
@@ -87,30 +87,28 @@ import_ui <- function(id) {
 
 import_server <- function(id, r_importedData) {
   shiny::moduleServer(id, function(input, output, session) {
-    rf_importedTableFile <- datamods::import_file_server("file", trigger_return = "change", btn_show_data = FALSE)
-    rf_importedTableCopypaste <- datamods::import_copypaste_server("copypaste", trigger_return = "change", btn_show_data = FALSE)
+    
+    rf_importedTablefile <- datamods::import_file_server("file_datamods", trigger_return = "change", btn_show_data = FALSE)
+    rf_importedTableCopypaste <- datamods::import_copypaste_server("copypaste_datamods", trigger_return = "change", btn_show_data = FALSE)
 
     # Add observer to update selected tab
-    shiny::observeEvent(input$from, {
-      shiny::updateTabsetPanel(session, "tabs-import", selected = input$from)
+    shiny::observeEvent(input$from_radiogroup, {
+      shiny::updateTabsetPanel(session, "tabs-import", selected = input$from_radiogroup)
     })
 
     shiny::observeEvent(input$confirm_import, {
-      if (input$from == "file") {
-        r_importedData$data <- rf_importedTableFile$data()
-        r_importedData$name <- rf_importedTableFile$name()
-      } else if (input$from == "copypaste") {
+      if (input$from_radiogroup == "file_choice") {
+        shiny::req(rf_importedTablefile$data())
+        r_importedData$data <- rf_importedTablefile$data()
+        r_importedData$name <- rf_importedTablefile$name()
+      } else if (input$from_radiogroup == "copypaste_choice") {
+        shiny::req(rf_importedTableCopypaste$data())
         r_importedData$data <- rf_importedTableCopypaste$data()
         r_importedData$name <- rf_importedTableCopypaste$name()
       }
       shiny::removeModal()
     })
 
-    shiny::observeEvent(input$close_import_modal, {
-      r_importedData$data <- NULL
-      r_importedData$name <- NULL
-      shiny::removeModal()
-    })
   })
 }
 
@@ -125,8 +123,7 @@ import_modal <- function(id) {
     style = htmltools::css(border = "0 none", position = "absolute", top = "5px", right = "5px"),
     `data-dismiss` = "modal",
     `data-bs-dismiss` = "modal",
-    `aria-label` = ("Close"),
-    onclick = sprintf("Shiny.setInputValue('%s', Math.random())", NS(id)("close_import_modal"))
+    `aria-label` = ("Close")
   )
 
   shiny::showModal(shiny::modalDialog(
