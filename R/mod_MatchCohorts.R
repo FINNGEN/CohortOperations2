@@ -19,13 +19,13 @@ mod_matchCohorts_ui <- function(id) {
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
     shinyWidgets::pickerInput(
-      inputId = ns("selectControlCohort_pickerInput"),
+      inputId = ns("selectCaseCohort_pickerInput"),
       label = "Select matching/case cohort:",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
     shinyWidgets::pickerInput(
-      inputId = ns("selectCaseCohort_pickerInput"),
+      inputId = ns("selectControlCohort_pickerInput"),
       label = "Select target/control cohort:",
       choices = NULL,
       selected = NULL,
