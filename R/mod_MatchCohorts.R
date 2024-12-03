@@ -15,24 +15,23 @@ mod_matchCohorts_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
+    shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort, with same characteristic as in matching/case cohort"),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
-    shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectControlCohort_pickerInput"),
-      label = NULL,
+      label = "Select matching/case cohort:",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
-    shiny::tags$h5("with same characteristic as in matching/case cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectCaseCohort_pickerInput"),
-      label = NULL,
+      label = "Select target/control cohort:",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
-    #shiny::tags$h4("Settings"),
+    shiny::tags$h4("Settings"),
     shiny::tags$h5("The new cohort will have a maximum of"),
     shiny::numericInput(
       inputId = ns("matchRatio_numericInput"),
