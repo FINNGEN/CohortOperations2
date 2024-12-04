@@ -11,6 +11,7 @@ BQ5K:
           drv: bigrquery::bigquery()
           project: atlas-development-270609
           billing: atlas-development-270609
+          bigint: integer64
       tempEmulationSchema: atlas-development-270609.sandbox
     cdm:
         cdmDatabaseSchema: atlas-development-270609.etl_sam_r12_5k_omop
@@ -30,6 +31,7 @@ BQ500k:
           drv: bigrquery::bigquery()
           project: atlas-development-270609
           billing: atlas-development-270609
+          bigint: integer64
       tempEmulationSchema: atlas-development-270609.sandbox
     cdm:
         cdmDatabaseSchema: atlas-development-270609.etl_sam_dev_omop
