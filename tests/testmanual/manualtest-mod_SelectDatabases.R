@@ -5,11 +5,6 @@ source(testthat::test_path("helper.R"))
 
 fcr_setUpLogger()
 
-r_databaseConnection <- shiny::reactiveValues(
-  cohortTableHandler = NULL,
-  atlasConfig = NULL,
-  hasChangeCounter = 0
-)
 
 databasesConfig <- test_databasesConfig
 
@@ -20,14 +15,17 @@ app <- shiny::shinyApp(
   shiny::fluidPage(
     mod_selectDatabases_ui("select_configuration")
   ),
-  function(input,output,session){
+  function(input, output, session) {
+    r_databaseConnection <- shiny::reactiveValues(
+      cohortTableHandler = NULL,
+      atlasConfig = NULL,
+      hasChangeCounter = 0
+    )
+
     mod_selectDatabases_server("select_configuration", databasesConfig, r_databaseConnection)
   },
-  options = list(launch.browser=TRUE)
+  options = list(launch.browser = TRUE)
 )
 
 
 app
-
-
-

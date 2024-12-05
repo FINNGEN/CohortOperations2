@@ -16,6 +16,7 @@ mod_operateCohorts_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
+    shiny::tags$h5("Create a new cohort by defining an set of operations with the cohorts in the workbench."),
     htmltools::hr(),
     shiny::tags$h4("Operation - expression defining the cohort"),
     htmltools::div(style = "width: 90%; height: 260; overflow: auto; margin-left: 30px; padding: 10px;",

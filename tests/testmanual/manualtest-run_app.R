@@ -1,5 +1,6 @@
 # Set up
 devtools::load_all(".")
+source(testthat::test_path("helper.R"))
 source(testthat::test_path("setup.R"))
 
 

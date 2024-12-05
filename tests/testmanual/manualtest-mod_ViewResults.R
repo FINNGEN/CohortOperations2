@@ -5,26 +5,20 @@ source(testthat::test_path("helper.R"))
 
 fcr_setUpLogger()
 
-cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
-
+analysisModulesConfig <- readr::read_yaml(testthat::test_path("config/test_analysisModulesConfig.yml"))
 
 # run module --------------------------------------------------------------
 devtools::load_all(".")
 
 app <- shiny::shinyApp(
   shiny::fluidPage(
-    mod_cohortWorkbench_ui("test")
+    mod_viewResults_ui("test")
   ),
   function(input, output, session) {
-    r_databaseConnection <- shiny::reactiveValues(
-      cohortTableHandler = cohortTableHandler,
-      atlasConfig = NULL,
-      hasChangeCounter = 0
-    )
-
-    mod_cohortWorkbench_server("test", r_databaseConnection, table_editing = TRUE)
+    shiny::shinyOptions(analysisModulesConfig = analysisModulesConfig)
+    mod_viewResults_server("test")
   },
   options = list(launch.browser = TRUE)
 )
 
-app
+app 

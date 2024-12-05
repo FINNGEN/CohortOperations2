@@ -23,11 +23,13 @@ mod_selectDatabases_ui <- function(id) {
       inputId = ns("selectDatabases_pickerInput"),
       label = "Connect to database:",
       choices = NULL,
-      multiple = FALSE),
+      multiple = FALSE
+    ),
     shiny::checkboxInput(
       inputId = ns("allChecks_checkbox"),
       label = "Perform all the checks on the databases (Slow, only for debugging)",
-      value = FALSE),
+      value = FALSE
+    ),
     shiny::br(),
     shiny::h4("Connection status"),
     shiny::p("This table shows the connected databases."),
@@ -66,7 +68,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
     #
     shiny::observe({
       databaseIdNamesList <- list()
-      for(databaseId in names(databasesConfig)){
+      for (databaseId in names(databasesConfig)) {
         databaseIdNamesList[[databasesConfig[[databaseId]]$cohortTableHandler$database$databaseName]] <- databaseId
       }
 
@@ -80,7 +82,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
       )
     })
 
-    shiny::observeEvent(c(input$selectDatabases_pickerInput,input$allChecks_checkbox), {
+    shiny::observeEvent(c(input$selectDatabases_pickerInput, input$allChecks_checkbox), {
       shiny::req(input$selectDatabases_pickerInput)
 
       fct_removeSweetAlertSpinner()
@@ -96,9 +98,9 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
       }
 
       # TEMP, create a timestaped table
-      timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
+      timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2")) * 100)
       cohortTableName <- cohortTableHandlerConfig$cohortTable$cohortTableName
-      if(cohortTableName  |> stringr::str_detect("<timestamp>")){
+      if (cohortTableName |> stringr::str_detect("<timestamp>")) {
         cohortTableName <- cohortTableName |> stringr::str_replace("<timestamp>", timestamp)
       }
       cohortTableHandlerConfig$cohortTable$cohortTableName <- cohortTableName
@@ -118,11 +120,14 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
       # check Atlas config
       webapiurl <- databasesConfig[[input$selectDatabases_pickerInput]]$atlasConfig$webapiurl
       error <- NULL
-      tryCatch({
-        dummy  <- ROhdsiWebApi::getCdmSources(webapiurl)
-      }, error = function(e) {
-        error <<- e$message
-      })
+      tryCatch(
+        {
+          ROhdsiWebApi::getCdmSources(webapiurl)
+        },
+        error = function(e) {
+          error <<- e$message
+        }
+      )
 
       atlasStatusLogs <- tibble::tibble(
         databaseId = cohortTableHandlerConfig$database$databaseId,
@@ -131,7 +136,7 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         step = "Check Atlas connection",
         message = "Connected"
       )
-      if(!is.null(error)){
+      if (!is.null(error)) {
         atlasStatusLogs <- atlasStatusLogs |>
           dplyr::mutate(
             type = "ERROR",
@@ -142,7 +147,6 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         dplyr::bind_rows(atlasStatusLogs)
 
       r$connectionStatusLogs <- connectionStatusLogs
-
     })
 
     output$connectionStatusLogs_reactable <- reactable::renderReactable({
@@ -150,9 +154,6 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
 
       r$connectionStatusLogs |>
         HadesExtras::reactable_connectionStatus()
-
     })
-
-
   })
 }

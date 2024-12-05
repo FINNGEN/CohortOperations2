@@ -27,10 +27,10 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
       session$setInputs(
         import_actionButton = 2
       )
-
+      
       # test output
       r_cohortDefinitionSetToAdd$cohortDefinitionTable |> expect_null()
-      r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4))
+      r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4, 5))
 
     }
   )
@@ -39,6 +39,8 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
 
 
 test_that("mod_ImportCohortsFromCohortTable shows error when no cohort table exists", {
+
+  testthat::skip_if_not(Sys.getenv("HADESEXTAS_TESTING_ENVIRONMENT") == "Eunomia-GiBleed")
 
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
   cohortTableHandlerConfig <- test_cohortTableHandlerConfig

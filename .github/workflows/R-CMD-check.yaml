@@ -1,0 +1,72 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master, development]
+  schedule:
+    - cron: '0 5 * * 0' # every Sunday at 5am UTC
+
+name: R-CMD-check
+
+permissions: read-all
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}) - ${{ matrix.env_config.name }}
+
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        config:
+          - {os: ubuntu-latest, r: 'release'}
+          # - {os: ubuntu-latest, r: 'devel'}
+          # - {os: ubuntu-latest, r: 'oldrel-1'}
+          # - {os: macOS-latest, r: 'release'}
+          # - {os: windows-latest, r: 'release'}
+        env_config:
+          - {name: 'Eunomia', HADESEXTAS_TESTING_ENVIRONMENT: 'Eunomia-GiBleed'}
+         # - {name: 'FinnGen', HADESEXTAS_TESTING_ENVIRONMENT: 'Eunomia-FinnGen'}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GCP_SERVICE_KEY_JSON: ${{ secrets.GCP_SERVICE_KEY_JSON }}
+      GCP_SERVICE_KEY: /tmp/gcp-credentials.json
+      R_KEEP_PKG_SOURCE: yes
+      HADESEXTAS_TESTING_ENVIRONMENT: ${{ matrix.env_config.HADESEXTAS_TESTING_ENVIRONMENT }}
+      EUNOMIA_DATA_FOLDER: ${{ github.workspace }}/eunomia_data
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Eunomia data
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/eunomia_data
+          key: eunomia-data-${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+          restore-keys: |
+            eunomia-data-${{ runner.os }}-
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Create GCP service key
+        run: echo $GCP_SERVICE_KEY_JSON  > /tmp/gcp-credentials.json
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'

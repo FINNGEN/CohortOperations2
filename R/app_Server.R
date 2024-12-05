@@ -5,7 +5,6 @@
 #' @importFrom shiny getShinyOption reactiveValues
 #' @noRd
 app_server <- function(input, output, session) {
-
   # set up loger
   fcr_setUpLogger()
   # log start
@@ -31,8 +30,12 @@ app_server <- function(input, output, session) {
   mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_databaseConnection)
   mod_importCohortsFromFile_server("importCohortsFromFile", r_databaseConnection)
   mod_importCohortsFromAtlas_server("importCohortsFromAtlas", r_databaseConnection)
-  mod_importCohortsFromCohortsTable_server("importCohortsFromEndpoints", r_databaseConnection)
-  mod_importCohortsFromAtlas_server("importCohortsFromLibrary", r_databaseConnection, filterCohortsRegex = ".*\\[CohortLibrary]")
+  mod_importCohortsFromCohortsTable_server("importCohortsFromEndpoints", r_databaseConnection,
+    filterCohortsRegex = "^(?!.*\\[CohortLibrary\\]).*$", filterCohortsName = "Endpoint"
+  )
+  mod_importCohortsFromCohortsTable_server("importCohortsFromLibrary", r_databaseConnection,
+    filterCohortsRegex = ".*\\[CohortLibrary\\]", filterCohortsRegexRemove = "\\[CohortLibrary\\]", filterCohortsName = "Cohort Library"
+  )
 
   mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_databaseConnection)
   mod_matchCohorts_server("matchCohorts", r_databaseConnection)
@@ -42,6 +45,9 @@ app_server <- function(input, output, session) {
 
   mod_cohortWorkbench_server("cohortWorkbench_exportsCohorts", r_databaseConnection)
   mod_exportsCohorts_server("exportsCohorts", r_databaseConnection)
+
+  # Add the new module server
+  mod_viewResults_server("viewResults")
 
   # Dynamic analysis modules server
   lapply(names(analysisModulesConfig), function(analysisKey) {
@@ -59,7 +65,4 @@ app_server <- function(input, output, session) {
   })
 
   mod_appVersion_server("appVersion")
-
 }
-
-

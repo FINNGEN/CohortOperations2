@@ -8,13 +8,6 @@ fcr_setUpLogger()
 
 cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = NULL)
 
-r_databaseConnection <- shiny::reactiveValues(
-  cohortTableHandler = cohortTableHandler,
-  atlasConfig = test_databasesConfig[[1]]$atlasConfig,
-  hasChangeCounter = 0
-)
-
-
 # run module --------------------------------------------------------------
 devtools::load_all(".")
 
@@ -23,11 +16,16 @@ app <- shiny::shinyApp(
     mod_cohortWorkbench_ui("test"),
     mod_importCohortsFromAtlas_ui("test")
   ),
-  function(input,output,session){
+  function(input, output, session) {
+    r_databaseConnection <- shiny::reactiveValues(
+      cohortTableHandler = cohortTableHandler,
+      atlasConfig = test_databasesConfig[[1]]$atlasConfig,
+      hasChangeCounter = 0
+    )
     mod_importCohortsFromAtlas_server("test", r_databaseConnection)
     mod_cohortWorkbench_server("test", r_databaseConnection)
   },
-  options = list(launch.browser=TRUE)
+  options = list(launch.browser = TRUE)
 )
 
 
@@ -39,5 +37,3 @@ app
 # Breast Cancer ICD10 Controls (id = 1) - copy cohort from prev generations
 # Breast Cancer ICD10 Cases (id = 2) - copy cohort from prev generations
 # Breast Cancer ICD10 Cases 2 (id = 6) - create new cohort
-
-

@@ -1,31 +1,35 @@
 cohortOverlaps_CO2AnalysisModules:
+  analysisType: "cohortOverlaps"
   analysisName: "Cohort Overlaps"
   icon: "braille"
   mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_cohortOverlaps_ui
   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_cohortOverlaps_server
   fct_executeAnalysis: CO2AnalysisModules::execute_CohortOverlaps
-  url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+  url_visualiseResults: http://localhost:8561/co2analysis/?analysisType=cohortOverlaps&pathToResultsDatabase=
 cohortDemographics_CO2AnalysisModules:
+  analysisType: "cohortDemographics"
   analysisName: "Cohort Demographics"
   icon: "users"
   mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_cohortDemographics_ui
   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_cohortDemographics_server
   fct_executeAnalysis: CO2AnalysisModules::execute_CohortDemographics
-  url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+  url_visualiseResults: http://localhost:8561/co2analysis/?analysisType=cohortDemographics&pathToResultsDatabase=
 codeWAS_CO2AnalysisModules:
+  analysisType: "codeWAS"
   analysisName: "Code WAS"
   icon: "tasks"
   mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_codeWAS_ui
   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_codeWAS_server
   fct_executeAnalysis: CO2AnalysisModules::execute_CodeWAS
-  url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+  url_visualiseResults: http://localhost:8561/co2analysis/?analysisType=codeWAS&pathToResultsDatabase=
 timeCodeWAS_CO2AnalysisModules:
+  analysisType: "timeCodeWAS"
   analysisName: "Time Code WAS"
   icon: "road"
   mod_analysisSettings_ui: CO2AnalysisModules::mod_analysisSettings_timeCodeWAS_ui
   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_timeCodeWAS_server
   fct_executeAnalysis: CO2AnalysisModules::execute_timeCodeWAS
-  url_visualiseResults: http://localhost:5907/?pathToResultsDatabase=
+  url_visualiseResults: http://localhost:8561/co2analysis/?analysisType=timeCodeWAS&pathToResultsDatabase=
 runGWAS_CO2AnalysisModules:
   analysisName: "GWAS"
   icon: "magnifying-glass-chart"
@@ -33,3 +37,4 @@ runGWAS_CO2AnalysisModules:
   mod_analysisSettings_server: CO2AnalysisModules::mod_analysisSettings_GWAS_server
   fct_executeAnalysis: CO2AnalysisModules::execute_GWAS
   url_visualiseResults: https://pipelines.app.finngen.fi/pipelines
+ 

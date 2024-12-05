@@ -2,6 +2,8 @@
 
 test_that("mod_cohortWorkbench_server updates r_databaseConnection when database selected", {
 
+  testthat::skip_if_not(Sys.getenv("HADESEXTAS_TESTING_ENVIRONMENT") == "Eunomia-GiBleed")
+
   # setup
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = NULL,

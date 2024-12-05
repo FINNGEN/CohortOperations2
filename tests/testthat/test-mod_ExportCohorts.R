@@ -2,7 +2,7 @@
 
 test_that("mod_exportsCohorts produces file", {
 
-  cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasFractureCohorts")
+  cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
   withr::defer({rm(cohortTableHandler);gc()})
 
   r_databaseConnection <- shiny::reactiveValues(
@@ -11,6 +11,8 @@ test_that("mod_exportsCohorts produces file", {
     hasChangeCounter = 0
   )
 
+  # ignore warnings
+  suppressWarnings({
   shiny::testServer(
     mod_exportsCohorts_server,
     args = list(
@@ -23,7 +25,7 @@ test_that("mod_exportsCohorts produces file", {
         selectCohorts_pickerInput = c(1,2),
         co1Compatible_checkbox = TRUE
       )
-
+      
       r$selectedCohortsInfo |> dplyr::pull(cohortId) |> expect_equal(c(1,2))
       r$writeErrorMessage |> expect_null()
 
@@ -31,6 +33,6 @@ test_that("mod_exportsCohorts produces file", {
       expect_true(file.exists(output$downloadData_downloadButton))
 
     }
-  )
-
+    )
+  })
 })

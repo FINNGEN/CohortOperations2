@@ -162,7 +162,7 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
     # download results
     #
     output$download_actionButton <- shiny::downloadHandler(
-      filename = function(){paste0(analysisName, "_analysisResults.sqlite")},
+      filename = function(){paste0(analysisName, "_analysisResults.duckdb")},
       content = function(fname){
         condition <- shiny::isTruthy(r$analysisResults) &&
           is.null(r$analysisResults$analysisError)
@@ -196,24 +196,3 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
   })
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
