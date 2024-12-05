@@ -106,11 +106,11 @@ mod_viewResults_server <- function(id) {
       }
       
       url_visualiseResults <- tibbleOfAnalysisTypesAndURLs |>
-        dplyr::filter(analysisType == analysisType[1]) |>
+        dplyr::filter(analysisType == {{analysisType}}) |>
         dplyr::pull(url_visualiseResults)
 
       url <- paste0(url_visualiseResults, input$importModal_button$datapath)
-
+      
       output$alert_error <- shiny::renderUI({ 
         shinyWidgets::alert(
           "Imported results file successfully. Viewer has been opened in a new tab.",

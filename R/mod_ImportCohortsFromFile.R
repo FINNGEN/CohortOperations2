@@ -136,18 +136,9 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
       # if it has 4 columns or more check if it is cohortData
       if (ncol(importedTable) >= 4) {
-        # TEMP: Check if FINNGENID column exists and rename to person_source_value
-        if ("FINNGENID" %in% colnames(importedTable)) {
-          importedTable <- importedTable |>
-            dplyr::rename(person_source_value = FINNGENID)
-        }
-        if ("finngenid" %in% colnames(importedTable)) {
-          importedTable <- importedTable |>
-            dplyr::rename(person_source_value = finngenid)
-        }
+        colnames(importedTable) <- tolower(colnames(importedTable))
         # check if it is cohortData
-        if (all(c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date") %in% stringr::str_to_lower(colnames(importedTable)))) {
-          colnames(importedTable) <- tolower(colnames(importedTable))
+        if (all(c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date") %in% colnames(importedTable))) {
           cohortDataUploaded <- importedTable |>
             dplyr::transmute(
               cohort_name = as.character(cohort_name),
@@ -161,6 +152,22 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
             cohortDataUploaded <- NULL
           }
         }
+        # TEMP: Check if FINNGENID column exists and rename to person_source_value
+        if (all(c("cohort_name", "finngenid", "cohort_start_date", "cohort_end_date") %in% colnames(importedTable))) {
+          cohortDataUploaded <- importedTable |>
+            dplyr::transmute(
+              cohort_name = as.character(cohort_name),
+              person_source_value = as.character(finngenid),
+              cohort_start_date = as.Date(cohort_start_date),
+              cohort_end_date = as.Date(cohort_end_date)
+            )
+
+          isCohortData <- HadesExtras::checkCohortData(cohortDataUploaded)
+          if (is.character(isCohortData)) {
+            cohortDataUploaded <- NULL
+          }
+        }
+        # END TEMP
       }
 
       # if all the above automatic checks succeed set to cohortDataUploaded, if not open the mapping dialog

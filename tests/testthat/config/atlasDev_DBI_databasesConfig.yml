@@ -19,6 +19,11 @@ BQ5K:
     cohortTable:
         cohortDatabaseSchema: atlas-development-270609.sandbox
         cohortTableName: hadesextras_test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: http://localhost:8787/WebAPI
+    sourcekey:
+    resultsshchema:
+    regexPersonSourceValue: ^FG[A-Z0-9]{8}$
 BQ500k:
   cohortTableHandler:
     database:
@@ -39,3 +44,8 @@ BQ500k:
     cohortTable:
         cohortDatabaseSchema: atlas-development-270609.sandbox
         cohortTableName: hadesextras_test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: http://localhost:8787/WebAPI
+    sourcekey:
+    resultsshchema:
+    regexPersonSourceValue: ^FG[A-Z0-9]{8}$
