@@ -10,12 +10,10 @@ mod_appVersion_ui <- function(id) {
   shiny::tagList(
     shiny::tabsetPanel(
       shiny::tabPanel(
-        title = "NEWS: CohortOperations2",
-        htmltools::includeMarkdown(system.file("NEWS.md",package = 'CohortOperations2'))
-      ),
-      shiny::tabPanel(
-        title = "NEWS: CO2AnalysisModules",
-        htmltools::includeMarkdown(system.file("NEWS.md",package = 'CO2AnalysisModules'))
+        title = "NEWS",
+        if (file.exists('NEWS.md')) {
+          htmltools::includeMarkdown('NEWS.md')
+        }
       ),
       shiny::tabPanel(
         title = "System and Dependencies",

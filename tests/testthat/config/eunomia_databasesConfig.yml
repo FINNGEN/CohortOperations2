@@ -19,6 +19,7 @@ E1:
     webapiurl: https://api.ohdsi.org/WebAPI
     sourcekey:
     resultsshchema:
+    regexPersonSourceValue: ^00[0-9a-f]{6}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} 
 
 # EUNOMIA 2
 E2:
@@ -41,8 +42,9 @@ E2:
     webapiurl: https://api.ohdsi.org/WebAPI
     sourcekey:
     resultsshchema:
+    regexPersonSourceValue: ^00[0-9a-f]{6}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} 
 
-    # EUNOMIA 2
+# EUNOMIA 2
 E3:
   cohortTableHandler:
     database:
@@ -63,58 +65,4 @@ E3:
     webapiurl: https://api.ohdsi.org/wrong
     sourcekey:
     resultsshchema:
-
-# BQ 1
-# dev_bigquery:
-#   cohortTableHandler:
-#     connection:
-#       connectionDetailsSettings:
-#         dbms: bigquery
-#         user: ""
-#         password: ""
-#         connectionString: jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/Users/javier/keys/atlas-development-270609-410deaacc58b.json;Timeout=100000;
-#         pathToDriver: /Users/javier/.config/hades/bigquery
-#       tempEmulationSchema: atlas-development-270609.sandbox #optional
-#       useBigrqueryUpload: true #optional
-#     cdm:
-#       cdmDatabaseSchema: atlas-development-270609.finngen_omop_r11
-#       vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_r11
-#     cohortTable:
-#       cohortDatabaseSchema: atlas-development-270609.sandbox
-#       cohortTableName: test_cohort_table
-  # modules_config:
-  #   build_cohort:
-  #     import_cohorts:
-  #       import_from_file:
-  #       import_from_atlas:
-  #         webapi:
-  #         resultsshchema:
-  #       import_from_endpoints:
-  #         endpointschema:
-  #         endpointstable:
-  #     operate_cohorts:
-  #     match_cohorts:
-  #   characterisation:
-  #     cohorts_overlap:
-  #     cohorts_demographics:
-  #   analysis:
-  #     codewas:
-  #     timecodewas:
-  #     gwas:
-
-
-
-  # dev_bigquery:
-  #   connectionDetails:
-  #     dbms: bigquery
-  #     user: ""
-  #     password: ""
-  #     connectionString: jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/Users/javier/keys/atlas-development-270609-410deaacc58b.json;Timeout=100000;
-  #     pathToDriver: /Users/javier/.config/hades/bigquery
-  #   schemas:
-  #     tempEmulationSchema: "atlas-development-270609.sandbox" #optional
-  #     vocab: "atlas-development-270609.finngen_omop_r11"
-  #     CDM: "atlas-development-270609.finngen_omop_r11"
-  #     scratch: "atlas-development-270609.sandbox"
-  #   tables:
-  #     cohort_table: test_cohort_table
+    regexPersonSourceValue: ^00[0-9a-f]{6}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} 

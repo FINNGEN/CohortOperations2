@@ -12,17 +12,7 @@ helper_createNewCohortTableHandler <- function(addCohorts = NULL){
 
   loadConnectionChecksLevel = "basicChecks"
 
-  # TEMP, create a timestaped table
-  timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
-  cohortTableName <- cohortTableHandlerConfig$cohortTable$cohortTableName
-  if(cohortTableName  |> stringr::str_detect("<timestamp>")){
-    cohortTableName <- cohortTableName |> stringr::str_replace("<timestamp>", timestamp)
-  }
-  cohortTableHandlerConfig$cohortTable$cohortTableName <- cohortTableName
-  # END TEMP
-
   cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
-
 
   if(!is.null(addCohorts) ){
     if(addCohorts == "EunomiaDefaultCohorts"){
@@ -134,7 +124,7 @@ helper_createNewCohortTableHandler <- function(addCohorts = NULL){
 }
 
 
-helper_addCohortAndCohortDefinitionTables <- function(cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes"){
+ helper_addCohortAndCohortDefinitionTables <- function(cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes"){
 
   connectionDetailsSettings <- cohortTableHandlerConfig$connection$connectionDetailsSettings
   connectionDetails <- rlang::exec(DatabaseConnector::createConnectionDetails, !!!connectionDetailsSettings)
@@ -155,14 +145,30 @@ helper_addCohortAndCohortDefinitionTables <- function(cohortTableHandlerConfig, 
       2, 3, as.Date("2000-06-01"), as.Date("2000-09-01"),# inside
       2, 4, as.Date("2000-06-01"), as.Date("2010-12-01"),# overlap
       2, 5, as.Date("2004-06-01"), as.Date("2010-12-01"),# overlap with second
-      2, 6, as.Date("2000-01-01"), as.Date("2010-12-01")
+      2, 6, as.Date("2000-01-01"), as.Date("2010-12-01"),
+
+      4, 1, as.Date("2000-01-01"), as.Date("2000-12-01"),
+      4, 2, as.Date("2000-01-01"), as.Date("2000-12-01"),
+      4, 3, as.Date("2000-01-01"), as.Date("2000-12-01"),
+      4, 4, as.Date("2000-01-01"), as.Date("2000-12-01"),
+      4, 5, as.Date("2000-01-01"), as.Date("2000-12-01"),
+      4, 5, as.Date("2004-01-01"), as.Date("2004-12-01"),
+
+      5, 2, as.Date("2001-01-01"), as.Date("2002-12-01"),# non overplaping
+      5, 3, as.Date("2000-06-01"), as.Date("2000-09-01"),# inside
+      5, 4, as.Date("2000-06-01"), as.Date("2010-12-01"),# overlap
+      5, 5, as.Date("2004-06-01"), as.Date("2010-12-01"),# overlap with second
+      5, 6, as.Date("2000-01-01"), as.Date("2010-12-01")
     )
 
     testCohortDefinitionTable <- tibble::tribble(
       ~cohort_definition_id, ~cohort_definition_name, ~cohort_definition_description, ~definition_type_concept_id, ~cohort_definition_syntax, ~subject_concept_id, ~cohort_initiation_date,
       1, 'Diabetes Cohort', 'Cohort of patients diagnosed with diabetes', 1234, 'SELECT * FROM patients WHERE diagnosis = "Diabetes"', 5678, as.Date('2022-01-01'),
       2, 'Hypertension Cohort', 'Cohort of patients diagnosed with hypertension', 1234, 'SELECT * FROM patients WHERE diagnosis = "Hypertension"', 5678, as.Date('2022-01-01'),
-      3, 'Obesity Cohort', 'Cohort of patients diagnosed with obesity', 1234, 'SELECT * FROM patients WHERE diagnosis = "Obesity"', 5678, as.Date('2022-01-01')
+      3, 'Obesity Cohort', 'Cohort of patients diagnosed with obesity', 1234, 'SELECT * FROM patients WHERE diagnosis = "Obesity"', 5678, as.Date('2022-01-01'),
+      #
+      4, 'Hypertension Cohort [CohortLibrary]', 'Cohort of patients diagnosed with hypertension', 1234, 'SELECT * FROM patients WHERE diagnosis = "Hypertension"', 5678, as.Date('2022-01-01'),
+      5, 'Obesity Cohort [CohortLibrary]', 'Cohort of patients diagnosed with obesity', 1234, 'SELECT * FROM patients WHERE diagnosis = "Obesity"', 5678, as.Date('2022-01-01')
     )
   }
 

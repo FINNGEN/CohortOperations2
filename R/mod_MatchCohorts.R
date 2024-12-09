@@ -15,24 +15,23 @@ mod_matchCohorts_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
+    shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort, with same characteristic as in matching/case cohort"),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
-    shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort:"),
     shinyWidgets::pickerInput(
-      inputId = ns("selectControlCohort_pickerInput"),
-      label = NULL,
+      inputId = ns("selectCaseCohort_pickerInput"),
+      label = "Select matching/case cohort:",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
-    shiny::tags$h5("with same characteristic as in matching/case cohort:"),
     shinyWidgets::pickerInput(
-      inputId = ns("selectCaseCohort_pickerInput"),
-      label = NULL,
+      inputId = ns("selectControlCohort_pickerInput"),
+      label = "Select target/control cohort:",
       choices = NULL,
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
-    #shiny::tags$h4("Settings"),
+    shiny::tags$h4("Settings"),
     shiny::tags$h5("The new cohort will have a maximum of"),
     shiny::numericInput(
       inputId = ns("matchRatio_numericInput"),
@@ -137,7 +136,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
 
 
     #
-    # update selectControlCohort_pickerInput with cohort names in r_databaseConnection$cohortTableHandler
+    # update selectCaseCohort_pickerInput with cohort names in r_databaseConnection$cohortTableHandler
     #
     shiny::observe({
       shiny::req(r_databaseConnection$cohortTableHandler)
@@ -150,7 +149,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
       }
 
       shinyWidgets::updatePickerInput(
-        inputId = "selectControlCohort_pickerInput",
+        inputId = "selectCaseCohort_pickerInput",
         choices = cohortIdAndNamesList,
         selected = character(0)
       )
@@ -158,19 +157,19 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
 
 
     #
-    # update matchToCohortId_pickerInput with cohort names not in selectControlCohort_pickerInput
+    # update matchToCohortId_pickerInput with cohort names not in selectCaseCohort_pickerInput
     #
     shiny::observe({
       shiny::req(r_databaseConnection$cohortTableHandler)
       shiny::req(r_databaseConnection$hasChangeCounter)
-      shiny::req(input$selectControlCohort_pickerInput)
+      shiny::req(input$selectCaseCohort_pickerInput)
 
       cohortIdAndNames <- r_databaseConnection$cohortTableHandler$getCohortIdAndNames()|>
-          dplyr::filter(!(cohortId %in% input$selectControlCohort_pickerInput))
+          dplyr::filter(!(cohortId %in% input$selectCaseCohort_pickerInput))
       cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
 
       shinyWidgets::updatePickerInput(
-        inputId = "selectCaseCohort_pickerInput",
+        inputId = "selectControlCohort_pickerInput",
         choices = cohortIdAndNamesList,
         selected = character(0)
       )
@@ -180,7 +179,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     # activate settings if cohors have been selected
     #
     shiny::observe({
-      condition <- !is.null(input$selectCaseCohort_pickerInput)
+      condition <- !is.null(input$selectControlCohort_pickerInput)
       shinyjs::toggleState("matchRatio_numericInput", condition = condition )
       shinyjs::toggleState("matchSex_switch", condition = condition )
       shinyjs::toggleState("matchBirthYear_switch", condition = condition )
@@ -195,8 +194,8 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     # create temporal cohortDefinitionSet and render name
     #
     shiny::observe({
-      shiny::req(input$selectControlCohort_pickerInput)
       shiny::req(input$selectCaseCohort_pickerInput)
+      shiny::req(input$selectControlCohort_pickerInput)
 
 
       existingSubsetDefinitionIds <- r_databaseConnection$cohortTableHandler$cohortDefinitionSet |>

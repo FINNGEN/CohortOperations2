@@ -4,12 +4,24 @@
 \alias{mod_importCohortsFromCohortsTable_server}
 \title{Import Cohorts from Cohort Table Server}
 \usage{
-mod_importCohortsFromCohortsTable_server(id, r_databaseConnection)
+mod_importCohortsFromCohortsTable_server(
+  id,
+  r_databaseConnection,
+  filterCohortsRegex = ".*",
+  filterCohortsRegexRemove = "()",
+  filterCohortsName = "Endpoint"
+)
 }
 \arguments{
 \item{id}{Module ID}
 
 \item{r_databaseConnection}{Reactive database connection object}
+
+\item{filterCohortsRegex}{Regular expression to filter cohorts}
+
+\item{filterCohortsRegexRemove}{Regular expression to remove cohorts from filter}
+
+\item{filterCohortsName}{Name filter for cohorts}
 }
 \value{
 Server logic for the Import Cohorts from Cohort Table module
