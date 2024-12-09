@@ -1,3 +1,10 @@
+# CohortOperations2 2.0.0
+- New cohorts in `Import Cohorts > from Library`:  Genetic outliers, individuals with Olink proteomics data, and more
+- New `Import Cohorts > from File` dialog, more clever file type detection
+- New menu, `View results`
+- Switch from JDBC to BQ-DBI driver, for speed and simplicity
+- Other minor fixes and improvements
+
 # CohortOperations2 1.0.2
 
 - Fix 0 subjects when import cohort after matching
