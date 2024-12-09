@@ -267,14 +267,14 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     rf_append_accepted_counter <- mod_fct_appendCohort_server("impor_file", r_databaseConnection, r_cohortDefinitionSetToAdd)
 
     # # close and reset
-    # shiny::observeEvent(rf_append_accepted_counter(), {
-    #   r_dataToMap$data <- NULL
-    #   r_dataToMap$name <- NULL
-    #   r_cohortData$data <- NULL
-    #   r_cohortData$validated <- FALSE
-    #   r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
-    #   reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
-    # })
+    shiny::observeEvent(rf_append_accepted_counter(), { 
+      r_dataToMap$data <- NULL
+      r_dataToMap$name <- NULL
+      r_cohortData$data <- NULL
+      r_cohortData$validated <- FALSE
+      r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
+      reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
+    })
   })
 }
 
