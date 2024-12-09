@@ -1,14 +1,17 @@
 AnalysisModules
 Appender
 AssertCollection
+BQ
 CDM
 CohortOperations
 DockerDemo
 Eunomia
 FINNGEN
 GiBleed
+JDBC
 Lifecycle
 OMOP
+Olink
 ParallelLogger
 Rstudio
 UI
