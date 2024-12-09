@@ -36,7 +36,6 @@ Imports:
     tidyr,
     HadesExtras,
     ROhdsiWebApi,
-    FinnGenUtilsR,
     bigrquery,
     renv,
     markdown, 
@@ -44,10 +43,10 @@ Imports:
     datamods, 
     phosphoricons, 
     duckdb,
-    DBI
+    DBI,
+    tippy
 Remotes: 
     FINNGEN/HadesExtras,
-    FINNGEN/FinnGenUtilsR,
     FINNGEN/CO2AnalysisModules,
     OHDSI/ROhdsiWebApi,
     javier-gracia-tabuenca-tuni/DatabaseConnector@BQ-DBI

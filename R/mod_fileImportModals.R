@@ -173,6 +173,14 @@ mapping_ui <- function(id) {
           inputId = ns("cohort_name"),
           label = "Cohort Name",
           choices = NULL
+        ),
+        # Add conditional panel for custom cohort name
+        shiny::conditionalPanel(
+          condition = sprintf("input['%s'] == 'Default to file name'", ns("cohort_name")),
+          shiny::textInput(
+            inputId = ns("custom_cohort_name"),
+            label = NULL
+          )
         )
       ),
       shiny::column(
@@ -234,6 +242,10 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
           inputId = "cohort_name",
           choices = NULL
         )
+        shiny::updateTextInput(
+          inputId = "custom_cohort_name",
+          value = ""
+        )
         shinyWidgets::updatePickerInput(
           inputId = "person_id",
           choices = NULL
@@ -270,6 +282,10 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
             ""
           )
         )
+      )
+      shiny::updateTextInput(
+        inputId = "custom_cohort_name",
+        value = r_dataToMap$name
       )
       shinyWidgets::updatePickerInput(
         inputId = "person_id",
@@ -313,7 +329,7 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
         shinyFeedback::hideFeedback("cohort_name")
         shinyFeedback::showFeedback(
           inputId = "cohort_name",
-          text = paste("Only one cohort will be created, with name as file name: ", r_dataToMap$name),
+          text = paste("Only one cohort will be created, with name : "),
           color = "black"
         )
         return()
@@ -464,7 +480,11 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
       # Cohort name
       if (input$cohort_name == "Default to file name") {
         cohort_name <- tibble::tibble(
-          cohort_name = r_dataToMap$name |> rep(dataLength)
+          cohort_name = if (input$custom_cohort_name != "") {
+            input$custom_cohort_name |> rep(dataLength)
+          } else {
+            r_dataToMap$name |> rep(dataLength)
+          }
         )
       } else {
         cohort_name <- r_dataToMap$data |>

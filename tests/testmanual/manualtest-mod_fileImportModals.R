@@ -60,7 +60,7 @@ imported_data <- tibble::tribble(
   )
 
 
-regex_person_id <- "^00[0-9a-f]{6}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+regex_person_id <- shiny::reactive("^00[0-9a-f]{6}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 devtools::load_all()
 
