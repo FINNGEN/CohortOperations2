@@ -140,7 +140,7 @@ mod_importCohortsFromCohortsTable_server <- function(
 
     shiny::observeEvent(input$import_actionButton, {
       shiny::req(r$selectedIndex)
-      browser()
+      
       fct_sweetAlertSpinner("Processing cohorts")
 
       # get connection
