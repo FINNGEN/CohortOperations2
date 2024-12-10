@@ -92,7 +92,9 @@ mod_importCohortsFromCohortsTable_server <- function(
       cohortDefinitionTable <- HadesExtras::getCohortNamesFromCohortDefinitionTable(
         connection = connection,
         cohortDatabaseSchema = cohortDatabaseSchema
-      ) |> dplyr::arrange(cohort_definition_name)
+      ) |> dplyr::arrange(cohort_definition_name)|>
+        dplyr::filter(grepl(filterCohortsRegex, cohort_definition_name, perl = TRUE)) |>
+        dplyr::mutate(cohort_definition_name = stringr::str_remove(cohort_definition_name, filterCohortsRegexRemove)) 
 
       r$cohortDefinitionTable <- cohortDefinitionTable
     })
@@ -116,8 +118,6 @@ mod_importCohortsFromCohortsTable_server <- function(
       
   
       cohortDefinitionTable |>
-        dplyr::filter(grepl(filterCohortsRegex, cohort_definition_name, perl = TRUE)) |>
-        dplyr::mutate(cohort_definition_name = stringr::str_remove(cohort_definition_name, filterCohortsRegexRemove)) |>
         reactable::reactable(
           columns = columns,
           selection = "multiple",
@@ -140,7 +140,7 @@ mod_importCohortsFromCohortsTable_server <- function(
 
     shiny::observeEvent(input$import_actionButton, {
       shiny::req(r$selectedIndex)
-
+      
       fct_sweetAlertSpinner("Processing cohorts")
 
       # get connection
