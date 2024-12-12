@@ -4,7 +4,7 @@ source(testthat::test_path("helper.R"))
 source(testthat::test_path("setup.R"))
 
 if (testingDatabase == "Eunomia-GiBleed" ) {
-   helper_addCohortAndCohortDefinitionTables(cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes")
+   helper_addCohortAndCohortDefinitionTables(test_cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes")
 }
 
 
