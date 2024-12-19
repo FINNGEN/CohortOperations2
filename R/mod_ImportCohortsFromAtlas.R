@@ -291,24 +291,13 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
           paste0(cohortDefinitionSetCopyExisting$cohortName, collapse = ", "),
           " with ids: ", paste0(cohortDefinitionSetCopyExisting$cohortId, collapse = ", ")
         )
-
-        tryCatch(
-          {
-            .estimate_costs(cohortDefinitionSetCopyExisting$sql, cdmSchemaProjectId)
-          },
-          error = function(e) {
-            ParallelLogger::logError("[Import from Atlas]: ", e$message)
-          },
-          warning = function(w) {
-            ParallelLogger::logWarn("[Import from Atlas]: ", w$message)
-          }
-        )
+        
       }
 
       cohortDefinitions <- dplyr::bind_rows(
         cohortDefinitionSetCopyExisting, cohortDefinitionSetCreate
       )
-
+      browser()
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitions
 
       fct_removeSweetAlertSpinner()
@@ -325,29 +314,4 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
     })
   })
-}
-
-
-.estimate_costs <- function(queries, projectId) {
-  options(gargle_oauth_cache = FALSE)
-  bigrquery::bq_auth(scopes = "https://www.googleapis.com/auth/bigquery")
-
-  estimations <- c()
-  for (i in 1:length(queries)) {
-    query <- queries[i]
-
-    sp <- strsplit(queries, split = "\n")[[1]]
-    rowid <- grep("SELECT", sp)
-    sql <- paste0(sp[rowid:length(sp)], collapse = "\n")
-
-    e <- bigrquery::bq_perform_query_dry_run(sql, projectId)
-    estimations <- c(estimations, e)
-  }
-
-  totbytes <- round(sum(as.numeric(estimations)))
-
-  ParallelLogger::logInfo(
-    "[Import from Atlas] Importing existing cohorts billing estimation: ",
-    totbytes * 1e-9, " GB (", totbytes, "b)"
-  )
 }

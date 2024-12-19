@@ -97,21 +97,13 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         loadConnectionChecksLevel <- "basicChecks"
       }
 
-      # TEMP, create a timestaped table
-      timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2")) * 100)
-      cohortTableName <- cohortTableHandlerConfig$cohortTable$cohortTableName
-      if (cohortTableName |> stringr::str_detect("<timestamp>")) {
-        cohortTableName <- cohortTableName |> stringr::str_replace("<timestamp>", timestamp)
-      }
-      cohortTableHandlerConfig$cohortTable$cohortTableName <- cohortTableName
-      ParallelLogger::logInfo("[Databases Connection] Create new table: ", cohortTableName)
-      # END TEMP
-
       cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
+      ParallelLogger::logInfo("[Databases Connection] Create new table: ", cohortTableHandler$cohortTableNames$cohortTable)
+
       r_databaseConnection$cohortTableHandler <- cohortTableHandler
       r_databaseConnection$atlasConfig <- atlasConfig
       r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1
-      # TEMP, trigger garbage collector to delete the old handlers
+      # trigger garbage collector to delete the old handlers
       gc()
 
       connectionStatusLogs <- r_databaseConnection$cohortTableHandler$connectionStatusLog
@@ -119,30 +111,89 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
 
       # check Atlas config
       webapiurl <- databasesConfig[[input$selectDatabases_pickerInput]]$atlasConfig$webapiurl
+      cdmSources <- NULL
       error <- NULL
       tryCatch(
         {
-          ROhdsiWebApi::getCdmSources(webapiurl)
+          cdmSources <- ROhdsiWebApi::getCdmSources(webapiurl)
         },
         error = function(e) {
           error <<- e$message
         }
       )
 
-      atlasStatusLogs <- tibble::tibble(
-        databaseId = cohortTableHandlerConfig$database$databaseId,
-        databaseName = cohortTableHandlerConfig$database$databaseName,
-        type = "SUCCESS",
-        step = "Check Atlas connection",
-        message = "Connected"
-      )
-      if (!is.null(error)) {
-        atlasStatusLogs <- atlasStatusLogs |>
-          dplyr::mutate(
-            type = "ERROR",
-            message = error
-          )
+      atlasStatusLogs <- tibble::tibble()
+      if (is.null(error)) {
+        atlasStatusLogs <- .appendLog(
+          atlasStatusLogs,
+          databaseId = cohortTableHandlerConfig$database$databaseId,
+          databaseName = cohortTableHandlerConfig$database$databaseName,
+          type = "SUCCESS",
+          step = "Check Atlas connection",
+          message = "Connected"
+        )
+      } else {
+        atlasStatusLogs <- .appendLog(
+          atlasStatusLogs,
+          databaseId = cohortTableHandlerConfig$database$databaseId,
+          databaseName = cohortTableHandlerConfig$database$databaseName,
+          type = "ERROR",
+          step = "Check Atlas connection",
+          message = error
+        )
       }
+
+      # check if the source key is present in the cdmSources
+      if (!is.null(cdmSources)) {
+        if (r_databaseConnection$atlasConfig$sourcekey %in% cdmSources$sourceKey) {
+          atlasStatusLogs <- .appendLog(
+            atlasStatusLogs,
+            databaseId = cohortTableHandlerConfig$database$databaseId,
+            databaseName = cohortTableHandlerConfig$database$databaseName,
+            type = "SUCCESS",
+            step = "Check source key",
+            message = "Source key found in Atlas"
+          )
+        } else {
+          atlasStatusLogs <- .appendLog(
+            atlasStatusLogs,
+            databaseId = cohortTableHandlerConfig$database$databaseId,
+            databaseName = cohortTableHandlerConfig$database$databaseName,
+            type = "ERROR",
+            step = "Check source key",
+            message = "Source key not found in Atlas"
+          )
+        }
+      }
+
+      # check if the resultsshchema is present in the cdmSources
+      if (!is.null(cdmSources)) {
+        resultsshchemaOnlySchemaName <- r_databaseConnection$atlasConfig$resultsshchema |>
+          stringr::str_split("\\.") |>
+          purrr::pluck(1) |>
+          dplyr::last()
+
+        if (!(resultsshchemaOnlySchemaName %in% cdmSources$resultsDatabaseSchema)) {
+          atlasStatusLogs <- .appendLog(
+            atlasStatusLogs,
+            databaseId = cohortTableHandlerConfig$database$databaseId,
+            databaseName = cohortTableHandlerConfig$database$databaseName,
+            type = "ERROR",
+            step = "Check results schema",
+            message = "resultsshchema not found in Atlas"
+          )
+        } else {
+          atlasStatusLogs <- .appendLog(
+            atlasStatusLogs,
+            databaseId = cohortTableHandlerConfig$database$databaseId,
+            databaseName = cohortTableHandlerConfig$database$databaseName,
+            type = "SUCCESS",
+            step = "Check results schema",
+            message = "resultsshchema found in Atlas"
+          )
+        }
+      }
+
       connectionStatusLogs <- connectionStatusLogs |>
         dplyr::bind_rows(atlasStatusLogs)
 
@@ -156,4 +207,20 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         HadesExtras::reactable_connectionStatus()
     })
   })
+}
+
+
+
+.appendLog <- function(log, databaseId, databaseName, type = "SUCCESS", step, message) {
+  log <- log |>
+    dplyr::bind_rows(
+      tibble::tibble(
+        databaseId = databaseId,
+        databaseName = databaseName,
+        type = type,
+        step = step,
+        message = message
+      )
+    )
+  return(log)
 }

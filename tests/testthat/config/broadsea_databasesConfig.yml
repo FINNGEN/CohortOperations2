@@ -1,0 +1,49 @@
+
+Eunomia:
+  cohortTableHandler:
+    database:
+      databaseId: Eunomia
+      databaseName: eunomia
+      databaseDescription: Eunomia database
+    connection:
+      connectionDetailsSettings:
+          dbms: postgresql
+          server: localhost/postgres
+          user: postgres
+          password: mypass
+    cdm:
+        cdmDatabaseSchema: demo_cdm
+        vocabularyDatabaseSchema: demo_cdm
+    cohortTable:
+        cohortDatabaseSchema: public
+        cohortTableName: hadesextras_test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: http://127.0.0.1/WebAPI
+    sourcekey: EUNOMIA
+    resultsshchema: demo_cdm_results
+    regexPersonSourceValue: ^FG[A-Z0-9]{8}$
+BQ5K:
+  cohortTableHandler:
+    database:
+      databaseId: BQ5K
+      databaseName: bigquery5k
+      databaseDescription: BigQuery database
+    connection:
+      connectionDetailsSettings:
+          dbms: bigquery
+          drv: bigrquery::bigquery()
+          project: atlas-development-270609
+          billing: atlas-development-270609
+          bigint: integer64
+      tempEmulationSchema: atlas-development-270609.sandbox
+    cdm:
+        cdmDatabaseSchema: atlas-development-270609.etl_sam_r12_5k_omop
+        vocabularyDatabaseSchema: atlas-development-270609.etl_sam_r12_5k_omop
+    cohortTable:
+        cohortDatabaseSchema: atlas-development-270609.sandbox
+        cohortTableName: hadesextras_test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: http://127.0.0.1/WebAPI
+    sourcekey:
+    resultsshchema:
+    regexPersonSourceValue: ^FG[A-Z0-9]{8}$
