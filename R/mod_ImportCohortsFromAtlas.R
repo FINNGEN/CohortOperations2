@@ -143,154 +143,179 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
         dplyr::pull(id)
 
       # Create cohort definition set
-      validCohortIds <- NULL
-      latestGenerationTimestamps <- as.POSIXct(character(0))
-      for (cohortId in selectedCohortIds) {
-        cohortName <- r$atlasCohortsTable |>
-          dplyr::filter(id == cohortId) |>
-          dplyr::pull(name)
+      cohortDefinitionSet <- NULL
 
-        cohortDef <- ROhdsiWebApi::getCohortDefinition(
-          cohortId = cohortId,
-          baseUrl = webApiUrl
+      if (is.null(sourceKey) || sourceKey == "" || is.null(resultsSchema) || resultsSchema == "") {
+        ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] import cohortDefinitionSet from Atlas")
+
+        cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
+          baseUrl = webApiUrl,
+          cohortIds = selectedCohortIds
         )
 
-        # get the timestamp of the cohort definition
-        cohortDefinitionTimestamp <- cohortDef$createdDate
-        if ("modifiedDate" %in% names(cohortDef)) {
-          cohortDefinitionTimestamp <- cohortDef$modifiedDate
-        }
+        # calculate new cohorIds
+        numberNewCohorts <- length(selectedCohortIds)
+        unusedCohortIds <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
 
-        # get the timestamp of the latest generation
-        cohortGenerationTimestamp <- .getCohortGenerationTimestamp(cohortId, webApiUrl, sourceKey)
+        cohortDefinitionSet <- cohortDefinitionSet |>
+          dplyr::mutate(
+            cohortId = unusedCohortIds
+          )
+      } else {
+        ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] import cohorts build in Atlas")
 
-        # cohortStatus
-        cohortStatus <- "NOT GENERATED"
-        if (!is.null(cohortGenerationTimestamp)) {
-          cohortStatus <- "COMPLETE"
-          if (cohortGenerationTimestamp < cohortDefinitionTimestamp) {
-            cohortStatus <- "OUTDATED"
-          }
-        }
-        ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " status: ", cohortStatus)
 
-        if (cohortStatus == "NOT GENERATED" || cohortStatus == "OUTDATED") {
-          ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Generating cohort ", cohortId, " in Atlas")
+        validCohortIds <- NULL
+        latestGenerationTimestamps <- as.POSIXct(character(0))
+        for (cohortId in selectedCohortIds) {
+          cohortName <- r$atlasCohortsTable |>
+            dplyr::filter(id == cohortId) |>
+            dplyr::pull(name)
 
-          ROhdsiWebApi::invokeCohortGeneration(
+          cohortDef <- ROhdsiWebApi::getCohortDefinition(
             cohortId = cohortId,
-            baseUrl = webApiUrl,
-            sourceKey = sourceKey
+            baseUrl = webApiUrl
           )
 
-          shiny::showModal(
-            shiny::modalDialog(
-              title = "Generating cohort in Atlas",
-              paste0("Atlas' cohort definition for ", cohortName, " is ", cohortStatus, ". It will be generated in Atlas, this may take a few minutes."),
-              footer = NULL,
-              easyClose = FALSE,
-              size = "s"
-            )
-          )
+          # get the timestamp of the cohort definition
+          cohortDefinitionTimestamp <- cohortDef$createdDate
+          if ("modifiedDate" %in% names(cohortDef)) {
+            cohortDefinitionTimestamp <- cohortDef$modifiedDate
+          }
 
-          # wait for generation to be complete
-          counter <- 0
-          cohortGenerationTimestamp <- ifelse(is.null(cohortGenerationTimestamp), 0, cohortGenerationTimestamp)
-          while (TRUE) {
-            newCohortGenerationTimestamp <- .getCohortGenerationTimestamp(cohortId, webApiUrl, sourceKey)
+          # get the timestamp of the latest generation
+          cohortGenerationTimestamp <- .getCohortGenerationTimestamp(cohortId, webApiUrl, sourceKey)
 
-            if (!is.null(newCohortGenerationTimestamp) && newCohortGenerationTimestamp > cohortGenerationTimestamp) {
-              break
-            }
-
-            Sys.sleep(1)
-            counter <- counter + 1
-            if (counter > 60 * 5) {
-              ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation aborted")
-              shinyWidgets::sendSweetAlert(
-                title = "Generating cohort in Atlas",
-                text = paste0("The time limit for generating the cohort has been reached: ", cohortName, "<br>Please try again later"),
-                type = "error",
-                html = TRUE,
-                showCloseButton = TRUE
-              )
-              break
+          # cohortStatus
+          cohortStatus <- "NOT GENERATED"
+          if (!is.null(cohortGenerationTimestamp)) {
+            cohortStatus <- "COMPLETE"
+            if (cohortGenerationTimestamp < cohortDefinitionTimestamp) {
+              cohortStatus <- "OUTDATED"
             }
           }
-          cohortGenerationTimestamp <- newCohortGenerationTimestamp
-        }
+          ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " status: ", cohortStatus)
 
-        shiny::removeModal()
+          if (cohortStatus == "NOT GENERATED" || cohortStatus == "OUTDATED") {
+            ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Generating cohort ", cohortId, " in Atlas")
 
-        ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation complete")
+            ROhdsiWebApi::invokeCohortGeneration(
+              cohortId = cohortId,
+              baseUrl = webApiUrl,
+              sourceKey = sourceKey
+            )
 
-        # get the latest status of the cohort
-        cohortGenerationInfo <- ROhdsiWebApi::getCohortGenerationInformation(
-          cohortId = cohortId,
-          baseUrl = webApiUrl
-        )
-        if (nrow(cohortGenerationInfo) != 0) {
-          cohortStatus <- cohortGenerationInfo |>
-            dplyr::filter(sourceKey == sourceKey) |>
-            dplyr::arrange(dplyr::desc(startTime)) |>
-            dplyr::slice(1) |>
-            dplyr::pull(status)
-        }
+            shiny::showModal(
+              shiny::modalDialog(
+                title = "Generating cohort in Atlas",
+                paste0("Atlas' cohort definition for ", cohortName, " is ", cohortStatus, ". It will be generated in Atlas, this may take a few minutes."),
+                footer = NULL,
+                easyClose = FALSE,
+                size = "s"
+              )
+            )
 
-        if (cohortStatus != "COMPLETE") {
-          ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation failed")
-          shinyWidgets::sendSweetAlert(
-            title = "Generating cohort in Atlas",
-            text = paste0("The cohort generation failed: ", cohortName, "<br>Please try again later"),
-            type = "error",
-            html = TRUE,
-            showCloseButton = TRUE
+            # wait for generation to be complete
+            counter <- 0
+            cohortGenerationTimestamp <- ifelse(is.null(cohortGenerationTimestamp), 0, cohortGenerationTimestamp)
+            while (TRUE) {
+              newCohortGenerationTimestamp <- .getCohortGenerationTimestamp(cohortId, webApiUrl, sourceKey)
+
+              if (!is.null(newCohortGenerationTimestamp) && newCohortGenerationTimestamp > cohortGenerationTimestamp) {
+                break
+              }
+
+              Sys.sleep(1)
+              counter <- counter + 1
+              if (counter > 60 * 5) {
+                ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation aborted")
+                shinyWidgets::sendSweetAlert(
+                  title = "Generating cohort in Atlas",
+                  text = paste0("The time limit for generating the cohort has been reached: ", cohortName, "<br>Please try again later"),
+                  type = "error",
+                  html = TRUE,
+                  showCloseButton = TRUE
+                )
+                break
+              }
+            }
+            cohortGenerationTimestamp <- newCohortGenerationTimestamp
+          }
+
+          shiny::removeModal()
+
+          ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation complete")
+
+          # get the latest status of the cohort
+          cohortGenerationInfo <- ROhdsiWebApi::getCohortGenerationInformation(
+            cohortId = cohortId,
+            baseUrl = webApiUrl
           )
-        } else {
-          validCohortIds <- c(validCohortIds, cohortId)
-          latestGenerationTimestamps <- c(latestGenerationTimestamps, cohortGenerationTimestamp) 
+          if (nrow(cohortGenerationInfo) != 0) {
+            cohortStatus <- cohortGenerationInfo |>
+              dplyr::filter(sourceKey == sourceKey) |>
+              dplyr::arrange(dplyr::desc(startTime)) |>
+              dplyr::slice(1) |>
+              dplyr::pull(status)
+          }
+
+          if (cohortStatus != "COMPLETE") {
+            ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation failed")
+            shinyWidgets::sendSweetAlert(
+              title = "Generating cohort in Atlas",
+              text = paste0("The cohort generation failed: ", cohortName, "<br>Please try again later"),
+              type = "error",
+              html = TRUE,
+              showCloseButton = TRUE
+            )
+          } else {
+            validCohortIds <- c(validCohortIds, cohortId)
+            latestGenerationTimestamps <- c(latestGenerationTimestamps, cohortGenerationTimestamp)
+          }
+        }
+
+
+        if (length(validCohortIds) != 0) {
+          # calculate new cohorIds
+          numberNewCohorts <- length(validCohortIds)
+          unusedCohortIds <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
+
+          cohortDefinitionTable <- r$atlasCohortsTable |>
+            dplyr::filter(id %in% validCohortIds) |>
+            dplyr::transmute(
+              cohort_definition_id = id,
+              cohort_definition_name = name,
+              cohort_definition_description = description
+            )
+
+          cohortDefinitionSet <- HadesExtras::cohortTableToCohortDefinitionSettings(
+            cohortDatabaseSchema = resultsSchema,
+            cohortDefinitionTable = cohortDefinitionTable,
+            cohortDefinitionIds = validCohortIds,
+            newCohortDefinitionIds = unusedCohortIds
+          )
+
+          # append the last generation timestamp in the sql column for the incremental mode
+          cohortDefinitionSet <- cohortDefinitionSet |>
+            dplyr::left_join(
+              tibble::tibble(
+                cohortId = unusedCohortIds,
+                generation_timestamp = latestGenerationTimestamps
+              ),
+              by = "cohortId"
+            ) |>
+            dplyr::mutate(
+              sql = paste0(
+                " -- last generation timestamp: ", generation_timestamp,
+                "\n",
+                sql
+              )
+            ) |>
+            dplyr::select(-generation_timestamp)
         }
       }
 
-
-      if (length(validCohortIds) != 0) {
-        # calculate new cohorIds
-        numberNewCohorts <- length(validCohortIds)
-        unusedCohortIds <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId) |> head(numberNewCohorts)
-
-        cohortDefinitionTable <- r$atlasCohortsTable |>
-          dplyr::filter(id %in% validCohortIds) |>
-          dplyr::transmute(
-            cohort_definition_id = id,
-            cohort_definition_name = name,
-            cohort_definition_description = description
-          )
-
-        cohortDefinitionSet <- HadesExtras::cohortTableToCohortDefinitionSettings(
-          cohortDatabaseSchema = resultsSchema,
-          cohortDefinitionTable = cohortDefinitionTable,
-          cohortDefinitionIds = validCohortIds,
-          newCohortDefinitionIds = unusedCohortIds
-        )
-        
-        # append the last generation timestamp in the sql column for the incremental mode
-        cohortDefinitionSet <- cohortDefinitionSet |>
-          dplyr::left_join(
-            tibble::tibble(
-              cohortId = unusedCohortIds,
-              generation_timestamp = latestGenerationTimestamps
-            ),
-            by = "cohortId"
-          ) |>
-          dplyr::mutate(
-            sql = paste0(
-              " -- last generation timestamp: ", generation_timestamp,
-              "\n",
-              sql
-            )
-          ) |>
-          dplyr::select(-generation_timestamp)
-
+      if (!is.null(cohortDefinitionSet)) {
         r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet
 
         ParallelLogger::logInfo(
