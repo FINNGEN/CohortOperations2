@@ -143,8 +143,17 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         )
       }
 
-      # check if the source key is present in the cdmSources
-      if (!is.null(cdmSources)) {
+      if (is.null(r_databaseConnection$atlasConfig$sourcekey) || r_databaseConnection$atlasConfig$sourcekey == "") {
+        atlasStatusLogs <- .appendLog(
+          atlasStatusLogs,
+          databaseId = cohortTableHandlerConfig$database$databaseId,
+          databaseName = cohortTableHandlerConfig$database$databaseName,
+          type = "WARNING",
+          step = "Check source key",
+          message = "Source key not set in the configuration, cohorts will not be generated in Atlas"
+        )
+      } else if (!is.null(cdmSources)) {
+        # check if the source key is present in the cdmSources
         if (r_databaseConnection$atlasConfig$sourcekey %in% cdmSources$sourceKey) {
           atlasStatusLogs <- .appendLog(
             atlasStatusLogs,
@@ -167,11 +176,20 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
       }
 
       # check if the resultsshchema is present in the cdmSources
-      if (!is.null(cdmSources)) {
+      if (is.null(r_databaseConnection$atlasConfig$resultsshchema) || r_databaseConnection$atlasConfig$resultsshchema == "") {
+        atlasStatusLogs <- .appendLog(
+          atlasStatusLogs,
+          databaseId = cohortTableHandlerConfig$database$databaseId,
+          databaseName = cohortTableHandlerConfig$database$databaseName,
+          type = "WARNING",
+          step = "Check results schema",
+          message = "resultsshchema not set in the configuration, cohorts will not be generated in Atlas"
+        )
+      } else if (!is.null(cdmSources)) {
         resultsshchemaOnlySchemaName <- r_databaseConnection$atlasConfig$resultsshchema |>
           stringr::str_split("\\.") |>
-          purrr::pluck(1) |>
-          dplyr::last()
+            purrr::pluck(1) |>
+            dplyr::last()
 
         if (!(resultsshchemaOnlySchemaName %in% cdmSources$resultsDatabaseSchema)) {
           atlasStatusLogs <- .appendLog(
