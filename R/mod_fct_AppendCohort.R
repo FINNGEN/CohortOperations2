@@ -87,7 +87,7 @@ mod_fct_appendCohort_server <- function(id, r_databaseConnection, r_cohortDefini
       ParallelLogger::logInfo("[Import] Cohorts Replace", r$replaceQuestion)
 
       if(r$replaceQuestion){
-
+browser()
         cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet
         # TEMP FIX this should be moved to HadesExtras::correctCohortDefinitioSet
         if (!("subsetDefinitionId" %in% names(cohortDefinitionSet))) {
