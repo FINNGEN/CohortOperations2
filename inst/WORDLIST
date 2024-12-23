@@ -21,6 +21,7 @@ analysisModulesConfig
 appVersion
 appender
 appenders
+broadsea
 config
 dna
 fct
