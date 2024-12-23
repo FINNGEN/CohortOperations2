@@ -1,3 +1,8 @@
+# CohortOperations2 2.1.0
+- New `Import Cohorts > from Atlas` dialog, import cohorts built in Atlas
+- Select database to show info on atlas connection to results db
+- Added broadsea connection config file
+
 # CohortOperations2 2.0.0
 - New cohorts in `Import Cohorts > from Library`:  Genetic outliers, individuals with Olink data, and more
 - New `Import Cohorts > from File` dialog, more clever file type detection

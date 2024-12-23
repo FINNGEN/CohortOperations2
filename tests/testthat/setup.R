@@ -4,12 +4,13 @@
 
 # Sys.setenv(HADESEXTAS_TESTING_ENVIRONMENT = "Eunomia-GiBleed")
 # Sys.setenv(HADESEXTAS_TESTING_ENVIRONMENT = "AtlasDevelopment-DBI")
+# Sys.setenv(HADESEXTAS_TESTING_ENVIRONMENT = "Broadsea")
 testingDatabase <- Sys.getenv("HADESEXTAS_TESTING_ENVIRONMENT")
 
 testingAnalysisModulesConfig  <- "CO2AnalysisModulesOnly"
 
 # check correct settings
-possibleDatabases <- c("Eunomia-GiBleed", "Eunomia-MIMIC", "AtlasDevelopment", "AtlasDevelopment-DBI")
+possibleDatabases <- c("Eunomia-GiBleed", "Eunomia-MIMIC", "AtlasDevelopment", "AtlasDevelopment-DBI", "Broadsea")
 if (!(testingDatabase %in% possibleDatabases)) {
   message("Please set a valid testing environment in envar HADESEXTAS_TESTING_ENVIRONMENT, from: ", paste(possibleDatabases, collapse = ", "))
   stop()
@@ -87,6 +88,42 @@ if (testingDatabase %in% c("AtlasDevelopment-DBI")) {
 }
 
 #
+# Broadsea Database
+#
+
+# DatabaseConnector::downloadJdbcDrivers(dbms = "postgresql")
+# connectionDetails <- DatabaseConnector::createConnectionDetails(dbms="postgresql", 
+#                                              server="localhost/postgres",
+#                                              user="postgres",
+#                                              password="mypass")
+# conn <- DatabaseConnector::connect(connectionDetails)
+# DatabaseConnector::querySql(conn,"SELECT COUNT(*) FROM demo_cdm.person")
+# dDatabaseConnector::disconnect(conn)
+#
+# ROhdsiWebApi::getCdmSources(baseUrl = "http://127.0.0.1/WebAPI")
+
+if (testingDatabase %in% c("Broadsea")) {
+  if (Sys.getenv("GCP_SERVICE_KEY") == "") {
+    message("GCP_SERVICE_KEY not set. Please set this environment variable to the path of the GCP service key.")
+    stop()
+  }
+  
+  bigrquery::bq_auth(path = Sys.getenv("GCP_SERVICE_KEY"))
+
+  if ( Sys.getenv("DATABASECONNECTOR_JAR_FOLDER") == "") {
+    message("DATABASECONNECTOR_JAR_FOLDER not set. Please set this environment and download the JDBC drivers for postgres.")
+    message("DatabaseConnector::downloadJdbcDrivers(dbms = 'postgresql')")
+    stop()
+  }
+
+  test_databasesConfig <- HadesExtras::readAndParseYaml(
+    pathToYalmFile = testthat::test_path("config", "broadsea_databasesConfig.yml")
+  )
+
+  test_cohortTableHandlerConfig <- test_databasesConfig[[1]]$cohortTableHandler
+}
+
+#
 # CO2 Analysis Modules Configuration
 #
 if(testingAnalysisModulesConfig == "CO2AnalysisModulesOnly"){
@@ -100,16 +137,5 @@ if(testingAnalysisModulesConfig == "CO2AnalysisModulesOnly"){
 message("************* Testing on: ")
 message("Database: ", testingDatabase)
 message("CO2 Modules: ", testingAnalysisModulesConfig)
-
-
-
-
-
-
-
-
-
-
-
 
 
