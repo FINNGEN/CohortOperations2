@@ -32,9 +32,8 @@ ui_load_spinner <- function(ui_element, ...) {
 #' @importFrom shinyWidgets show_alert
 fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMiliseconds = 500, ...) {
 
-  shinyWidgets::show_alert(
-    title = NULL,
-    text = shiny::tags$div(
+  showModal(modalDialog(
+    shiny::tags$div(
       message,
       ui_load_spinner(shiny::plotOutput(outputId = "plot", width = "100px", height = "100px"), proxy.height = "90px"),
       shiny::HTML(paste0(
@@ -73,20 +72,20 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
       ))
       # attendantBar("progress-bar", hidden = TRUE, max=1000)
     ),
-    html = TRUE,
-    type = NULL,
-    btn_labels = NA,
-    closeOnClickOutside = FALSE,
-    showCloseButton = FALSE,
+    title = NULL,
+    footer = NULL,
+    easyClose = F,
+    fade = TRUE,
     width = "550px",
     ...
-  )
+  ))
 
   # if(!is.null(wait_time_sec)){
   #   att <- Attendant$new("progress-bar")
   #   att$auto(ms= wait_time_sec)
   #   att$set(1)
   # }
+
 }
 
 #' fct_removeSweetAlertSpinner
@@ -97,7 +96,7 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
 #'
 #' @importFrom shinyWidgets closeSweetAlert
 fct_removeSweetAlertSpinner <- function() {
-  shinyWidgets::closeSweetAlert()
+  removeModal()
 }
 
 

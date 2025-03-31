@@ -28,6 +28,8 @@ A demo configuration is provided using Eunomia databases (GiBleed and MIMIC) and
 
 Demo can be run using Docker, which is more convenient, or R.
 
+[See video demo](https://www.ohdsi.org/2024showcase-131/)
+
 ### Using Docker 
 
 A demo app can be run using the following Docker project:
