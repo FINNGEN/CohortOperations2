@@ -351,7 +351,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
   )
   if (nrow(cohortGenerationInfo) != 0) {
     cohortGenerationTimestamp <- cohortGenerationInfo |>
-      dplyr::filter(sourceKey == sourceKey) |>
+      dplyr::filter(sourceKey == {{sourceKey}}) |>
       dplyr::filter(status == "COMPLETE") |>
       dplyr::filter(isValid) |>
       dplyr::filter(!isCanceled) |>
