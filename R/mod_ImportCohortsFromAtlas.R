@@ -351,16 +351,19 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
     cohortId = cohortId,
     baseUrl = webApiUrl
   )
+  ParallelLogger::logInfo("DDD", cohortGenerationInfo)
   if (nrow(cohortGenerationInfo) != 0) {
+    a  <- sourceKey 
+    ParallelLogger::logInfo("DDD", a)
     cohortGenerationTimestamp <- cohortGenerationInfo |>
-      dplyr::filter(sourceKey == {{sourceKey}}) |>
+      dplyr::filter(sourceKey == a) |>
       dplyr::filter(status == "COMPLETE") |>
       dplyr::filter(isValid) |>
       dplyr::filter(!isCanceled) |>
       dplyr::arrange(dplyr::desc(startTime)) |>
       dplyr::slice(1) |>
       dplyr::pull(startTime)
-
+    ParallelLogger::logInfo("EEE", cohortGenerationTimestamp)
     if (length(cohortGenerationTimestamp) == 0) {
       cohortGenerationTimestamp <- NULL
     }
