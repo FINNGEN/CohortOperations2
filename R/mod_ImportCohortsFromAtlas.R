@@ -186,7 +186,6 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
           # get the timestamp of the latest generation
           cohortGenerationTimestamp <- .getCohortGenerationTimestamp(cohortId, webApiUrl, sourceKey)
           print(cohortGenerationTimestamp)
-          print(.getCohortGenerationTimestamp)
           # cohortStatus
           cohortStatus <- "NOT GENERATED"
           if (!is.null(cohortGenerationTimestamp)) {
