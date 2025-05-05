@@ -30,7 +30,7 @@ ui_load_spinner <- function(ui_element, ...) {
 #'
 #'
 #' @importFrom shinyWidgets show_alert
-fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMiliseconds = 5000, ...) {
+fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMiliseconds = 500, ...) {
 
   showModal(modalDialog(
     shiny::tags$div(

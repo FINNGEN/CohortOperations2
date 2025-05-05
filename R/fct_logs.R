@@ -147,7 +147,9 @@ fcr_setUpLogger  <- function(){
           fetch('/logs/log.txt')
             .then(response => response.text())
             .then(text => {
-              $('#custom-log-content').text(text);
+              const lines = text.trim().split('\\n');
+              const last10 = lines.slice(-10).join('\\n');
+              $('#custom-log-content').text(last10);
             })
             .catch(error => {
               $('#custom-log-content').text('Could not load log file.');
@@ -164,7 +166,9 @@ fcr_setUpLogger  <- function(){
           fetch('/logs/log.txt')
             .then(response => response.text())
             .then(text => {
-              $('#custom-log-content').text(text);
+              const lines = text.trim().split('\\n');
+              const last10 = lines.slice(-10).join('\\n');
+              $('#custom-log-content').text(last10);
             })
             .catch(error => {
               $('#custom-log-content').text('Could not load log file.');
