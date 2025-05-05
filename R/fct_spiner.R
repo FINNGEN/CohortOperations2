@@ -70,7 +70,7 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
                   if (lastIndex >= 0 && lastIndex < filteredLines.length - 1) {
                     newEntries = filteredLines.slice(lastIndex + 1);
                   } else if (lastIndex === -1) {
-                    // lastShownLine not found, maybe file reset
+                    // lastShownLine not found
                     newEntries = filteredLines;
                   }
                 } else {
