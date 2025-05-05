@@ -91,7 +91,7 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
                 if (logContainer && newEntries.length > 0) {
                   const strippedEntries = newEntries.map(line => {
                     const trimmedLine = line.trim();
-                    const match = trimmedLine.match(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\u0009(.+)$/);
+                    const match = trimmedLine.match(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\t(.+)$/);
                     return match ? match[1] : trimmedLine;  // fallback to full line if no match. To show log entries with timestamp, match[0]
 
                    });
