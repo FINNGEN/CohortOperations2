@@ -176,7 +176,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     })
 
     #
-    # adjust match ratio based on number of cases
+    # adjust match ratio based on the number of cases and controls
     #
     shiny::observe({
       shiny::req(input$selectCaseCohort_pickerInput)
