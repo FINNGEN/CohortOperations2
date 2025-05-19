@@ -4,12 +4,12 @@
 #' @param id Module ID
 #'
 #' @return UI elements for the Export Cohorts module
-#' 
+#'
 #' @importFrom shiny NS tags h4 h5 checkboxInput downloadButton
 #' @importFrom shinyjs useShinyjs
 #' @importFrom shinyWidgets pickerInput
 #' @importFrom htmltools tagList hr
-#' 
+#'
 #' @export
 mod_exportsCohorts_ui <- function(id) {
   ns <- shiny::NS(id)
@@ -41,7 +41,7 @@ mod_exportsCohorts_ui <- function(id) {
 #' @param r_databaseConnection Database connection object
 #'
 #' @return Server logic for the Export Cohorts module
-#' 
+#'
 #' @importFrom shiny moduleServer reactiveValues observe observeEvent isTruthy req
 #' @importFrom shinyjs toggleState
 #' @importFrom shinyWidgets updatePickerInput show_alert sendSweetAlert
@@ -94,7 +94,7 @@ mod_exportsCohorts_server <- function(id, r_databaseConnection) {
         dplyr::filter(cohortId %in% input$selectCohorts_pickerInput) |>
         dplyr::select(databaseId, cohortId, cohortName, databaseName)
 
-      name <- paste0(paste0(.format_str(selectedCohortsInfo$databaseId), "_", .format_str(selectedCohortsInfo$cohortName)), collapse = "_")
+      name <- paste0(paste0(.sanitize_filename(selectedCohortsInfo$databaseId), "_", .sanitize_filename(selectedCohortsInfo$cohortName)), collapse = "_")
 
       r$selectedCohortsInfo <- selectedCohortsInfo
       r$filename <- paste0(name, ".tsv")
@@ -196,6 +196,8 @@ mod_exportsCohorts_server <- function(id, r_databaseConnection) {
 }
 
 
-.format_str <- function(x){
-  tolower(stringr::str_replace_all(x, "[[:punct:]]", "")  |>  stringr::str_replace_all( " ", "_"))
+.sanitize_filename <- function(x) {
+  gsub("[^\\p{L}0-9 _-]", "", x, perl = TRUE)
 }
+
+
