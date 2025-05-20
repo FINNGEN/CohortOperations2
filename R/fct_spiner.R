@@ -38,37 +38,81 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
       ui_load_spinner(shiny::plotOutput(outputId = "plot", width = "100px", height = "100px"), proxy.height = "90px"),
       shiny::HTML(paste0(
         "<script>
-          function updateText() {
-              fetch('", logUrl, "')
-                .then(response => {
-                  if (!response.ok) {
-                    throw new Error('Network response was not OK', response);
-                  }
-                  return response.text();
-                })
-                .then(text => {
-                  // console.log('Text from URL:', text);
-                  // Do something with the text here
-                  text = String(text);
-                  const lastlines = text.split('\\n').slice(-10).join('\\n');
+        (function() {
+          let latestTimestamp = null;
+          window.lastShownLine = window.lastShownLine || null;
+          let isFetching = false;
 
-                  if (document.getElementById('updatedText')){
-                    document.getElementById('updatedText').innerHTML = lastlines;
-                  }
+          function updateText(isInitial) {
+            if (isFetching) return;
+            isFetching = true;
 
-                })
-                .catch(error => {
-                  console.error('There was a problem fetching the text:', error);
-                });
+            if (isInitial) {
+                window.lastShownLine = null;
+              }
+
+            fetch('", logUrl, "').then(response => {
+                if (!response.ok) throw new Error('Network response was not OK');
+                return response.text();
+              }).then(text => {
+                const textLines = String(text).split('\\n').filter(line => line.trim() !== '');
+
+                // Find the most recent '[Task Complete]' line
+                const lastTaskCompleteIndex = [...textLines].reverse().findIndex(line => line.includes('[Task Complete]'));
+                const cutoffIndex = lastTaskCompleteIndex >= 0 ? textLines.length - lastTaskCompleteIndex : 0;
+
+                const filteredLines = textLines.slice(cutoffIndex);
+
+                // Find new lines after lastShownLine
+                let newEntries = [];
+                if (window.lastShownLine !== null) {
+                  const lastIndex = filteredLines.findIndex(line => line === window.lastShownLine);
+                  if (lastIndex >= 0 && lastIndex < filteredLines.length - 1) {
+                    newEntries = filteredLines.slice(lastIndex + 1);
+                  } else if (lastIndex === -1) {
+                    // lastShownLine not found
+                    newEntries = filteredLines;
+                  }
+                } else {
+                  newEntries = filteredLines;
+                }
+
+                // Update latestTimestamp from new entries
+                const timestamps = newEntries.map(line => {
+                    const match = line.match(/^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})/);
+                    return match ? new Date(match[1]) : null;
+                  }).filter(ts => ts !== null);
+
+                if (timestamps.length > 0) {
+                  latestTimestamp = new Date(Math.max(...timestamps.map(ts => ts.getTime())));
+                }
+
+                const logContainer = document.getElementById('updatedText');
+                if (logContainer && newEntries.length > 0) {
+                  const strippedEntries = newEntries.map(line => {
+                    const trimmedLine = line.trim();
+                    const match = trimmedLine.match(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\t(.+)$/);
+                    return match ? match[1] : trimmedLine;  // fallback to full line if no match. To show log entries with timestamp, match[0]
+
+                   });
+                  const prefix = logContainer.textContent.trim().length > 0 ? '\\n' : '';
+                  logContainer.textContent += prefix + strippedEntries.join('\\n');
+                  window.lastShownLine = newEntries[newEntries.length - 1];
+                }
+
+                isFetching = false;
+              })
+              .catch(error => {
+                console.error('Fetch error:', error);
+                isFetching = false;
+              });
           }
 
-          // Update text every 5 seconds
-          setInterval(updateText, ", as.integer(updateMiliseconds),");
-
-          // Call updateText initially to update the text when the page loads
-          updateText();
-        </script>
-        <pre id='updatedText' style='border: 1px solid #ccc; padding: 10px; text-align: left;'></pre>"
+          updateText(true);
+          setInterval(() => updateText(false), ", as.integer(updateMiliseconds), ");
+        })();
+      </script>
+      <pre id='updatedText' style='border: 1px solid #ccc; padding: 10px; text-align: left; min-height: 300px; max-height: 300px; overflow-y: auto; display: block; white-space: pre-wrap;'></pre>"
       ))
       # attendantBar("progress-bar", hidden = TRUE, max=1000)
     ),
@@ -96,10 +140,9 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
 #'
 #' @importFrom shinyWidgets closeSweetAlert
 fct_removeSweetAlertSpinner <- function() {
+  ParallelLogger::logInfo("[Task Complete]")
   removeModal()
 }
-
-
 
 
 .listToString <- function(list) {
