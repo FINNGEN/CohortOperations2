@@ -6,7 +6,7 @@
 #' @return A UI function for the append cohort module.
 #'
 #' @importFrom shinyWidgets useSweetAlert
-#' 
+#'
 #' @export
 mod_fct_appendCohort_ui <- function() {
   shinyWidgets::useSweetAlert()
@@ -58,13 +58,13 @@ mod_fct_appendCohort_server <- function(id, r_databaseConnection, r_cohortDefini
           session = session,
           inputId = "replaceQuestion_alert",
           type = "question",
-          title = "Some selected cohorts had been alredy imported:",
+          title = "Some selected cohorts have already been imported:",
           text = htmltools::HTML(
-            "The following cohorts had been alredy imported : <ul>",
+            "The following cohorts have already been imported : <ul>",
             paste0(paste0("<li> ", namesExistInWorkbech, "</li>"), collapse = "\n"),
             "</ul> Should these be replaced or ignored."
           ),
-          btn_labels = c("Not-import", "Replace"),
+          btn_labels = c("Do not import", "Replace"),
           html = TRUE
         )
       }else{

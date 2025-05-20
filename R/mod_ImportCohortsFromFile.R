@@ -15,7 +15,7 @@ mod_importCohortsFromFile_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
-    shiny::actionButton(ns("importModal_button"), "Import Data"),
+    shiny::actionButton(ns("importModal_button"), "Open File Browser"),
     htmltools::hr(),
     reactable::reactableOutput(ns("cohorts_reactable")),
     htmltools::hr(),
@@ -82,7 +82,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     shiny::observeEvent(input$importModal_button, {
       import_modal(id = ns("importFile_modal"))
 
-       
+
     })
       import_server("importFile_modal", r_importedData)
 
@@ -136,7 +136,11 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
       # if it has 4 columns or more check if it is cohortData
       if (ncol(importedTable) >= 4) {
+
+        # Make all date values keep the Date information and remove time or other information.
+        importedTable = .remove_time_from_dates(importedTable)
         colnames(importedTable) <- tolower(colnames(importedTable))
+
         # check if it is cohortData
         if (all(c("cohort_name", "person_source_value", "cohort_start_date", "cohort_end_date") %in% colnames(importedTable))) {
           cohortDataUploaded <- importedTable |>
@@ -224,7 +228,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     shiny::observe({
       shinyjs::toggleState("import_actionButton", condition = !is.null(r_selectedIndex()))
     })
-    
+
     shiny::observeEvent(input$import_actionButton, {
       shiny::req(r_selectedIndex())
       shiny::req(r_cohortData$data)
@@ -267,7 +271,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     rf_append_accepted_counter <- mod_fct_appendCohort_server("impor_file", r_databaseConnection, r_cohortDefinitionSetToAdd)
 
     # # close and reset
-    shiny::observeEvent(rf_append_accepted_counter(), { 
+    shiny::observeEvent(rf_append_accepted_counter(), {
       r_dataToMap$data <- NULL
       r_dataToMap$name <- NULL
       r_cohortData$data <- NULL
@@ -319,4 +323,16 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     theme = "light",
     arrow = TRUE
   )
+}
+
+
+.remove_time_from_dates <- function(df) {
+  df[] <- lapply(df, function(col) {
+    if (is.character(col) && sum(grepl("\\d{4}-\\d{2}-\\d{2}",col) > 0)) {
+      col <- sub("T\\d{2}:\\d{2}(:\\d{2})?", "", col)  # removes Txx:xx or Txx:xx:xx
+      col = as.Date(col)
+    }
+    col
+  })
+  return(df)
 }
