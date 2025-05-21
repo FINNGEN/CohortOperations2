@@ -272,9 +272,10 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     # Render temporal name
     #
     output$info_text <- shiny::renderText({
-      shiny::req(r$cohortDefinitionSet)
-      shiny::req(input$selectCaseCohort_pickerInput)
-      shiny::req(input$selectControlCohort_pickerInput)
+
+      if (!shiny::isTruthy(r$cohortDefinitionSet) || !shiny::isTruthy(input$selectCaseCohort_pickerInput) || !shiny::isTruthy(input$selectControlCohort_pickerInput)) {
+        return("")
+      }
 
       cohortsOverlap <- r_databaseConnection$cohortTableHandler$getCohortsOverlap()
       cohortCounts <-  r_databaseConnection$cohortTableHandler$getCohortCounts()
