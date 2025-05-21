@@ -52,52 +52,6 @@ fcr_setUpLogger  <- function(){
   return(appender)
 }
 
-
-.redirectToLogWhenDisconnected <- function() {
-  # inspired by the approach in shinydisconnect package on https://github.com/daattali/shinydisconnect
-  shiny::tagList(
-    shiny::tags$head(
-      shiny::tags$style(HTML("
-        #custom-disconnect-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: rgba(0, 0, 0, 0.6);
-          z-index: 9998;
-          display: none;
-        }
-        #custom-disconnect-dialog {
-          position: fixed;
-          top: 30%;
-          left: 50%;
-          transform: translateX(-50%);
-          background-color: white;
-          padding: 20px 30px;
-          font-size: 18px;
-          border-radius: 8px;
-          z-index: 9999;
-          text-align: center;
-          display: none;
-          box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-        }
-      ")),
-      shiny::tags$script(HTML("
-        $(document).on('shiny:disconnected', function(event) {
-          console.error('Shiny disconnected. Showing dialog...');
-          $('#custom-disconnect-overlay').show();
-          $('#custom-disconnect-dialog').show();
-          setTimeout(function() {
-            window.open('/logs/log.txt', '_blank');
-          }, 4000); // Wait 4 seconds before opening log file
-        });
-      "))
-    ),
-
-    # The overlay and dialog box HTML
-    shiny::tags$div(id = "custom-disconnect-overlay"),
-    shiny::tags$div(id = "custom-disconnect-dialog", "An error occurred. You will be redirected to the log file...")
-  )
-}
-
 .showLogWhenDisconnected <- function() {
   shiny::tagList(
     shiny::tags$head(
@@ -157,24 +111,24 @@ fcr_setUpLogger  <- function(){
             });
         });
 
-         $(document).on('shiny:error', function(event) {
-          console.error('Shiny error. Fetching log file...');
-          $('#custom-disconnect-overlay').show();
-          $('#custom-disconnect-dialog').show();
-          $('#custom-log-content').text('Loading log file...');
+        #  $(document).on('shiny:error', function(event) {
+        #   console.error('Shiny error. Fetching log file...');
+        #   $('#custom-disconnect-overlay').show();
+        #   $('#custom-disconnect-dialog').show();
+        #   $('#custom-log-content').text('Loading log file...');
 
-          fetch('/logs/log.txt')
-            .then(response => response.text())
-            .then(text => {
-              const lines = text.trim().split('\\n');
-              const last10 = lines.slice(-10).join('\\n');
-              $('#custom-log-content').text(last10);
-            })
-            .catch(error => {
-              $('#custom-log-content').text('Could not load log file.');
-              console.error('Error loading log:', error);
-            });
-        });
+        #   fetch('/logs/log.txt')
+        #     .then(response => response.text())
+        #     .then(text => {
+        #       const lines = text.trim().split('\\n');
+        #       const last10 = lines.slice(-10).join('\\n');
+        #       $('#custom-log-content').text(last10);
+        #     })
+        #     .catch(error => {
+        #       $('#custom-log-content').text('Could not load log file.');
+        #       console.error('Error loading log:', error);
+        #     });
+        # });
 
       "))
     ),
