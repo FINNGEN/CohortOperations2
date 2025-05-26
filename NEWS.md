@@ -1,3 +1,8 @@
+# CohortOperations2 2.2.0
+- Improvements in logging display, show logs when error occurs, alerts replace with modals
+- Improvements in File import, clearer dialog, parse Kanta data format
+- Auto adjust match ratio based on number of cases and controls
+
 # CohortOperations2 2.1.0
 - New `Import Cohorts > from Atlas` dialog, import cohorts built in Atlas
 - Select database to show info on atlas connection to results db
