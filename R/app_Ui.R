@@ -192,6 +192,9 @@ app_ui <- function(request) {
       shinydashboard::dashboardBody(
         do.call(shinydashboard::tabItems, listOfTabs)
       )
-    )
+    ),
+      # Open logfile if app crashes, to avoid shiny grey screen
+    .showLogWhenDisconnected()
+
   )
 }

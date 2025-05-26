@@ -67,8 +67,8 @@ import_ui <- function(id) {
     actionButton(
       inputId = ns("confirm_import"),
       label = tagList(
-        phosphoricons::ph("arrow-circle-right", title = ("Import data")),
-        ("Import data")
+        phosphoricons::ph("arrow-circle-right", title = ("Upload File")),
+        ("Upload File")
       ),
       width = "95%",
       disabled = "disabled",
@@ -87,7 +87,7 @@ import_ui <- function(id) {
 
 import_server <- function(id, r_importedData) {
   shiny::moduleServer(id, function(input, output, session) {
-    
+
     rf_importedTablefile <- datamods::import_file_server("file_datamods", trigger_return = "change", btn_show_data = FALSE)
     rf_importedTableCopypaste <- datamods::import_copypaste_server("copypaste_datamods", trigger_return = "change", btn_show_data = FALSE)
 
@@ -113,8 +113,8 @@ import_server <- function(id, r_importedData) {
 }
 
 import_modal <- function(id) {
-  
-  title <- ("Import data")
+
+  title <- ("Upload cohort data to import to the workbench")
   size <- "l"
 
   button_close <- htmltools::tags$button(
@@ -149,7 +149,7 @@ mapping_ui <- function(id) {
     #
     shiny::tags$p(
       shiny::HTML(
-        "Columns in the imported data could not be mapped automatically. This dialog allows you to manually map the columns to cohortData format.<br>",
+        "Columns in the uploaded data could not be mapped automatically. This dialog allows you to manually map the columns to cohortData format.<br>",
         "The expected cohortData format is:",
         "<ul>",
         "<li>cohort_name <character>: groups persons into cohorts, if not provided only one cohort will be created with the name as the file name</li>",
@@ -162,7 +162,7 @@ mapping_ui <- function(id) {
       )
     ),
     shiny::hr(),
-    shiny::tags$h4("Imported data preview (first 5 rows)"),
+    shiny::tags$h4("Uploaded data preview (first 5 rows)"),
     reactable::reactableOutput(outputId = ns("input_table")),
     shiny::hr(),
     shiny::tags$h4("Mapping menu"),
@@ -212,8 +212,8 @@ mapping_ui <- function(id) {
     shiny::actionButton(
       inputId = ns("confirm"),
       label = tagList(
-        phosphoricons::ph("arrow-circle-right", title = ("Import data")),
-        ("Import data")
+        phosphoricons::ph("arrow-circle-right", title = ("Upload File")),
+        ("Upload File")
       ),
       width = "100%",
       disabled = FALSE,

@@ -38,7 +38,7 @@ mod_matchCohorts_ui <- function(id) {
       label = NULL,
       value = 10,
       min = 1,
-      max = 1000
+      max = 10000
     ),
     shiny::tags$h5("subjects for each subject in matching/case cohort,"),
     shiny::tags$h5(" with"),
@@ -176,6 +176,27 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     })
 
     #
+    # adjust match ratio based on the number of cases and controls
+    #
+    shiny::observe({
+      shiny::req(input$selectCaseCohort_pickerInput)
+      shiny::req(input$selectControlCohort_pickerInput)
+
+      cohortCounts <-  r_databaseConnection$cohortTableHandler$getCohortCounts()
+
+      nSubjectsCase <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
+      nSubjectsControl <- cohortCounts |>
+        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+        dplyr::pull(cohortSubjects)
+
+
+      estimated_matchRatio <- .estimate_matching_ratio(n_cases=nSubjectsCase, n_controls=nSubjectsControl,expected_match_fraction = 0.8)
+      shiny::updateNumericInput(session, "matchRatio_numericInput", value = estimated_matchRatio)
+    })
+
+    #
     # activate settings if cohors have been selected
     #
     shiny::observe({
@@ -188,7 +209,6 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
       shinyjs::toggleState("newCohortEndDate_option", condition = condition )
       shinyjs::toggleState("create_actionButton", condition = condition )
     })
-
 
     #
     # create temporal cohortDefinitionSet and render name
@@ -252,9 +272,10 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     # Render temporal name
     #
     output$info_text <- shiny::renderText({
-      shiny::req(r$cohortDefinitionSet)
-      shiny::req(input$selectCaseCohort_pickerInput)
-      shiny::req(input$selectControlCohort_pickerInput)
+
+      if (!shiny::isTruthy(r$cohortDefinitionSet) || !shiny::isTruthy(input$selectCaseCohort_pickerInput) || !shiny::isTruthy(input$selectControlCohort_pickerInput)) {
+        return("")
+      }
 
       cohortsOverlap <- r_databaseConnection$cohortTableHandler$getCohortsOverlap()
       cohortCounts <-  r_databaseConnection$cohortTableHandler$getCohortCounts()
@@ -278,7 +299,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
 
       # counts
       if( nSubjectsCase > nSubjectsControl ){
-        message <- paste0(message, "\u274C There are more subjects in matching/case cohort (", nSubjectsCase,") that in target/control cohort (", nSubjectsControl,"). Are you sure they are correct?\n")
+        message <- paste0(message, "\u274C There are more subjects in matching/case cohort (", nSubjectsCase,") than in target/control cohort (", nSubjectsControl,"). Are you sure they are correct?\n")
       }else{
         if( nSubjectsCase * input$matchRatio_numericInput > nSubjectsControl){
           message <- paste0(message, "\u26A0\uFE0F There may be few subjects in target/control cohort (", nSubjectsControl,") to match from (number of subjects in matching/case * matching ratio = ",nSubjectsCase * input$matchRatio_numericInput,")\n")
@@ -338,12 +359,16 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
 }
 
 
-
-
-
-
-
-
+.estimate_matching_ratio <- function(n_cases, n_controls,
+                                    expected_match_fraction = 0.8,
+                                    min_controls_per_case = 1) {
+  # Estimate number of usable, good-quality controls
+  # expected_match_fraction should ideally be obtained empirically from our data
+  usable_controls <- floor(n_controls * expected_match_fraction)
+  ratio <- floor(usable_controls / n_cases)
+  ratio <- max(min_controls_per_case, ratio)
+  return(ratio)
+}
 
 
 
