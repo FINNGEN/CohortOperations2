@@ -93,7 +93,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
     # render cohorts_reactable
     #
     output$cohorts_reactable <- reactable::renderReactable({
-      shiny::req(r$atlasCohortsTable)
+      shiny::req(r$atlasCohortsTable, cancelOutput = TRUE)
       atlasCohortsTable <- r$atlasCohortsTable
 
       if (is.character(atlasCohortsTable)) {
