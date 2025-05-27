@@ -1,3 +1,6 @@
+# CohortOperations2 2.2.1
+- Hotfix: fix error when importing cohorts from file
+
 # CohortOperations2 2.2.0
 - Improvements in logging display, show logs when error occurs, alerts replace with modals
 - Improvements in File import, clearer dialog, parse Kanta data format

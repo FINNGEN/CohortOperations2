@@ -213,8 +213,8 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     # updates output$cohorts_reactable with r$cohortDefinitionSetImported
     #
     output$cohorts_reactable <- reactable::renderReactable({
-      shiny::req(r_cohortData$data)
-      shiny::req(r_cohortData$validated == TRUE)
+      req(!is.null(r_cohortData$data), cancelOutput = TRUE)
+      req(isTRUE(r_cohortData$validated), cancelOutput = TRUE)
 
       .reactatable_cohortData(r_cohortData$data)
     })
