@@ -93,7 +93,7 @@ mod_matchCohorts_ui <- function(id) {
     ),
     #
     htmltools::hr(),
-    shiny::tags$h4("Pre-ran info"),
+    shiny::tags$h4("Pre-run info"),
     shiny::verbatimTextOutput(ns("info_text"), placeholder = TRUE),
     shiny::tags$br(),
     shiny::actionButton(ns("create_actionButton"), "Create matching cohort")
