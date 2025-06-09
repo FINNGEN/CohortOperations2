@@ -320,7 +320,11 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
       ggupset::scale_x_upset() +
       # style
       ggplot2::guides(fill = "none") +
-      ggplot2::geom_text( nudge_y = 160, size=5) +
+      ggplot2::geom_text(size = 5, vjust = -0.2) +
+      ggplot2::scale_y_continuous(
+        labels = function(x) format(x, scientific = FALSE),
+        expand = ggplot2::expansion(mult = c(0, 0.15)) # 15% extra space above bars
+      ) +     
       ggplot2::scale_fill_grey(drop = FALSE) +
       ggplot2::labs(x = "Cohort Sets", y = "N patients")+
       ggplot2::theme_light() +
