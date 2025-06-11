@@ -155,7 +155,6 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
       )
     })
 
-
     #
     # update matchToCohortId_pickerInput with cohort names not in selectCaseCohort_pickerInput
     #
@@ -166,7 +165,11 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
 
       cohortIdAndNames <- r_databaseConnection$cohortTableHandler$getCohortIdAndNames()|>
           dplyr::filter(!(cohortId %in% input$selectCaseCohort_pickerInput))
-      cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
+
+      cohortIdAndNamesList <- list()
+      if(nrow(cohortIdAndNames) != 0){
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
+      }
 
       shinyWidgets::updatePickerInput(
         inputId = "selectControlCohort_pickerInput",
