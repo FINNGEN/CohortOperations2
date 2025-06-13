@@ -100,6 +100,10 @@ fct_sweetAlertSpinner <- function(message, logUrl = "/logs/log.txt", updateMilis
                   window.lastShownLine = newEntries[newEntries.length - 1];
                 }
 
+                if (logContainer) {
+                  logContainer.scrollTop = logContainer.scrollHeight;
+                }
+
                 isFetching = false;
               })
               .catch(error => {
