@@ -43,6 +43,8 @@ fcr_setUpLogger  <- function(){
 .createConsoleAppenderForSandboxLogging <- function(layout = ParallelLogger::layoutParallel) {
   appendFunction <- function(this, level, message, echoToConsole) {
     # Avoid note in check:
+    # Should add session id (session$token) to help group logs by session in central log database.
+    # paste0("[sandbox-co2-log] session:", session$token, message)
     missing(this)
     message <- paste0("[sandbox-co2-log] ", message)
     writeLines(message, con = stderr())
