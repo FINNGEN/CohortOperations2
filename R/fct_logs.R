@@ -3,6 +3,8 @@
 #'
 #' Sets up a logger with console and file appenders for logging.
 #'
+#' @param sToken The session token to be added to log entries
+#'
 #' @return A logger object.
 #'
 #' @export
@@ -37,6 +39,7 @@ fcr_setUpLogger  <- function(sToken=""){
 #' Creates a console appender for sandbox logging with a specified layout.
 #'
 #' @param layout A layout function for the logger. Defaults to ParallelLogger::layoutParallel.
+#' @param sToken The session token to be added to log entries
 #'
 #' @return An appender object for logging.
 #'
