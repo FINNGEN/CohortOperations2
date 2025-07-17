@@ -96,18 +96,23 @@ import_server <- function(id, r_importedData) {
       shiny::updateTabsetPanel(session, "tabs-import", selected = input$from_radiogroup)
     })
 
+    shiny::observeEvent(input[["file_datamods-file"]], {
+      req(input$from_radiogroup == "file_choice")
+      r_importedData$data <- rf_importedTablefile$data()
+      r_importedData$name <- rf_importedTablefile$name()
+      shiny::removeModal()
+    })
+
+    # for copy pasted data, requre that confirmation button is used
     shiny::observeEvent(input$confirm_import, {
-      if (input$from_radiogroup == "file_choice") {
-        shiny::req(rf_importedTablefile$data())
-        r_importedData$data <- rf_importedTablefile$data()
-        r_importedData$name <- rf_importedTablefile$name()
-      } else if (input$from_radiogroup == "copypaste_choice") {
+      if (input$from_radiogroup == "copypaste_choice") {
         shiny::req(rf_importedTableCopypaste$data())
         r_importedData$data <- rf_importedTableCopypaste$data()
         r_importedData$name <- rf_importedTableCopypaste$name()
+        shiny::removeModal()
       }
-      shiny::removeModal()
     })
+
 
   })
 }
