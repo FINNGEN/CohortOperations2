@@ -29,6 +29,9 @@ run_app <- function(databasesConfig, analysisModulesConfig, ...) {
   # deactivate https request to work with Atlas in https
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
 
+  # log settings, get global handlers that can catch base R warning, error for the whole app
+  ParallelLogger::addDefaultErrorReportLogger()
+
   #
   # Create app
   #

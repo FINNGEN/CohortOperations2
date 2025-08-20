@@ -3,10 +3,12 @@
 #'
 #' Sets up a logger with console and file appenders for logging.
 #'
+#' @param sToken The session token to be added to log entries
+#'
 #' @return A logger object.
 #'
 #' @export
-fcr_setUpLogger  <- function(){
+fcr_setUpLogger  <- function(sToken=""){
 
   timestamp  <- timestamp <- as.character(as.numeric(format(Sys.time(), "%d%m%Y%H%M%OS2"))*100)
   folderWithLog <- file.path(tempdir(),  paste0("logs", timestamp))
@@ -15,7 +17,7 @@ fcr_setUpLogger  <- function(){
     threshold = "TRACE",
     appenders = list(
       # to console for tracking
-      .createConsoleAppenderForSandboxLogging(),
+      .createConsoleAppenderForSandboxLogging(sToken=sToken),
       # to file for showing in app
       ParallelLogger::createFileAppender(
         fileName = file.path(folderWithLog, "log.txt"),
@@ -37,14 +39,17 @@ fcr_setUpLogger  <- function(){
 #' Creates a console appender for sandbox logging with a specified layout.
 #'
 #' @param layout A layout function for the logger. Defaults to ParallelLogger::layoutParallel.
+#' @param sToken The session token to be added to log entries
 #'
 #' @return An appender object for logging.
 #'
-.createConsoleAppenderForSandboxLogging <- function(layout = ParallelLogger::layoutParallel) {
+.createConsoleAppenderForSandboxLogging <- function(layout = ParallelLogger::layoutParallel,sToken) {
   appendFunction <- function(this, level, message, echoToConsole) {
     # Avoid note in check:
+    # Should add session id (session$token) to help group logs by session in central log database.
+    # paste0("[sandbox-co2-log] session:", session$token, message)
     missing(this)
-    message <- paste0("[sandbox-co2-log] ", message)
+    message <- paste0("[sandbox-co2-log] --session:",sToken,"-- ",message)
     writeLines(message, con = stderr())
   }
   appender <- list(appendFunction = appendFunction, layout = layout)
