@@ -219,6 +219,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       .reactatable_cohortData(r_cohortData$data)
     })
 
+
     # reactive function to get selected values
     r_selectedIndex <- shiny::reactive(reactable::getReactableState("cohorts_reactable", "selected", session))
 
@@ -262,6 +263,10 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
         " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId
       )
 
+      # removed already imported cohorts from list
+      r_cohortData$data <- r_cohortData$data |>
+        dplyr::filter(!cohort_name %in% selectedCohortNames)
+
       fct_removeSweetAlertSpinner()
     })
 
@@ -274,8 +279,10 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     shiny::observeEvent(rf_append_accepted_counter(), {
       r_dataToMap$data <- NULL
       r_dataToMap$name <- NULL
-      r_cohortData$data <- NULL
-      r_cohortData$validated <- FALSE
+      if (is.null(r_cohortData$data) || nrow(r_cohortData$data) == 0) {
+        r_cohortData$data <- NULL
+        r_cohortData$validated <- FALSE
+      }
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
       reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
     })
