@@ -1,3 +1,9 @@
+# CohortOperations2 2.3.0
+- Simplified importing from file dialog
+- GWAS naming less restrictive now
+- Add session token to the logs for tracking
+- other minor bug fixes
+- 
 # CohortOperations2 2.2.1
 - Hotfix: fix error when importing cohorts from file
 
