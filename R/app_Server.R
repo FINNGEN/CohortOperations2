@@ -6,7 +6,7 @@
 #' @noRd
 app_server <- function(input, output, session) {
   # set up loger
-  fcr_setUpLogger()
+  fcr_setUpLogger(session$token)
   # log start
   ParallelLogger::logInfo("[Start] Start logging")
 

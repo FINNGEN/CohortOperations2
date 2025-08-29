@@ -93,7 +93,7 @@ mod_matchCohorts_ui <- function(id) {
     ),
     #
     htmltools::hr(),
-    shiny::tags$h4("Pre-ran info"),
+    shiny::tags$h4("Pre-run info"),
     shiny::verbatimTextOutput(ns("info_text"), placeholder = TRUE),
     shiny::tags$br(),
     shiny::actionButton(ns("create_actionButton"), "Create matching cohort")
@@ -155,7 +155,6 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
       )
     })
 
-
     #
     # update matchToCohortId_pickerInput with cohort names not in selectCaseCohort_pickerInput
     #
@@ -166,7 +165,11 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
 
       cohortIdAndNames <- r_databaseConnection$cohortTableHandler$getCohortIdAndNames()|>
           dplyr::filter(!(cohortId %in% input$selectCaseCohort_pickerInput))
-      cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
+
+      cohortIdAndNamesList <- list()
+      if(nrow(cohortIdAndNames) != 0){
+        cohortIdAndNamesList <- as.list(setNames(cohortIdAndNames$cohortId, paste(cohortIdAndNames$shortName, "("  , cohortIdAndNames$cohortName, ")")))
+      }
 
       shinyWidgets::updatePickerInput(
         inputId = "selectControlCohort_pickerInput",
@@ -273,7 +276,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     #
     output$info_text <- shiny::renderText({
 
-      if (!shiny::isTruthy(r$cohortDefinitionSet) || !shiny::isTruthy(input$selectCaseCohort_pickerInput) || !shiny::isTruthy(input$selectControlCohort_pickerInput)) {
+      if (!shiny::isTruthy(r$cohortDefinitionSet) || !shiny::isTruthy(input$selectCaseCohort_pickerInput) || !shiny::isTruthy(input$selectControlCohort_pickerInput) || !shiny::isTruthy(input$matchRatio_numericInput)) {
         return("")
       }
 
@@ -293,6 +296,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
       nSubjectsControl <- cohortCounts |>
         dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
         dplyr::pull(cohortSubjects)
+
 
       # name
       message <- paste0("\u2139\uFE0F New cohort name : ", r$cohortDefinitionSet$cohortName, " \n")
