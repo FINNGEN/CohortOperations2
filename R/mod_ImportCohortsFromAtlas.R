@@ -21,8 +21,18 @@ mod_importCohortsFromAtlas_ui <- function(id) {
     shiny::actionButton(ns("refreshDatabases_actionButton"), "Refresh Cohort List"),
     reactable::reactableOutput(ns("cohorts_reactable")) |> ui_load_spinner(),
     htmltools::hr(),
-    shiny::actionButton(ns("import_actionButton"), "Import Selected")
-    # toggle import_actionButton
+
+    # action buttons
+    fluidRow(
+      column(6, shiny::actionButton(ns("import_actionButton"), "Import Selected")),
+      column(6,
+        div(
+        style = "text-align:right;",
+        shiny::actionButton(ns("editShortNamesBtn"), "Enter short names for selected cohorts")
+       ))
+      # toggle import_actionButton
+    )
+
   )
 }
 
@@ -53,7 +63,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
     #
     r <- shiny::reactiveValues(
       selectedIndex = NULL,
-      atlasCohortsTable = NULL
+      atlasCohortsTable = NULL,
+      shortnameEdits = NULL
     )
 
     r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
@@ -80,6 +91,9 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
             dplyr::filter(grepl(filterCohortsRegex, name)) |>
             dplyr::arrange(dplyr::desc(id)) |>
             dplyr::select(id, name, description)
+
+          atlasCohortsTable$short_name <- ""
+
         },
         error = function(e) {
           atlasCohortsTable <<- paste("Error connecting to Atlas. Check that Atlas is working.")
@@ -101,20 +115,90 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       }
       shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
 
-      colums <- list(
-        id = reactable::colDef(name = "Cohort ID", show = (filterCohortsRegex == "*")),
-        name = reactable::colDef(name = "Cohort Name"),
-        description = reactable::colDef(name = "Description")
+      edited_idx=NULL
+      if(!is.null(r$shortnameEdits)){
+        edited_idx <- match(r$shortnameEdits$id, r$atlasCohortsTable$id)
+      }
+
+
+
+      # # This solution was slow as it was rendering text input for all rows.
+      # table <- reactable::reactable(
+      #     atlasCohortsTable,
+      #     columns = list(
+      #       id = reactable::colDef(name = "Cohort ID", show = (filterCohortsRegex == "*")),
+      #       name = reactable::colDef(name = "Cohort Name"),
+      #       description = reactable::colDef(name = "Description"),
+      #       short_name = reactable::colDef(
+      #         name = "Enter short name (defaults to C#, e.g C1)",
+      #         width = 200,
+      #         cell = function(value, index) {
+      #           # plain HTML input
+      #           rowid <- atlasCohortsTable$id[index]
+      #           htmltools::tags$input(
+      #             type = "text",
+      #             value = value,
+      #             `data-rowid` = rowid,
+      #             style = "width:100%; font-size:12px; padding:2px;"
+      #           )
+      #         }
+      #       )
+      #     ),
+      #     selection = "multiple",
+      #     onClick = "select",
+      #     searchable = TRUE
+      #   )
+      #
+      #
+      # # JS: capture all short_name edits in real time and push to Shiny
+      # table <- htmlwidgets::onRender(
+      #   table,
+      #   sprintf("
+      #     function(el, x) {
+      #       var shortMap = {};
+      #
+      #       // Listen for input changes in the table
+      #       el.addEventListener('input', function(e) {
+      #         var t = e.target;
+      #         if (t && t.dataset && t.dataset.rowid) {
+      #           shortMap[t.dataset.rowid] = t.value;
+      #           Shiny.setInputValue('%s',
+      #             Object.values(shortMap).map((v, i) => ({id: Object.keys(shortMap)[i], short_name: v})),
+      #             {priority:'event'});
+      #         }
+      #       });
+      #
+      #       // Merge shortMap into table rows on state changes (sort, filter, page)
+      #       Reactable.onStateChange('%s', function(state) {
+      #         var rows = state.sortedData.map(function(row) {
+      #           var rid = row.values && row.values.id ? row.values.id : row.id;
+      #           row.short_name = shortMap[rid] || row.values.short_name || '';
+      #           return row;
+      #         });
+      #         Shiny.setInputValue('%s', rows, {priority:'event'});
+      #       });
+      #     }
+      #   ", ns("reactable_full_data"), ns("cohorts_reactable"), ns("reactable_full_data"))
+      # )
+
+      table <- reactable::reactable(
+        atlasCohortsTable,
+        columns = list(
+          id = reactable::colDef(name = "Cohort ID"),
+          name = reactable::colDef(name = "Cohort Name"),
+          description = reactable::colDef(name = "Description"),
+          short_name = reactable::colDef(name = "Short Name")
+        ),
+        selection = "multiple",
+        onClick = "select",
+        searchable = TRUE,
+        defaultSelected = edited_idx
       )
 
-      atlasCohortsTable |>
-        reactable::reactable(
-          columns = colums,
-          selection = "multiple",
-          onClick = "select",
-          searchable = TRUE
-        )
+      table
     })
+
+
     # Copy to reactive variable, (better than reactive value for testing)
     shiny::observe({
       selectedIndex <- reactable::getReactableState("cohorts_reactable", "selected", session)
@@ -122,15 +206,116 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
     })
 
     #
+    # button edit selected: allows bulk entering of short names for selected cohorts
+    #
+    observeEvent(input$editShortNamesBtn, {
+      shiny::req(r$atlasCohortsTable)
+      shiny::req(r$selectedIndex)
+
+      shiny::showModal(shiny::modalDialog(
+        title = "Edit Short Names",
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          shiny::actionButton(ns("saveShortNames"), "Save"),
+          shiny::modalButton("Cancel")
+        ),
+        shiny::uiOutput(ns("shortNameEditUI"))
+      ))
+    })
+
+    # Render text inputs for selected rows in modal
+    output$shortNameEditUI <- renderUI({
+      req(r$selectedIndex)
+
+      df_selected <- r$atlasCohortsTable |> dplyr::slice(r$selectedIndex)
+
+      selected_table <- reactable::reactable(
+        df_selected,
+        columns = list(
+          id = reactable::colDef(name = "Cohort ID"),
+          short_name = reactable::colDef(
+            name = "Short name (defaults to C#, e.g C1)",
+            width = 200,
+            cell = function(value, index) {
+              # plain HTML input
+              rowid <- df_selected$id[index]
+              htmltools::tags$input(
+                type = "text",
+                value = value,
+                `data-rowid` = rowid,
+                style = "width:100%; font-size:12px; padding:2px;"
+              )
+            }
+          )
+        ),
+       # bordered = TRUE,
+        compact = TRUE
+      )
+
+      # JS: capture all short_name edits in real time and push to Shiny
+      selected_table <- htmlwidgets::onRender(
+        selected_table,
+        sprintf("
+          function(el, x) {
+            var shortMap = {};
+
+            // Listen for input changes in the table
+            el.addEventListener('input', function(e) {
+              var t = e.target;
+              if (t && t.dataset && t.dataset.rowid) {
+                shortMap[t.dataset.rowid] = t.value;
+                Shiny.setInputValue('%s',
+                  Object.values(shortMap).map((v, i) => ({id: Object.keys(shortMap)[i], short_name: v})),
+                  {priority:'event'});
+              }
+            });
+          }
+        ", ns("short_name_data"))
+      )
+
+      selected_table
+    })
+
+    # Save short name edits
+    observeEvent(input$saveShortNames, {
+      req(r$selectedIndex)
+
+      userInputVec <- input$short_name_data
+
+      df_shortnames <- data.frame(
+        id = as.numeric(userInputVec[names(userInputVec) == "id"]),
+        short_name = userInputVec[names(userInputVec) == "short_name"],
+        stringsAsFactors = FALSE
+      )
+      r$shortnameEdits <-  df_shortnames
+
+      r$atlasCohortsTable <- r$atlasCohortsTable %>%
+        dplyr::rows_update(
+          r$shortnameEdits,
+          by = "id"
+        )
+
+      removeModal()
+
+
+    })
+
+
+
+    #
     # button import selected: checks selected cohorts
     #
     observe({
       shinyjs::toggleState("import_actionButton", condition = !is.null(r$selectedIndex))
+      shinyjs::toggleState("editShortNamesBtn", condition = !is.null(r$selectedIndex))
+
     })
 
     shiny::observeEvent(input$import_actionButton, {
       shiny::req(r$atlasCohortsTable)
       shiny::req(r$selectedIndex)
+
 
       fct_sweetAlertSpinner("Processing cohorts")
 
@@ -323,6 +508,17 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
           "[Import from Cohort Table-", filterCohortsRegex, "] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
           " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId
         )
+      }
+
+      # Capture the short names from the selected rows to the cohortdefinitionset
+      if(!is.null(r$shortnameEdits)){
+
+        r_cohortDefinitionSetToAdd$cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet |>
+          dplyr::left_join(r$shortnameEdits |> dplyr::mutate(id = as.integer(id)), by = c("atlasId" = "id")) |>
+          dplyr::rename(shortName = short_name)
+
+        r$shortnameEdits <- NULL
+
       }
 
       fct_removeSweetAlertSpinner()

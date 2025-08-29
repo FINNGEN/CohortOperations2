@@ -216,7 +216,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       req(!is.null(r_cohortData$data), cancelOutput = TRUE)
       req(isTRUE(r_cohortData$validated), cancelOutput = TRUE)
 
-      .reactatable_cohortData(r_cohortData$data)
+      .reactatable_cohortData(r_cohortData$data,ns)
     })
 
 
@@ -245,6 +245,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       selectedCohortData <- r_cohortData$data |>
         dplyr::filter(cohort_name %in% selectedCohortNames)
 
+
       # calculate new cohorIds
       numberNewCohorts <- selectedCohortData |>
         dplyr::distinct(cohort_name) |>
@@ -260,12 +261,29 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
       ParallelLogger::logInfo(
         "[Import File] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
-        " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId
+        " with id(s): ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId
       )
 
       # removed already imported cohorts from list
       r_cohortData$data <- r_cohortData$data |>
         dplyr::filter(!cohort_name %in% selectedCohortNames)
+
+      # Capture the short names from the selected rows to the cohortdefinitionset
+      if(!is.null(input$reactable_full_data)){
+
+        userInputVec <- input$reactable_full_data
+
+        df_shortnames <- data.frame(
+          id = userInputVec[names(userInputVec) == "id"],
+          short_name = userInputVec[names(userInputVec) == "short_name"],
+          stringsAsFactors = FALSE
+        )
+
+        r_cohortDefinitionSetToAdd$cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet |>
+          dplyr::left_join(df_shortnames, by = c("cohortName" = "id")) |>
+          dplyr::rename(shortName = short_name)
+       }
+
 
       fct_removeSweetAlertSpinner()
     })
@@ -286,39 +304,94 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <- NULL
       reactable::updateReactable("cohorts_reactable", selected = NA, session = session)
     })
-  })
-}
 
 
+    #
+    # render the cohort data for importing
+    #
+    .reactatable_cohortData <- function(cohortData, ns){
 
-.reactatable_cohortData <- function(cohortData) {
-  table <- cohortData |>
-    dplyr::group_by(cohort_name) |>
-    dplyr::summarise(
-      n_subjects = length(unique(person_source_value)),
-      n_entries = dplyr::n(),
-      .groups = "drop"
-    ) |>
-    dplyr::mutate(
-      n_str = paste0(n_subjects, " (", n_entries, ")")
-    ) |>
-    dplyr::arrange(cohort_name) |>
-    dplyr::select(cohort_name, n_str) |>
-    reactable::reactable(
-      columns = list(
-        cohort_name = reactable::colDef(
-          name = "Cohort Name"
+      table_df <- cohortData |>
+        dplyr::group_by(cohort_name) |>
+        dplyr::summarise(
+          n_subjects = length(unique(person_source_value)),
+          n_entries = dplyr::n(),
+          .groups = "drop"
+        ) |>
+        dplyr::mutate(
+          n_str = paste0(n_subjects, " (", n_entries, ")"),
+          short_name = ""  # editable column
+        ) |>
+        dplyr::arrange(cohort_name) |>
+        dplyr::mutate(id = paste0("cohort_", dplyr::row_number())) |>  # stable id
+        dplyr::select(id,cohort_name,n_str,short_name)
+
+
+      table <- reactable::reactable(
+        table_df,
+        columns = list(
+          id = reactable::colDef(show = FALSE),
+          cohort_name = reactable::colDef(name = "Cohort Name"),
+          short_name = reactable::colDef(
+            name = "Enter short name (defaults to C#, e.g C1)",
+            width = 200,
+            cell = function(value, index) {
+              # plain HTML input
+              rowid <- table_df$cohort_name[index]
+              htmltools::tags$input(
+                type = "text",
+                value = value,
+                `data-rowid` = rowid,
+                style = "width:100%; font-size:12px; padding:2px;"
+              )
+            }
+          ),
+          n_str = reactable::colDef(name = "N Subjects (N Entries)")
         ),
-        n_str = reactable::colDef(
-          name = "N Subjects (N Entries)"
-        )
-      ),
-      selection = "multiple",
-      onClick = "select"
-    )
+        selection = "multiple",
+        onClick = "select"
+      )
 
-  return(table)
+      # JS: capture all short_name edits in real time and push to Shiny
+      table <- htmlwidgets::onRender(
+        table,
+        sprintf("
+          function(el, x) {
+            var shortMap = {};
+
+            // Listen for input changes in the table
+            el.addEventListener('input', function(e) {
+              var t = e.target;
+              if (t && t.dataset && t.dataset.rowid) {
+                shortMap[t.dataset.rowid] = t.value;
+                Shiny.setInputValue('%s',
+                  Object.values(shortMap).map((v, i) => ({id: Object.keys(shortMap)[i], short_name: v})),
+                  {priority:'event'});
+              }
+            });
+
+            // Merge shortMap into table rows on state changes (sort, filter, page)
+            Reactable.onStateChange('%s', function(state) {
+              var rows = state.sortedData.map(function(row) {
+                var rid = row.values && row.values.id ? row.values.id : row.id;
+                row.short_name = shortMap[rid] || row.values.short_name || '';
+                return row;
+              });
+              Shiny.setInputValue('%s', rows, {priority:'event'});
+            });
+          }
+        ", ns("reactable_full_data"), ns("cohorts_reactable"), ns("reactable_full_data"))
+        )
+
+      return(table)
+    }
+
+
+
+  })
+
 }
+
 
 
 

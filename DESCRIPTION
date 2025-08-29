@@ -17,6 +17,7 @@ Imports:
     ParallelLogger,
     purrr,
     reactable,
+    DT,
     shiny,
     shinycustomloader,
     shinydashboard,
