@@ -22,17 +22,7 @@ mod_importCohortsFromAtlas_ui <- function(id) {
     reactable::reactableOutput(ns("cohorts_reactable")) |> ui_load_spinner(),
     htmltools::hr(),
 
-    # action buttons
-    fluidRow(
-      column(6, shiny::actionButton(ns("import_actionButton"), "Import Selected")),
-      column(6,
-        div(
-        style = "text-align:right;",
-        shiny::actionButton(ns("editShortNamesBtn"), "Enter short names for selected cohorts")
-       ))
-      # toggle import_actionButton
-    )
-
+    shiny::actionButton(ns("import_actionButton"), "Import Selected")
   )
 }
 
@@ -205,10 +195,19 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       r$selectedIndex <- selectedIndex
     })
 
+
+
     #
-    # button edit selected: allows bulk entering of short names for selected cohorts
+    # button import selected: checks selected cohorts
     #
-    observeEvent(input$editShortNamesBtn, {
+    observe({
+      shinyjs::toggleState("import_actionButton", condition = !is.null(r$selectedIndex))
+      #shinyjs::toggleState("editShortNamesBtn", condition = !is.null(r$selectedIndex))
+
+    })
+
+    shiny::observeEvent(input$import_actionButton, {
+
       shiny::req(r$atlasCohortsTable)
       shiny::req(r$selectedIndex)
 
@@ -217,12 +216,31 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
         size = "l",
         easyClose = TRUE,
         footer = tagList(
-          shiny::actionButton(ns("saveShortNames"), "Save"),
-          shiny::modalButton("Cancel")
+          shiny::modalButton("Cancel"),
+          shiny::actionButton(ns("saveShortNames"), "Import")
         ),
         shiny::uiOutput(ns("shortNameEditUI"))
       ))
     })
+
+    # #
+    # # button edit selected: allows bulk entering of short names for selected cohorts
+    # #
+    # observeEvent(input$editShortNamesBtn, {
+    #   shiny::req(r$atlasCohortsTable)
+    #   shiny::req(r$selectedIndex)
+    #
+    #   shiny::showModal(shiny::modalDialog(
+    #     title = "Edit Short Names",
+    #     size = "l",
+    #     easyClose = TRUE,
+    #     footer = tagList(
+    #       shiny::actionButton(ns("saveShortNames"), "Save"),
+    #       shiny::modalButton("Cancel")
+    #     ),
+    #     shiny::uiOutput(ns("shortNameEditUI"))
+    #   ))
+    # })
 
     # Render text inputs for selected rows in modal
     output$shortNameEditUI <- renderUI({
@@ -235,7 +253,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
         columns = list(
           id = reactable::colDef(name = "Cohort ID"),
           short_name = reactable::colDef(
-            name = "Short name (defaults to C#, e.g C1)",
+            name = "Short name (defaults to first4 & last4 characters or C#)",
             width = 200,
             cell = function(value, index) {
               # plain HTML input
@@ -249,7 +267,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
             }
           )
         ),
-       # bordered = TRUE,
+        # bordered = TRUE,
         compact = TRUE
       )
 
@@ -277,9 +295,14 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       selected_table
     })
 
-    # Save short name edits
+
+    #
+    # Import and Save short name edits
+    #
+
     observeEvent(input$saveShortNames, {
-      req(r$selectedIndex)
+      shiny::req(r$atlasCohortsTable)
+      shiny::req(r$selectedIndex)
 
       userInputVec <- input$short_name_data
 
@@ -297,25 +320,6 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
         )
 
       removeModal()
-
-
-    })
-
-
-
-    #
-    # button import selected: checks selected cohorts
-    #
-    observe({
-      shinyjs::toggleState("import_actionButton", condition = !is.null(r$selectedIndex))
-      shinyjs::toggleState("editShortNamesBtn", condition = !is.null(r$selectedIndex))
-
-    })
-
-    shiny::observeEvent(input$import_actionButton, {
-      shiny::req(r$atlasCohortsTable)
-      shiny::req(r$selectedIndex)
-
 
       fct_sweetAlertSpinner("Processing cohorts")
 
@@ -510,8 +514,9 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
         )
       }
 
+
       # Capture the short names from the selected rows to the cohortdefinitionset
-      if(!is.null(r$shortnameEdits)){
+      if(!is.null(r$shortnameEdits) && nrow(r$shortnameEdits) > 0){
 
         r_cohortDefinitionSetToAdd$cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet |>
           dplyr::left_join(r$shortnameEdits |> dplyr::mutate(id = as.integer(id)), by = c("atlasId" = "id")) |>
