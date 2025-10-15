@@ -98,8 +98,15 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
 
       if (is.character(atlasCohortsTable)) {
         ParallelLogger::logWarn("[Import from Atlas-", filterCohortsRegex, "] : ", atlasCohortsTable)
+
+        shiny::showNotification(
+          paste("Failed to load cohorts from Atlas:", atlasCohortsTable),
+          type = "error",
+          duration = 10
+        )
+        return(NULL)
       }
-      shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
+      #shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
 
       colums <- list(
         id = reactable::colDef(name = "Cohort ID", show = (filterCohortsRegex == "*")),
