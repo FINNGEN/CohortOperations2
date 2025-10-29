@@ -62,7 +62,6 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          use-public-rspm: true
           cache-version: 2
 
       - name: Create GCP service key
