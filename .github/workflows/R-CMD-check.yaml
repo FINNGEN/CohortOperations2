@@ -62,6 +62,8 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+          use-public-rspm: true
+          cache-version: 2
 
       - name: Create GCP service key
         run: echo $GCP_SERVICE_KEY_JSON  > /tmp/gcp-credentials.json
