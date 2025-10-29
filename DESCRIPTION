@@ -34,11 +34,9 @@ Imports:
     httr, 
     rlang, 
     tidyr,
-    HadesExtras,
+    HadesExtras (>= 2.0.0),
     ROhdsiWebApi,
-    bigrquery,
     renv,
-    markdown, 
     lubridate,
     datamods, 
     phosphoricons, 
@@ -56,7 +54,8 @@ Suggests:
     withr, 
     CO2AnalysisModules,
     DatabaseConnector,
-    spelling
+    spelling,
+    bigrquery,
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
