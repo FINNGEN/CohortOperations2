@@ -50,7 +50,7 @@ test_that("mod_ImportCohortsFromCohortTable shows error when no cohort table exi
   cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort")
   cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort_definition")
   withr::defer({
-    helper_addCohortAndCohortDefinitionTables(cohortTableHandlerConfig, cohortTablesToAdd = "Diabetes")
+    helper_addCohortAndCohortDefinitionTables(cohortTableHandlerConfig)
   })
 
   r_databaseConnection <- shiny::reactiveValues(

@@ -9,7 +9,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Language: en-US
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Imports: 
     checkmate,
     dplyr, 
@@ -49,7 +49,7 @@ Remotes:
     FINNGEN/HadesExtras,
     FINNGEN/CO2AnalysisModules,
     OHDSI/ROhdsiWebApi,
-    javier-gracia-tabuenca-tuni/DatabaseConnector@BQ-DBI
+    javier-gracia-tabuenca-tuni/DatabaseConnector@bigquery-DBI-2 
 Suggests: 
     testthat (>= 3.0.0),
     Eunomia,
