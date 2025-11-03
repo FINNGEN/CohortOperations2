@@ -19,6 +19,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
     {
       # Test: initial state
       #r$cohortDefinitionTable  |> dplyr::pull(cohort_definition_name) |> expect_equal(c("Diabetes Cohort", "Hypertension Cohort", "Obesity Cohort"))
+      
       output$cohorts_reactable |> expect_match('["Diabetes Cohort","Hypertension Cohort","Obesity Cohort"]')
 
       # select firts cohort
