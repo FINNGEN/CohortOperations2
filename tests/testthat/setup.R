@@ -34,7 +34,7 @@ if (testingDatabase |> stringr::str_starts("Eunomia")) {
     pathToYalmFile = testthat::test_path("config", "databasesConfig.yml"),
     pathToGiBleedEunomiaSqlite = pathToGiBleedEunomiaSqlite,
     pathToMIMICEunomiaSqlite = pathToMIMICEunomiaSqlite,
-    pathToFinnGenEunomiaSqlite = helper_FinnGen_getDatabaseFile()
+    pathToFinnGenEunomiaSqlite = ""#helper_FinnGen_getDatabaseFile()
   )
 
   if (testingDatabase |> stringr::str_ends("GiBleed")) {
