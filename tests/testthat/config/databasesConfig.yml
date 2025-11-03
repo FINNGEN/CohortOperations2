@@ -1,0 +1,126 @@
+# Eunomia-GiBleed
+E1:
+  cohortTableHandler:
+    database:
+      databaseId: E1
+      databaseName: GiBleed
+      databaseDescription: Eunomia database GiBleed
+    connection:
+      connectionDetailsSettings:
+          dbms: sqlite
+          server: <pathToGiBleedEunomiaSqlite>
+    cdm:
+        cdmDatabaseSchema: main
+        vocabularyDatabaseSchema: main
+    cohortTable:
+        cohortDatabaseSchema: main
+        cohortTableName: test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: https://api.ohdsi.org/WebAPI
+    sourcekey:
+    resultsshchema:
+# Eunomia-MIMIC
+E2:
+  cohortTableHandler:
+    database:
+      databaseId: E2
+      databaseName: MIMIC
+      databaseDescription: Eunomia database MIMIC
+    connection:
+      connectionDetailsSettings:
+          dbms: sqlite
+          server: <pathToMIMICEunomiaSqlite>
+    cdm:
+        cdmDatabaseSchema: main
+        vocabularyDatabaseSchema: main
+    cohortTable:
+        cohortDatabaseSchema: main
+        cohortTableName: test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: https://api.ohdsi.org/WebAPI
+    sourcekey:
+    resultsshchema:
+# Eunomia-MIMICwrong
+E3:
+  cohortTableHandler:
+    database:
+      databaseId: E3
+      databaseName: MIMICwrong
+      databaseDescription: Eunomia database MIMIC wrong atlas
+    connection:
+      connectionDetailsSettings:
+          dbms: sqlite
+          server: <pathToMIMICEunomiaSqlite>
+    cdm:
+        cdmDatabaseSchema: main
+        vocabularyDatabaseSchema: main
+    cohortTable:
+        cohortDatabaseSchema: main
+        cohortTableName: test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: https://api.ohdsi.org/wrong
+    sourcekey:
+    resultsshchema:
+# Eunomia-FinnGen
+E4:
+  cohortTableHandler:
+    database:
+      databaseId: E4
+      databaseName: FinnGen
+      databaseDescription: Eunomia database FinnGen
+    connection:
+      connectionDetailsSettings:
+          dbms: sqlite
+          server: <pathToFinnGenEunomiaSqlite>
+    cdm:
+        cdmDatabaseSchema: main
+        vocabularyDatabaseSchema: main
+    cohortTable:
+        cohortDatabaseSchema: main
+        cohortTableName: test_cohort_table_<timestamp>
+  atlasConfig:
+    webapiurl: https://api.ohdsi.org/wrong
+    sourcekey:
+    resultsshchema:
+# AtlasDevelopment-5k
+BQ5K:
+  cohortTableHandler:
+    database:
+      databaseId: BQ5K
+      databaseName: bigquery5k
+      databaseDescription: BigQuery database
+    connection:
+      connectionDetailsSettings:
+          dbms: bigquery
+          drv: bigrquery::bigquery()
+          project: atlas-development-270609
+          billing: atlas-development-270609
+          bigint: integer64
+      tempEmulationSchema: atlas-development-270609.sandbox
+    cdm:
+        cdmDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3_5k
+        vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3_5k
+    cohortTable:
+        cohortDatabaseSchema: atlas-development-270609.sandbox
+        cohortTableName: hadesextras_test_cohort_table_<timestamp>
+# AtlasDevelopment-full
+BQ5:
+  cohortTableHandler:
+    database:
+      databaseId: BQ
+      databaseName: bigquery
+      databaseDescription: BigQuery database with 500k patients
+    connection:
+      connectionDetailsSettings:
+          dbms: bigquery
+          drv: bigrquery::bigquery()
+          project: atlas-development-270609
+          billing: atlas-development-270609
+          bigint: integer64
+      tempEmulationSchema: atlas-development-270609.sandbox
+    cdm:
+        cdmDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3
+        vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3
+    cohortTable:
+        cohortDatabaseSchema: atlas-development-270609.sandbox
+        cohortTableName: hadesextras_test_cohort_table_<timestamp>

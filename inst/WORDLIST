@@ -7,6 +7,7 @@ CohortOperations
 DockerDemo
 Eunomia
 FINNGEN
+GWAS
 GiBleed
 Hotfix
 JDBC
@@ -18,7 +19,6 @@ ParallelLogger
 Rstudio
 UI
 UpSet
-YAML
 analysisModulesConfig
 appVersion
 appender
