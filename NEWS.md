@@ -1,3 +1,7 @@
+# CohortOperations2 3.0.0
+- Updated to use DatabaseConnector v7
+- Enable editing cohort short names during importing
+
 # CohortOperations2 2.3.0
 - Simplified importing from file dialog
 - GWAS naming less restrictive now

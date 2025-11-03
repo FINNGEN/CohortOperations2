@@ -4,6 +4,7 @@ AssertCollection
 BQ
 CDM
 CohortOperations
+DatabaseConnector
 DockerDemo
 Eunomia
 FINNGEN
