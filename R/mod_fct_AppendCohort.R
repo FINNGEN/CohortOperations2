@@ -94,17 +94,34 @@ mod_fct_appendCohort_server <- function(id, r_databaseConnection, r_cohortDefini
           cohortDefinitionSet <- cohortDefinitionSet |> dplyr::mutate(subsetDefinitionId = cohortId)
         }
         # TEMP FIX
-        cohortDefinitionSet <- cohortDefinitionSet |>
-          dplyr::left_join(
-            r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |>
-              dplyr::rename(existingCohortId = cohortId, existingSubsetDefinitionId = subsetDefinitionId),
-            by = "cohortName"
-          ) |>
-          dplyr::mutate(
-            cohortId = dplyr::if_else(!is.na(existingCohortId), existingCohortId, cohortId),
-            subsetDefinitionId = dplyr::if_else(!is.na(existingSubsetDefinitionId), existingSubsetDefinitionId, subsetDefinitionId)
-          ) |>
-          dplyr::select(-existingCohortId, -existingSubsetDefinitionId)
+
+        if (!"shortName" %in% names(cohortDefinitionSet)){
+
+          cohortDefinitionSet <- cohortDefinitionSet |>
+            dplyr::left_join(
+              r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |>
+                dplyr::rename(existingCohortId = cohortId, existingSubsetDefinitionId = subsetDefinitionId),
+              by = "cohortName") |>
+            dplyr::mutate(
+              cohortId = dplyr::if_else(!is.na(existingCohortId), existingCohortId, cohortId),
+              subsetDefinitionId = dplyr::if_else(!is.na(existingSubsetDefinitionId), existingSubsetDefinitionId, subsetDefinitionId)
+               ) |>
+            dplyr::select(-existingCohortId, -existingSubsetDefinitionId)
+
+        }else{
+          cohortDefinitionSet <- cohortDefinitionSet |>
+            dplyr::left_join(
+              r_databaseConnection$cohortTableHandler$getCohortIdAndNames() |>
+                dplyr::rename(existingShortName = shortName, existingCohortId = cohortId, existingSubsetDefinitionId = subsetDefinitionId),
+              by = "cohortName") |>
+            dplyr::mutate(
+              cohortId = dplyr::if_else(!is.na(existingCohortId), existingCohortId, cohortId),
+              shortName = dplyr::if_else(!is.na(existingShortName), existingShortName, shortName),
+              subsetDefinitionId = dplyr::if_else(!is.na(existingSubsetDefinitionId), existingSubsetDefinitionId, subsetDefinitionId)
+              ) |>
+            dplyr::select(-existingCohortId, -existingShortName ,-existingSubsetDefinitionId)
+
+        }
 
         r_databaseConnection$cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
         r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1

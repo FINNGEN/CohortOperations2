@@ -5,14 +5,14 @@
 #' @param id A unique identifier for the module.
 #'
 #' @return A UI definition for the Cohort Workbench.
-#' 
+#'
 #' @importFrom shiny NS
 #' @importFrom htmltools tagList
 #' @importFrom shinyWidgets useSweetAlert
 #' @importFrom shinyjs useShinyjs
 #' @importFrom shinyFeedback useShinyFeedback
 #' @importFrom reactable reactableOutput
-#' 
+#'
 #' @export
 mod_cohortWorkbench_ui <- function(id){
   ns <- shiny::NS(id)
@@ -20,8 +20,32 @@ mod_cohortWorkbench_ui <- function(id){
     shinyWidgets::useSweetAlert(),
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
-    #
-    reactable::reactableOutput(ns("cohortsSummaryDatabases_reactable"))
+
+    htmltools::tags$style(HTML("
+      .foldable-summary {
+        cursor: pointer;
+        font-weight: bold;
+        list-style: none;
+        position: relative;
+        padding-left: 1.2em;
+      }
+      .foldable-summary::-webkit-details-marker {
+        display: none;
+      }
+      .foldable-summary::before {
+        content: '\\25B6';  /* closed arrow */
+        position: absolute;
+        left: 0;
+      }
+      details[open] .foldable-summary::before {
+        content: '\\25BC';  /* open arrow */
+      }
+    ")),
+    htmltools::tags$details(
+      open = TRUE,  # or TRUE to show it expanded by default
+      htmltools::tags$summary( class = "foldable-summary", "Show / Hide Cohort Workbench Table"),
+      reactable::reactableOutput(ns("cohortsSummaryDatabases_reactable"))
+    )
   )
 }
 #' Cohort Workbench Server Module
@@ -33,7 +57,7 @@ mod_cohortWorkbench_ui <- function(id){
 #' @param table_editing A logical value indicating whether table editing is enabled. Default is TRUE.
 #'
 #' @return A server module for the Cohort Workbench.
-#' 
+#'
 #' @importFrom shiny moduleServer reactiveValues observeEvent req showModal modalDialog textInput actionButton modalButton removeModal
 #' @importFrom shinyWidgets confirmSweetAlert
 #' @importFrom shinyFeedback showFeedbackDanger hideFeedback
@@ -41,7 +65,7 @@ mod_cohortWorkbench_ui <- function(id){
 #' @importFrom reactable renderReactable
 #' @importFrom purrr pluck
 #' @importFrom dplyr pull setdiff
-#' 
+#'
 #' @export
 mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing = TRUE) {
   shiny::moduleServer(id, function(input, output, session) {
