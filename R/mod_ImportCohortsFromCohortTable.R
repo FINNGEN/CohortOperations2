@@ -18,8 +18,8 @@ mod_importCohortsFromCohortsTable_ui <- function(id) {
     htmltools::hr(),
     reactable::reactableOutput(ns("cohorts_reactable")) |> ui_load_spinner(),
     htmltools::hr(),
+
     shiny::actionButton(ns("import_actionButton"), "Import Selected")
-    # toggle import_actionButton
   )
 }
 
@@ -55,7 +55,8 @@ mod_importCohortsFromCohortsTable_server <- function(
     #
     r <- shiny::reactiveValues(
       selectedIndex = NULL,
-      cohortDefinitionTable = NULL
+      cohortDefinitionTable = NULL,
+      shortnameEdits = NULL
     )
 
     r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
@@ -94,8 +95,9 @@ mod_importCohortsFromCohortsTable_server <- function(
         cohortDatabaseSchema = cohortDatabaseSchema
       ) |> dplyr::arrange(cohort_definition_name)|>
         dplyr::filter(grepl(filterCohortsRegex, cohort_definition_name, perl = TRUE)) |>
-        dplyr::mutate(cohort_definition_name = stringr::str_remove(cohort_definition_name, filterCohortsRegexRemove)) 
+        dplyr::mutate(cohort_definition_name = stringr::str_remove(cohort_definition_name, filterCohortsRegexRemove))
 
+      cohortDefinitionTable$short_name <- ""
       r$cohortDefinitionTable <- cohortDefinitionTable
     })
 
@@ -110,19 +112,25 @@ mod_importCohortsFromCohortsTable_server <- function(
       }
       shiny::validate(shiny::need(!is.character(cohortDefinitionTable), cohortDefinitionTable))
 
+      edited_idx=NULL
+      if(!is.null(r$shortnameEdits)){
+        edited_idx <- match(r$shortnameEdits$id, r$cohortDefinitionTable$cohort_definition_id)
+      }
+
       columns <- list(
         cohort_definition_id = reactable::colDef(show = FALSE),
         cohort_definition_name = reactable::colDef(name = paste0(filterCohortsName, " Name")),
         cohort_definition_description = reactable::colDef(name = paste0(filterCohortsName, " Description"))
       )
-      
-  
+
+
       cohortDefinitionTable |>
         reactable::reactable(
           columns = columns,
           selection = "multiple",
           onClick = "select",
-          searchable = TRUE
+          searchable = TRUE,
+          defaultSelected = edited_idx
         )
     })
     # Copy to reactive variable, (better than reactive value for testing)
@@ -131,16 +139,110 @@ mod_importCohortsFromCohortsTable_server <- function(
       r$selectedIndex <- selectedIndex
     })
 
+
+
     #
     # button import selected: checks selected cohorts
     #
     observe({
       shinyjs::toggleState("import_actionButton", condition = !is.null(r$selectedIndex))
+
     })
 
     shiny::observeEvent(input$import_actionButton, {
+      shiny::req(r$cohortDefinitionTable)
       shiny::req(r$selectedIndex)
-      
+
+      shiny::showModal(shiny::modalDialog(
+        title = "Edit Short Names",
+        size = "l",
+        easyClose = TRUE,
+        footer = tagList(
+          shiny::modalButton("Cancel"),
+          shiny::actionButton(ns("saveShortNames"), "Import")
+        ),
+        shiny::uiOutput(ns("shortNameEditUI"))
+      ))
+    })
+
+
+    # Render text inputs for selected rows in modal
+    output$shortNameEditUI <- renderUI({
+      req(r$selectedIndex)
+
+      df_selected <- r$cohortDefinitionTable |> dplyr::slice(r$selectedIndex)
+
+      selected_table <- reactable::reactable(
+        df_selected,
+        columns = list(
+          cohort_definition_id = reactable::colDef(name = "Cohort definition ID"),
+          short_name = reactable::colDef(
+            name = "Short name (defaults to first4 & last4 characters or C#)",
+            width = 200,
+            cell = function(value, index) {
+              # plain HTML input
+              rowid <- df_selected$cohort_definition_id[index]
+              htmltools::tags$input(
+                type = "text",
+                value = value,
+                `data-rowid` = rowid,
+                style = "width:100%; font-size:12px; padding:2px;"
+              )
+            }
+          )
+        ),
+        # bordered = TRUE,
+        compact = TRUE
+      )
+
+      # JS: capture all short_name edits in real time and push to Shiny
+      selected_table <- htmlwidgets::onRender(
+        selected_table,
+        sprintf("
+          function(el, x) {
+            var shortMap = {};
+
+            // Listen for input changes in the table
+            el.addEventListener('input', function(e) {
+              var t = e.target;
+              if (t && t.dataset && t.dataset.rowid) {
+                shortMap[t.dataset.rowid] = t.value;
+                Shiny.setInputValue('%s',
+                  Object.values(shortMap).map((v, i) => ({id: Object.keys(shortMap)[i], short_name: v})),
+                  {priority:'event'});
+              }
+            });
+          }
+        ", ns("short_name_data"))
+      )
+
+      selected_table
+    })
+
+
+    #
+    # Import and Save short name edits
+    #
+    observeEvent(input$saveShortNames, {
+      req(r$selectedIndex)
+
+      userInputVec <- input$short_name_data
+
+      df_shortnames <- data.frame(
+        id = as.numeric(userInputVec[names(userInputVec) == "id"]),
+        short_name = userInputVec[names(userInputVec) == "short_name"],
+        stringsAsFactors = FALSE
+      )
+      r$shortnameEdits <-  df_shortnames
+
+      r$cohortDefinitionTable <- r$cohortDefinitionTable %>%
+        dplyr::rows_update(
+          r$shortnameEdits |> dplyr::rename(cohort_definition_id = id),
+          by = c("cohort_definition_id")
+        )
+
+      removeModal()
+
       fct_sweetAlertSpinner("Processing cohorts")
 
       # get connection
@@ -163,12 +265,29 @@ mod_importCohortsFromCohortsTable_server <- function(
         newCohortDefinitionIds = unusedCohortIds
       )
 
+      cohortDefinitionSet <- cohortDefinitionSet |>
+        dplyr::mutate(
+          cohort_definition_id = selectedCohortIds
+        )
+
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet
 
       ParallelLogger::logInfo(
         "[Import from Cohort Table-", filterCohortsRegex, "] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
         " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId
       )
+
+      # Capture the short names from the selected rows to the cohortdefinitionset
+      if(!is.null(r$shortnameEdits)  && nrow(r$shortnameEdits) > 0){
+
+        r_cohortDefinitionSetToAdd$cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet |>
+          dplyr::left_join(r$shortnameEdits |> dplyr::mutate(id = as.integer(id)), by = c("cohort_definition_id" = "id")) |>
+          dplyr::rename(shortName = short_name)
+
+        r$shortnameEdits <- NULL
+
+      }
+
 
       fct_removeSweetAlertSpinner()
     })
