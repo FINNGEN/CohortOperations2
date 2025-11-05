@@ -234,7 +234,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       )
       r$shortnameEdits <-  df_shortnames
 
-      r$atlasCohortsTable <- r$atlasCohortsTable %>%
+      r$atlasCohortsTable <- r$atlasCohortsTable |>
         dplyr::rows_update(
           r$shortnameEdits,
           by = "id"

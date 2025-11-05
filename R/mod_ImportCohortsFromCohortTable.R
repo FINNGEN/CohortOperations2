@@ -235,7 +235,7 @@ mod_importCohortsFromCohortsTable_server <- function(
       )
       r$shortnameEdits <-  df_shortnames
 
-      r$cohortDefinitionTable <- r$cohortDefinitionTable %>%
+      r$cohortDefinitionTable <- r$cohortDefinitionTable |>
         dplyr::rows_update(
           r$shortnameEdits |> dplyr::rename(cohort_definition_id = id),
           by = c("cohort_definition_id")
