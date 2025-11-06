@@ -434,7 +434,8 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       }
 
       if (!is.null(cohortDefinitionSet)) {
-        r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet
+        r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet  |>
+          dplyr::mutate(selectedAtlasCohortIDs = selectedCohortIds)
 
         ParallelLogger::logInfo(
           "[Import from Cohort Table-", filterCohortsRegex, "] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
@@ -447,8 +448,10 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       if(!is.null(r$shortnameEdits) && nrow(r$shortnameEdits) > 0){
 
         r_cohortDefinitionSetToAdd$cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet |>
-          dplyr::left_join(r$shortnameEdits |> dplyr::mutate(id = as.integer(id)), by = c("atlasId" = "id")) |>
-          dplyr::rename(shortName = short_name)
+          dplyr::left_join(r$shortnameEdits |> dplyr::mutate(id = as.integer(id)), by = c("selectedAtlasCohortIDs" = "id")) |>
+          dplyr::rename(shortName = short_name) |>
+          dplyr::select(-selectedAtlasCohortIDs)
+
 
         r$shortnameEdits <- NULL
 
