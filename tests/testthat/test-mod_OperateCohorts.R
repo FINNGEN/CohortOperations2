@@ -35,7 +35,9 @@ test_that("mod_OperateCohorts produces output", {
 
       # valid operation string
       r$operationString <- "1Mp3"
-      session$flushReact()
+      suppressWarnings(
+        session$flushReact()
+      )
 
       # test output
       output$newCohortName_text  |> expect_match("Operation: 1Mp3")

@@ -18,12 +18,12 @@ test_that("mod_cohortWorkbench_server produces output", {
       r_databaseConnection = r_databaseConnection
     ),
     {
-
-        # expect output$cohortsSummaryDatabases_reactable not null
+      
+      # expect output$cohortsSummaryDatabases_reactable not null
       output$cohortsSummaryDatabases_reactable |> class()  |> expect_equal("json")
-      output$cohortsSummaryDatabases_reactable |> expect_match("C1<br>celecoxib")
-      output$cohortsSummaryDatabases_reactable |> expect_match("C2<br>celecoxibAge40")
-      output$cohortsSummaryDatabases_reactable |> expect_match("C3<br>celecoxibAge40Male")
+      output$cohortsSummaryDatabases_reactable |> expect_match("CELE1<br>celecoxib")
+      output$cohortsSummaryDatabases_reactable |> expect_match("CELE2<br>celecoxibAge40")
+      output$cohortsSummaryDatabases_reactable |> expect_match("CELE3<br>celecoxibAge40Male")
 
       # delete cohort
       session$setInputs(
@@ -32,9 +32,9 @@ test_that("mod_cohortWorkbench_server produces output", {
       )
 
       output$cohortsSummaryDatabases_reactable |> class()  |> expect_equal("json")
-      output$cohortsSummaryDatabases_reactable |> expect_no_match("C1<br>celecoxib")
-      output$cohortsSummaryDatabases_reactable |> expect_match("C2<br>celecoxibAge40")
-      output$cohortsSummaryDatabases_reactable |> expect_match("C3<br>celecoxibAge40Male")
+      output$cohortsSummaryDatabases_reactable |> expect_no_match("CELE1<br>celecoxib")
+      output$cohortsSummaryDatabases_reactable |> expect_match("CELE2<br>celecoxibAge40")
+      output$cohortsSummaryDatabases_reactable |> expect_match("CELE3<br>celecoxibAge40Male")
 
       # # Update cohort
       # session$setInputs(
