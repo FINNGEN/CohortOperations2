@@ -102,8 +102,15 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
 
       if (is.character(atlasCohortsTable)) {
         ParallelLogger::logWarn("[Import from Atlas-", filterCohortsRegex, "] : ", atlasCohortsTable)
+
+        shiny::showNotification(
+          paste("Failed to load cohorts from Atlas:", atlasCohortsTable),
+          type = "error",
+          duration = 10
+        )
+        return(NULL)
       }
-      shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
+      #shiny::validate(shiny::need(!is.character(atlasCohortsTable), atlasCohortsTable))
 
       edited_idx=NULL
       if(!is.null(r$shortnameEdits)){
@@ -440,8 +447,10 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
       if(!is.null(r$shortnameEdits) && nrow(r$shortnameEdits) > 0){
 
         r_cohortDefinitionSetToAdd$cohortDefinitionSet <- r_cohortDefinitionSetToAdd$cohortDefinitionSet |>
-          dplyr::left_join(r$shortnameEdits |> dplyr::mutate(id = as.integer(id)), by = c("atlasId" = "id")) |>
-          dplyr::rename(shortName = short_name)
+          dplyr::mutate(selectedAtlasCohortIDs = selectedCohortIds) |>
+          dplyr::left_join(r$shortnameEdits |> dplyr::mutate(id = as.integer(id)), by = c("selectedAtlasCohortIDs" = "id")) |>
+          dplyr::rename(shortName = short_name) |>
+          dplyr::select(-selectedAtlasCohortIDs)
 
         r$shortnameEdits <- NULL
 
