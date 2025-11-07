@@ -318,7 +318,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
             shiny::showModal(
               shiny::modalDialog(
                 title = "Generating cohort in Atlas",
-                paste0("Atlas' cohort definition for ", cohortName, " is ", cohortStatus, ". It will be generated in Atlas, this may take a few minutes."),
+                paste0("Atlas' cohort definition for ", cohortName, " is ", cohortStatus, ". It will be generated in Atlas for database ", sourceKey, ", this may take a few minutes."),
                 footer = NULL,
                 easyClose = FALSE,
                 size = "s"
@@ -341,7 +341,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
                 ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation aborted")
                 shinyWidgets::sendSweetAlert(
                   title = "Generating cohort in Atlas",
-                  text = paste0("The time limit for generating the cohort has been reached: ", cohortName, "<br>Please try again later"),
+                  text = paste0("The time limit for generating the cohort has been reached: ", cohortName, " for database ", sourceKey, "<br>Please try again later"),
                   type = "error",
                   html = TRUE,
                   showCloseButton = TRUE
@@ -374,7 +374,7 @@ mod_importCohortsFromAtlas_server <- function(id, r_databaseConnection, filterCo
             ParallelLogger::logInfo("[Import from Atlas-", filterCohortsRegex, "] Cohort ", cohortId, " generation failed")
             shinyWidgets::sendSweetAlert(
               title = "Generating cohort in Atlas",
-              text = paste0("The cohort generation failed: ", cohortName, "<br>Please try again later"),
+              text = paste0("The cohort generation failed: ", cohortName, " for database ", sourceKey, "<br>Please try again later"),
               type = "error",
               html = TRUE,
               showCloseButton = TRUE
