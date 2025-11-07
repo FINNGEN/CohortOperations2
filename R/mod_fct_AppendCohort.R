@@ -123,15 +123,30 @@ mod_fct_appendCohort_server <- function(id, r_databaseConnection, r_cohortDefini
 
         }
 
-        r_databaseConnection$cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
-        r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1
+        # Sometimes an error occurs when generating a cohort using the cohortgenerator::generateCohortSet function used
+        # in CohortGenerator_generateCohortSet called from insertOrUpdateCohorts (package HadesExtras).
+        # This is typically from an IF clause that evaluates to NA instead of TRUE or FALSE,
+        # but it has been difficult to reproduce how it occurs.
+        # For now as a short time fix, the call to insertOrUpdateCohorts is wrapped in a tryCatch.
+
+        tryCatch({
+          r_databaseConnection$cohortTableHandler$insertOrUpdateCohorts(cohortDefinitionSet)
+          r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1
+
+          # pass action
+          r$appendAcceptedCounter <- r$appendAcceptedCounter+1
+
+        }, error = function(e) {
+          ParallelLogger::logError(paste0("insertOrUpdateCohorts failed: ", e$message))
+          shiny::showNotification(paste0("Cohort import failed - check logs. ", e$message), type = "error",duration = 10)
+
+        })
+
+        # reset module
+        r$replaceQuestion <- NULL
+
       }
 
-      # reset module
-      r$replaceQuestion <- NULL
-
-      # pass action
-      r$appendAcceptedCounter <- r$appendAcceptedCounter+1
 
       fct_removeSweetAlertSpinner()
     })

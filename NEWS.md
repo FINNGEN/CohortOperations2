@@ -1,3 +1,6 @@
+# CohortOperations2 3.0.1
+- Hotfix: Error with shortNames when importing from Atlas
+
 # CohortOperations2 3.0.0
 - Updated to use DatabaseConnector v7
 - Enable editing cohort short names during importing

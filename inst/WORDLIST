@@ -37,6 +37,7 @@ removeSweetAlertSpinner
 selectDatabases
 shinyWidgets
 shinycustomloader
+shortNames
 sweetAlertSpinner
 ui
 withLoader
