@@ -138,7 +138,7 @@ mod_fct_appendCohort_server <- function(id, r_databaseConnection, r_cohortDefini
 
         }, error = function(e) {
           ParallelLogger::logError(paste0("insertOrUpdateCohorts failed: ", e$message))
-          shiny::showNotification(paste0("Cohort import failed - check logs.", e$message), type = "error",duration = 10)
+          shiny::showNotification(paste0("Cohort import failed - check logs. ", e$message), type = "error",duration = 10)
 
         })
 
