@@ -333,7 +333,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
           id = reactable::colDef(show = FALSE),
           cohort_name = reactable::colDef(name = "Cohort Name"),
           short_name = reactable::colDef(
-            name = "Enter short name (defaults to C#, e.g C1)",
+            name = "Enter short name (default to 4 chars of first & last words)",
             width = 200,
             cell = function(value, index) {
               # plain HTML input
