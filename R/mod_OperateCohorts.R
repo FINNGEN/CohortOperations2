@@ -145,16 +145,9 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
         previousCohortId <- cohortDefinitionSetOnlyNew$cohortId
         unusedCohortId <- setdiff(1:1000, r_databaseConnection$cohortTableHandler$cohortDefinitionSet |> dplyr::pull(cohortId)) |> head(1)
 
-        readableName <- .renderReadableOperation(
-          operationString = r$operationString,
-          cohortDefSet = r_databaseConnection$cohortTableHandler$cohortDefinitionSet
-        )
-
         cohortDefinitionSetOnlyNew <- cohortDefinitionSetOnlyNew |>
           dplyr::mutate(
             cohortId = unusedCohortId,
-            cohortName = readableName,
-            shortName  = HadesExtras::makeShortName(readableName, unusedCohortId),
             sql = stringr::str_replace(sql, paste0('cohort_definition_id = ', previousCohortId), paste0('cohort_definition_id = ', unusedCohortId)),
             sql = stringr::str_replace(sql, paste0(previousCohortId, ' as cohort_definition_id'), paste0(unusedCohortId, ' as cohort_definition_id'))
           )
@@ -331,7 +324,7 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
       ggplot2::scale_y_continuous(
         labels = function(x) format(x, scientific = FALSE),
         expand = ggplot2::expansion(mult = c(0, 0.15)) # 15% extra space above bars
-      ) +
+      ) +     
       ggplot2::scale_fill_grey(drop = FALSE) +
       ggplot2::labs(x = "Cohort Sets", y = "N patients")+
       ggplot2::theme_light() +
@@ -344,44 +337,3 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
 
   return(g)
 }
-
-
-.renderReadableOperation <- function(operationString, cohortDefSet) {
-
-  # mapping operation codes
-  opMap <- c(
-    "Ip"  = "AND",
-    "Mp"  = "NOT_IN",
-    "Upd" = "OR"
-  )
-
-  # operation parts
-  tokens <- unlist(strsplit(operationString, "\\s+"))
-
-  # cohort IDs appear in odd positions (1,3,5,...)
-  id_positions <- seq(1, length(tokens), by = 2)
-  op_positions <- id_positions[-1] - 1  # operators in between
-
-  # replace cohort IDs with short names
-  ids <- as.integer(tokens[id_positions])
-  shortNames <- dplyr::filter(cohortDefSet, cohortId %in% ids)$shortName
-
-  if (length(shortNames) != length(ids)) {
-    stop("Some cohort IDs in the operation string do not exist in cohortDefinitionSet.")
-  }
-
-  # replace operators
-  ops <- tokens[op_positions]
-  ops_readable <- unname(opMap[ops])
-
-  parts <- character(0)
-  parts <- c(parts, shortNames[1])
-  if (length(shortNames) > 1) {
-    for (i in seq_along(ops_readable)) {
-      parts <- c(parts, ops_readable[i], shortNames[i + 1])
-    }
-  }
-
-  paste(parts, collapse = " ")
-}
-
