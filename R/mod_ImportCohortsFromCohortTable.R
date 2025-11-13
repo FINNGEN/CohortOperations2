@@ -166,6 +166,25 @@ mod_importCohortsFromCohortsTable_server <- function(
     })
 
 
+    # #
+    # # button edit selected: allows bulk entering of short names for selected cohorts
+    # #
+    # observeEvent(input$editShortNamesBtn, {
+    #   shiny::req(r$cohortDefinitionTable)
+    #   shiny::req(r$selectedIndex)
+    #
+    #   shiny::showModal(shiny::modalDialog(
+    #     title = "Edit Short Names",
+    #     size = "l",
+    #     easyClose = TRUE,
+    #     footer = tagList(
+    #       shiny::actionButton(ns("saveShortNames"), "Save"),
+    #       shiny::modalButton("Cancel")
+    #     ),
+    #     shiny::uiOutput(ns("shortNameEditUI"))
+    #   ))
+    # })
+
     # Render text inputs for selected rows in modal
     output$shortNameEditUI <- renderUI({
       req(r$selectedIndex)
