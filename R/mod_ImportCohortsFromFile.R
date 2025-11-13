@@ -84,7 +84,8 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
 
     })
-      import_server("importFile_modal", r_importedData)
+
+    import_server("importFile_modal", r_importedData)
 
     #
     # Evaluate the imported table
@@ -333,14 +334,18 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
           id = reactable::colDef(show = FALSE),
           cohort_name = reactable::colDef(name = "Cohort Name"),
           short_name = reactable::colDef(
-            name = "Enter short name (default to 4 chars of first & last words)",
+            name = "Enter short name (defaults to 4 chars of first & last words)",
             width = 200,
             cell = function(value, index) {
               # plain HTML input
               rowid <- table_df$cohort_name[index]
+              default_short <- HadesExtras::makeShortName(
+                name = table_df$cohort_name[index],
+                id   = table_df$id[index]
+              )
               htmltools::tags$input(
                 type = "text",
-                value = value,
+                value = ifelse(is.null(value) || value == "", default_short, value),
                 `data-rowid` = rowid,
                 style = "width:100%; font-size:12px; padding:2px;"
               )
