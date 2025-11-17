@@ -26,7 +26,7 @@ test_that("mod_OperateCohorts produces output", {
       output$upsetPlot  |> class() |> expect_equal("list")
 
       # valid operation string
-      r$operationString <- "1Mp"
+      r$operationString <- "1 Mp"
       session$flushReact()
 
       # test output
@@ -34,13 +34,13 @@ test_that("mod_OperateCohorts produces output", {
       output$upsetPlot  |> class() |> expect_equal("list")
 
       # valid operation string
-      r$operationString <- "1Mp3"
+      r$operationString <- "1 Mp 3"
       suppressWarnings(
         session$flushReact()
       )
 
       # test output
-      output$newCohortName_text  |> expect_match("Operation: 1Mp3")
+      output$newCohortName_text  |> expect_match("CELE1 NOT_IN CELE3")
       output$upsetPlot  |> class() |> expect_equal("list")
 
       # set inputs and click add
