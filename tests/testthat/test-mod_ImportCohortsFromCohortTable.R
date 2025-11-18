@@ -19,7 +19,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
     {
       # Test: initial state
       #r$cohortDefinitionTable  |> dplyr::pull(cohort_definition_name) |> expect_equal(c("Diabetes Cohort", "Hypertension Cohort", "Obesity Cohort"))
-      
+
       output$cohorts_reactable |> expect_match('["Diabetes Cohort","Hypertension Cohort","Obesity Cohort"]')
 
       # select firts cohort
@@ -28,10 +28,10 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
       session$setInputs(
         import_actionButton = 2
       )
-      
+
       # test output
       r_cohortDefinitionSetToAdd$cohortDefinitionTable |> expect_null()
-      r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4))
+      r_databaseConnection$cohortTableHandler$cohortDefinitionSet$cohortId |> expect_equal(c(1, 2, 3, 4,5))
 
     }
   )
@@ -52,7 +52,7 @@ test_that("mod_ImportCohortsFromCohortTable produces output", {
 #   # delete cohort and cohort_definition tables
 #   cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort")
 #   cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort_definition")
-  
+
 
 #   r_databaseConnection <- shiny::reactiveValues(
 #     cohortTableHandler = cohortTableHandler,
