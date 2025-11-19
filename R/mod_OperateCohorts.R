@@ -347,7 +347,6 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
 
 
 .renderReadableOperation <- function(operationString, cohortDefSet) {
-
   # mapping operation codes
   opMap <- c(
     "Ip"  = "AND",
@@ -355,33 +354,35 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
     "Upd" = "OR"
   )
 
-  # operation parts
-  tokens <- unlist(strsplit(operationString, "\\s+"))
+  # ensure parentheses are separated as tokens
+  normalized <- gsub("([()])", " \\1 ", operationString)
+  tokens <- unlist(strsplit(trimws(normalized), "\\s+"))
 
-  # cohort IDs appear in odd positions (1,3,5,...)
-  id_positions <- seq(1, length(tokens), by = 2)
-  op_positions <- id_positions[-1] - 1  # operators in between
+  out <- character(length(tokens))
 
-  # replace cohort IDs with short names
-  ids <- as.integer(tokens[id_positions])
-  shortNames <- dplyr::filter(cohortDefSet, cohortId %in% ids)$shortName
+  for (i in seq_along(tokens)) {
+    tok <- tokens[i]
 
-  if (length(shortNames) != length(ids)) {
-    stop("Some cohort IDs in the operation string do not exist in cohortDefinitionSet.")
-  }
+    if (tok %in% c("(", ")")) {
+      # keep parentheses as is
+      out[i] <- tok
 
-  # replace operators
-  ops <- tokens[op_positions]
-  ops_readable <- unname(opMap[ops])
+    } else if (!is.na(suppressWarnings(as.integer(tok)))) {
+      id <- as.integer(tok)
+      idx <- match(id, cohortDefSet$cohortId)
+      if (is.na(idx)) {
+        stop("Unknown cohort ID in operation string: ", id)
+      }
+      out[i] <- cohortDefSet$shortName[idx]
 
-  parts <- character(0)
-  parts <- c(parts, shortNames[1])
-  if (length(shortNames) > 1) {
-    for (i in seq_along(ops_readable)) {
-      parts <- c(parts, ops_readable[i], shortNames[i + 1])
+    } else if (tok %in% names(opMap)) {
+      out[i] <- opMap[[tok]]
+
+    } else {
+      stop("Unexpected token in operation string: '", tok, "'")
     }
   }
 
-  paste(parts, collapse = " ")
+  paste(out, collapse = " ")
 }
 
