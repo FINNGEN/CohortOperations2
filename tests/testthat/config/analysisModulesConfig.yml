@@ -1,3 +1,12 @@
+importFromLibraries:
+  endpoints:
+    name: "Endpoint"
+    regex: "^(?!.*\\[CohortLibrary\\]).*$"
+    regexRemove: "()"
+  cohort_library:
+    name: "Cohort Library"
+    regex: ".*\\[CohortLibrary\\]"
+    regexRemove: "\\[CohortLibrary\\]"
 cohortOverlaps_CO2AnalysisModules:
   analysisType: "cohortOverlaps"
   analysisName: "Cohort Overlaps"
