@@ -89,8 +89,8 @@ mod_importCohortsFromCohortsTable_server <- function(
       thereIsCohortTables <- (logTibble$logTibble$type[1] == "ERROR" | logTibble$logTibble$type[2] == "ERROR")
 
       if (thereIsCohortTables) {
-        ParallelLogger::logWarn("[Import from Cohort Table-", localFilterName," ",localId, "] : Error connecting to Endpoint table.")
-        r$cohortDefinitionTable <- "Error connecting to Endpoint table."
+        ParallelLogger::logWarn("[Import from Cohort Table-", localFilterName," ",localId, "] : Error connecting to ", localFilterName, " table.")
+        r$cohortDefinitionTable <- paste0("Error connecting to ", localFilterName, " table.")
         return()
       }
 
