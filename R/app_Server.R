@@ -3,6 +3,7 @@
 #' @param input,output,session Internal parameters for {shiny}.
 #'     DO NOT REMOVE.
 #' @importFrom shiny getShinyOption reactiveValues
+#' @importFrom stringr str_to_title
 #' @noRd
 app_server <- function(input, output, session) {
   # set up loger
@@ -30,12 +31,22 @@ app_server <- function(input, output, session) {
   mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_databaseConnection)
   mod_importCohortsFromFile_server("importCohortsFromFile", r_databaseConnection)
   mod_importCohortsFromAtlas_server("importCohortsFromAtlas", r_databaseConnection)
-  mod_importCohortsFromCohortsTable_server("importCohortsFromEndpoints", r_databaseConnection,
-    filterCohortsRegex = "^(?!.*\\[CohortLibrary\\]).*$", filterCohortsName = "Endpoint"
-  )
-  mod_importCohortsFromCohortsTable_server("importCohortsFromLibrary", r_databaseConnection,
-    filterCohortsRegex = ".*\\[CohortLibrary\\]", filterCohortsRegexRemove = "\\[CohortLibrary\\]", filterCohortsName = "Cohort Library"
-  )
+
+  # Dynamic import from libraries server modules
+  importFromLibrariesConfig <- analysisModulesConfig$importFromLibraries
+  if (!is.null(importFromLibrariesConfig)) {
+    for (libraryKey in names(importFromLibrariesConfig)) {
+      libraryConfig <- importFromLibrariesConfig[[libraryKey]]
+      moduleId <- paste0("importCohortsFrom", stringr::str_to_title(libraryKey))
+      mod_importCohortsFromCohortsTable_server(
+        id = moduleId,
+        r_databaseConnection = r_databaseConnection,
+        filterCohortsRegex = libraryConfig$regex,
+        filterCohortsRegexRemove = libraryConfig$regexRemove,
+        filterCohortsName = libraryConfig$name
+      )
+    }
+  }
 
   mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_databaseConnection)
   mod_matchCohorts_server("matchCohorts", r_databaseConnection)
@@ -50,7 +61,8 @@ app_server <- function(input, output, session) {
   mod_viewResults_server("viewResults")
 
   # Dynamic analysis modules server
-  lapply(names(analysisModulesConfig), function(analysisKey) {
+  analysisKeys <- setdiff(names(analysisModulesConfig), "importFromLibraries")
+  lapply(analysisKeys, function(analysisKey) {
     analysis <- analysisModulesConfig[[analysisKey]]
     mod_cohortWorkbench_server(paste0("cohortWorkbench_", analysisKey), r_databaseConnection)
 

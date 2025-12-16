@@ -46,6 +46,12 @@ mod_importCohortsFromCohortsTable_server <- function(
     filterCohortsRegex = ".*",
     filterCohortsRegexRemove = "()", # default to remove nothing
     filterCohortsName = "Endpoint") {
+  # Capture parameter values immediately to avoid closure issues
+  localFilterRegex <- filterCohortsRegex
+  localFilterRegexRemove <- filterCohortsRegexRemove
+  localFilterName <- filterCohortsName
+  localId <- id
+  
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -67,13 +73,13 @@ mod_importCohortsFromCohortsTable_server <- function(
     shiny::observe({
       shiny::req(r_databaseConnection$cohortTableHandler)
 
-      ParallelLogger::logInfo("[Import from Cohort Table-", filterCohortsRegex, "] : Getting cohort names from cohort table")
+      ParallelLogger::logInfo("[Import from Cohort Table-", localFilterName," ",localId, "] : Getting cohort names from cohort table")
 
       # get connection
       connection <- r_databaseConnection$cohortTableHandler$connectionHandler$getConnection()
       cohortDatabaseSchema <- r_databaseConnection$cohortTableHandler$cdmDatabaseSchema
 
-      ParallelLogger::logInfo("[Import from Cohort Table-", filterCohortsRegex, "] : Getting cohort names from cohort table from:", cohortDatabaseSchema)
+      ParallelLogger::logInfo("[Import from Cohort Table-", localFilterName," ",localId, "] : Getting cohort names from cohort table from:", cohortDatabaseSchema)
 
       logTibble <- HadesExtras::checkCohortDefinitionTables(
         connection = connection,
@@ -83,8 +89,8 @@ mod_importCohortsFromCohortsTable_server <- function(
       thereIsCohortTables <- (logTibble$logTibble$type[1] == "ERROR" | logTibble$logTibble$type[2] == "ERROR")
 
       if (thereIsCohortTables) {
-        ParallelLogger::logWarn("[Import from Cohort Table-", filterCohortsRegex, "] : Error connecting to Endpoint table.")
-        r$cohortDefinitionTable <- "Error connecting to Endpoint table."
+        ParallelLogger::logWarn("[Import from Cohort Table-", localFilterName," ",localId, "] : Error connecting to ", localFilterName, " table.")
+        r$cohortDefinitionTable <- paste0("Error connecting to ", localFilterName, " table.")
         return()
       }
 
@@ -92,8 +98,8 @@ mod_importCohortsFromCohortsTable_server <- function(
         connection = connection,
         cohortDatabaseSchema = cohortDatabaseSchema
       ) |> dplyr::arrange(cohort_definition_name)|>
-        dplyr::filter(grepl(filterCohortsRegex, cohort_definition_name, perl = TRUE)) |>
-        dplyr::mutate(cohort_definition_name = stringr::str_remove(cohort_definition_name, filterCohortsRegexRemove))
+        dplyr::filter(grepl(localFilterRegex, cohort_definition_name, perl = TRUE)) |>
+        dplyr::mutate(cohort_definition_name = stringr::str_remove(cohort_definition_name, localFilterRegexRemove))
 
       r$cohortDefinitionTable <- cohortDefinitionTable
     })
@@ -105,17 +111,15 @@ mod_importCohortsFromCohortsTable_server <- function(
       cohortDefinitionTable <- r$cohortDefinitionTable
 
       if (is.character(cohortDefinitionTable)) {
-        ParallelLogger::logWarn("[Import from cohort table-", filterCohortsRegex, "] : ", cohortDefinitionTable)
+        ParallelLogger::logWarn("[Import from cohort table-", localFilterName," ",localId, "] : ", cohortDefinitionTable)
       }
       shiny::validate(shiny::need(!is.character(cohortDefinitionTable), cohortDefinitionTable))
 
       columns <- list(
         cohort_definition_id = reactable::colDef(show = FALSE),
-        cohort_definition_name = reactable::colDef(name = paste0(filterCohortsName, " Name")),
-        cohort_definition_description = reactable::colDef(name = paste0(filterCohortsName, " Description"))
+        cohort_definition_name = reactable::colDef(name = paste0(localFilterName, " Name")),
+        cohort_definition_description = reactable::colDef(name = paste0(localFilterName, " Description"))
       )
-
-
       cohortDefinitionTable |>
         reactable::reactable(
           columns = columns,
@@ -166,7 +170,7 @@ mod_importCohortsFromCohortsTable_server <- function(
       r_cohortDefinitionSetToAdd$cohortDefinitionSet <- cohortDefinitionSet
 
       ParallelLogger::logInfo(
-        "[Import from Cohort Table-", filterCohortsRegex, "] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
+        "[Import from Cohort Table-", localFilterName," ",localId, "] Importing cohorts: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortName,
         " with ids: ", r_cohortDefinitionSetToAdd$cohortDefinitionSet$cohortId
       )
 
