@@ -162,7 +162,7 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
     # download results
     #
     output$download_actionButton <- shiny::downloadHandler(
-      filename = function(){paste0(analysisName, "_analysisResults.duckdb")},
+      filename = function(){paste0(.sanitize_filename(analysisName), "_analysisResults.duckdb")},
       content = function(fname){
         condition <- shiny::isTruthy(r$analysisResults) &&
           is.null(r$analysisResults$analysisError)
@@ -196,3 +196,19 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
   })
 }
+
+#' Sanitize filename by removing special characters and replacing spaces
+#'
+#' @param x A string to sanitize
+#'
+#' @return A sanitized string safe for use in filenames
+#'
+#' @noRd
+.sanitize_filename <- function(x) {
+  # Replace spaces with underscores
+  x <- gsub(" ", "_", x)
+  # Remove special characters except letters, numbers, underscores, and hyphens
+  x <- gsub("[^\\p{L}0-9_-]", "", x, perl = TRUE)
+  return(x)
+}
+
