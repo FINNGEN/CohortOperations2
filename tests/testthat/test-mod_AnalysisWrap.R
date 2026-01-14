@@ -1,5 +1,3 @@
-
-
 test_that("filename sanitization removes spaces and special characters", {
   # Helper function that matches the sanitization logic used in mod_analysisWrap_server
   sanitize_filename <- function(name) {
