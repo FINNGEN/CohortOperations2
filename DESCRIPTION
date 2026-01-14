@@ -26,6 +26,7 @@ Imports:
     tibble,
     yaml,
     stringr,
+    jsonlite,
     shinyjqui,
     shinyFeedback, 
     CohortGenerator, 
