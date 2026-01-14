@@ -162,7 +162,13 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
     # download results
     #
     output$download_actionButton <- shiny::downloadHandler(
-      filename = function(){paste0(analysisName, "_analysisResults.duckdb")},
+      filename = function(){
+        # Sanitize filename by replacing spaces and special characters with underscores
+        sanitizedName <- gsub("[^[:alnum:]]+", "_", analysisName)
+        # Remove leading/trailing underscores
+        sanitizedName <- gsub("^_+|_+$", "", sanitizedName)
+        paste0(sanitizedName, "_analysisResults.duckdb")
+      },
       content = function(fname){
         condition <- shiny::isTruthy(r$analysisResults) &&
           is.null(r$analysisResults$analysisError)
