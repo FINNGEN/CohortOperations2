@@ -199,15 +199,20 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
 #' Sanitize filename by removing special characters and replacing spaces
 #'
+#' This function creates CLI-friendly filenames by replacing spaces with underscores
+#' and removing special characters. It differs from the `.sanitize_filename()` in
+#' mod_ExportCohorts.R which preserves spaces for user-facing export filenames.
+#'
 #' @param x A string to sanitize
 #'
 #' @return A sanitized string safe for use in filenames
 #'
 #' @noRd
 .sanitize_filename <- function(x) {
-  # Replace spaces with underscores
+  # Replace spaces with underscores for CLI-friendly filenames
   x <- gsub(" ", "_", x)
   # Remove special characters except letters, numbers, underscores, and hyphens
+  # This creates simple, safe filenames that work well across different systems
   x <- gsub("[^\\p{L}0-9_-]", "", x, perl = TRUE)
   return(x)
 }
