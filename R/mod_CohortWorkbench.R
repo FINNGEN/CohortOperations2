@@ -427,6 +427,32 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
       if ("shortName" %in% names(cds_in)) cds_in$shortName <- as.character(cds_in$shortName)
 
       cds_tbl <- tibble::as_tibble(cds_in)
+
+      # render sql for importing operated cohorts (not needed for base or main cohorts)
+      handler <- r_databaseConnection$cohortTableHandler
+
+      needs_render <- cds_tbl$isSubset %in% TRUE
+
+      if (any(needs_render, na.rm = TRUE)) {
+
+        render_one_sql <- function(sql) {
+          if (is.na(sql) || !nzchar(sql)) return(sql)
+
+          # only render if placeholders are present
+          if (!grepl("@[A-Za-z0-9_]+", sql)) return(sql)
+
+          SqlRender::render(
+            sql,
+            cohort_database_schema = handler$cohortDatabaseSchema,
+            cohort_table = handler$cohortTableNames$cohortTable,
+            target_database_schema = handler$cohortDatabaseSchema,
+            target_cohort_table = handler$cohortTableNames$cohortTable
+          )
+        }
+
+        cds_tbl$sql[needs_render] <- vapply(cds_tbl$sql[needs_render], render_one_sql, character(1))
+      }
+
       r_import$lastImportedN <- nrow(cds_tbl)
 
       r_cohortDefinitionSetToAdd_forImportingWorkbench$cohortDefinitionSet <- cds_tbl
