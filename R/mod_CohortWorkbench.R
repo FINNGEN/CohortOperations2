@@ -111,30 +111,63 @@ mod_cohortWorkbench_ui <- function(id){
 
     ")),
 
-    # Toolbar
-    htmltools::div(
-      class = "cw-toolbar-container",
+    # remember workbench fold or open states
+    htmltools::tags$script(HTML(sprintf("
+      (function() {
+        const key = '%s';
 
-      htmltools::div(
-        class = "cw-toolbar cw-toolbar-right",
+        document.addEventListener('DOMContentLoaded', function () {
+          const details = document.getElementById(key);
+          if (!details) return;
 
-        shiny::actionButton(ns("cw_clearAll"), "Clean workbench", icon = shiny::icon("trash")),
-        shiny::downloadButton(ns("cw_downloadJson"), "Save workbench", icon = shiny::icon("download")),
+          const saved = sessionStorage.getItem(key);
 
-        htmltools::div(
-          class = "cw-file",
-          shiny::fileInput(ns("cw_uploadJson"), placeholder = "Upload workbench from file", label = NULL, accept = c(".json"))
-        ),
+          // for initial loading, make it open. Then keep it closed when users go to other tabs
+          if (saved === null) {
+            details.setAttribute('open', '');
+            sessionStorage.setItem(key, 'closed');
+          }
 
-        shiny::actionButton(ns("cw_importJson"), "Load workbench", icon = shiny::icon("upload"))
-      )
-    ),
+          // restore previous state if open
+          if (saved === 'open') {
+            details.setAttribute('open', '');
+          }
+
+          // persist on toggle
+          details.addEventListener('toggle', function () {
+            sessionStorage.setItem(key, details.open ? 'open' : 'closed');
+          });
+        });
+      })();
+    ", ns("cw_details")))),
+
 
     htmltools::tags$details(
-      open = TRUE,  # or TRUE to show it expanded by default
-      htmltools::tags$summary( class = "foldable-summary", "Show / Hide Cohort Workbench Table"),
+      id = ns("cw_details"),  # or TRUE to show it expanded by default
+      htmltools::tags$summary( class = "foldable-summary", shiny::uiOutput(ns("cw_summary"))),
+
+      # Toolbar
+      htmltools::div(
+        class = "cw-toolbar-container",
+
+        htmltools::div(
+          class = "cw-toolbar cw-toolbar-right",
+          shiny::downloadButton(ns("cw_downloadJson"), "Save workbench", icon = shiny::icon("download")),
+
+          htmltools::div(
+            class = "cw-file",
+            shiny::fileInput(ns("cw_uploadJson"), placeholder = "Upload workbench from file", label = NULL, accept = c(".json"))
+          ),
+
+          shiny::actionButton(ns("cw_importJson"), "Load workbench", icon = shiny::icon("upload")),
+          shiny::actionButton(ns("cw_clearAll"), "Clean workbench", icon = shiny::icon("trash"))
+        )
+      ),
+
+      # the cohorts table
       reactable::reactableOutput(ns("cohortsSummaryDatabases_reactable"))
     )
+
   )
 }
 #' Cohort Workbench Server Module
@@ -165,6 +198,10 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
       shortNames = NULL
     )
 
+    r_workbench <- shiny::reactiveValues(
+      cohortCount = 0
+    )
+
     r_cohortDefinitionSetToAdd_forImportingWorkbench <- reactiveValues(cohortDefinitionSet = NULL)
 
     #
@@ -178,6 +215,31 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
         HadesExtras::rectable_cohortsSummary(
           deleteButtonsShinyId = ns("cohortsWorkbenchDeleteButtons"),
           editButtonsShinyId = ns("cohortsWorkbenchEditButtons"))
+    })
+
+    #
+    # Inform the number of cohorts in the workbench
+    #
+
+    shiny::observe({
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      shiny::req(r_databaseConnection$hasChangeCounter)
+
+      r_workbench$cohortCount <- nrow(r_databaseConnection$cohortTableHandler$getCohortsSummary())
+    })
+
+    output$cw_summary <- shiny::renderUI({
+      n <- r_workbench$cohortCount
+
+      if (n == 0) {
+        htmltools::HTML("Show / Hide Cohort Workbench (Empty)")
+      } else if (n == 1) {
+        htmltools::HTML("Show / Hide Cohort Workbench (1 cohort)")
+      } else {
+        htmltools::HTML(
+          paste0("Show / Hide Cohort Workbench (", n, " cohorts)")
+        )
+      }
     })
 
     #
@@ -427,6 +489,32 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
       if ("shortName" %in% names(cds_in)) cds_in$shortName <- as.character(cds_in$shortName)
 
       cds_tbl <- tibble::as_tibble(cds_in)
+
+      # render sql for importing operated cohorts (not needed for base or main cohorts)
+      handler <- r_databaseConnection$cohortTableHandler
+
+      needs_render <- cds_tbl$isSubset %in% TRUE
+
+      if (any(needs_render, na.rm = TRUE)) {
+
+        render_one_sql <- function(sql) {
+          if (is.na(sql) || !nzchar(sql)) return(sql)
+
+          # only render if placeholders are present
+          if (!grepl("@[A-Za-z0-9_]+", sql)) return(sql)
+
+          SqlRender::render(
+            sql,
+            cohort_database_schema = handler$cohortDatabaseSchema,
+            cohort_table = handler$cohortTableNames$cohortTable,
+            target_database_schema = handler$cohortDatabaseSchema,
+            target_cohort_table = handler$cohortTableNames$cohortTable
+          )
+        }
+
+        cds_tbl$sql[needs_render] <- vapply(cds_tbl$sql[needs_render], render_one_sql, character(1))
+      }
+
       r_import$lastImportedN <- nrow(cds_tbl)
 
       r_cohortDefinitionSetToAdd_forImportingWorkbench$cohortDefinitionSet <- cds_tbl
