@@ -4,16 +4,70 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem tabItems tabItem box tabBox
+#' @importFrom stringr str_to_title
+#' @importFrom htmltools tagAppendChild
 #' @noRd
 app_ui <- function(request) {
 
   # get settings loaded from file
   analysisModulesConfig <- shiny::getShinyOption("analysisModulesConfig")
 
+  #
+  # Build tabBox for import cohorts
+  #
+  # Build list of all tab panels
+  allTabPanels <- list(
+    #### panel FILE
+    shiny::tabPanel(
+      "from File",
+      mod_importCohortsFromFile_ui("importCohortsFromFile")
+    ),
+    #### panel ATLAS
+    shiny::tabPanel(
+      "from Atlas",
+      mod_importCohortsFromAtlas_ui("importCohortsFromAtlas")
+    )
+  )
+  
+  # Add dynamic panels for import from libraries
+  importFromLibrariesConfig <- analysisModulesConfig$importFromLibraries
+  if (!is.null(importFromLibrariesConfig)) {
+    for (libraryKey in names(importFromLibrariesConfig)) {
+      libraryConfig <- importFromLibrariesConfig[[libraryKey]]
+      moduleId <- paste0("importCohortsFrom", stringr::str_to_title(libraryKey))
+      allTabPanels[[length(allTabPanels) + 1]] <- shiny::tabPanel(
+        paste0("from ", libraryConfig$name),
+        mod_importCohortsFromCohortsTable_ui(moduleId)
+      )
+    }
+  }
+  
+  # Build tabBox with all panels using eval/call to avoid do.call
+  # Construct the function call with all panels as arguments
+  tabBoxCall <- call(
+    "tabBox",
+    title = shiny::tagList(shiny::icon("upload"), "Import Cohorts:"),
+    id = "import_files",
+    width = 12L,
+    side = "right",
+    selected = "from Atlas"
+  )
+  
+  # Add all panels to the call
+  for (panel in allTabPanels) {
+    tabBoxCall[[length(tabBoxCall) + 1]] <- panel
+  }
+  
+  # Evaluate the call with tabBox function in environment
+  tabBoxResult <- eval(
+    tabBoxCall,
+    envir = list(tabBox = shinydashboard::tabBox),
+    enclos = environment()
+  )
 
   #
   # Build list of tabs
-  # (small hack to allow dynamic generation of tabs)
+  # 
 
   listOfStaticTabItems  <- list(
     ## Connect to databases
@@ -31,31 +85,7 @@ app_ui <- function(request) {
         mod_cohortWorkbench_ui("cohortWorkbench_importCohorts")
       ),
       ### Import Cohorts
-      shinydashboard::tabBox(
-        title = shiny::tagList(shiny::icon("upload"), "Import Cohorts:"),
-        id = "import_files", width = 12, side="right",
-        selected = "from Atlas",
-        #### panel FILE
-        shiny::tabPanel(
-          "from File",
-          mod_importCohortsFromFile_ui("importCohortsFromFile")
-        ),
-        #### panel ATLAS
-        shiny::tabPanel(
-          "from Atlas",
-          mod_importCohortsFromAtlas_ui("importCohortsFromAtlas")
-        ),
-        #### panel ENDPOINTs
-        shiny::tabPanel(
-          "from Endpoints",
-          mod_importCohortsFromCohortsTable_ui("importCohortsFromEndpoints")
-        ),
-        #### panel Library
-        shiny::tabPanel(
-          "from Library",
-          mod_importCohortsFromCohortsTable_ui("importCohortsFromLibrary")
-        )
-      )
+      tabBoxResult
     ),
     ## TAB Matching Cohorts
     shinydashboard::tabItem(
@@ -127,7 +157,8 @@ app_ui <- function(request) {
 
 
   # Dynamically Generated Tabs for ANALYSIS
-  listOfDynanicTabs <- lapply(names(analysisModulesConfig), function(analysisKey) {
+  analysisKeys <- setdiff(names(analysisModulesConfig), "importFromLibraries")
+  listOfDynanicTabs <- lapply(analysisKeys, function(analysisKey) {
     analysis <- analysisModulesConfig[[analysisKey]]
     shinydashboard::tabItem(
       tabName = analysisKey,
@@ -172,14 +203,17 @@ app_ui <- function(request) {
           shinydashboard::menuItem("Export Cohorts", tabName = "exportsCohorts", icon = shiny::icon("file-export")),
           shiny::h5(" Analyses"),
           # Dynamically generated menu items
-          lapply(names(analysisModulesConfig), function(analysisKey) {
-            analysis <- analysisModulesConfig[[analysisKey]]
-            shinydashboard::menuItem(
-              text = analysis$analysisName,
-              tabName = analysisKey,
-              icon = shiny::icon(analysis$icon)
-            )
-          }),
+          {
+            analysisKeys <- setdiff(names(analysisModulesConfig), "importFromLibraries")
+            lapply(analysisKeys, function(analysisKey) {
+              analysis <- analysisModulesConfig[[analysisKey]]
+              shinydashboard::menuItem(
+                text = analysis$analysisName,
+                tabName = analysisKey,
+                icon = shiny::icon(analysis$icon)
+              )
+            })
+          },
           shiny::h5(" Results"),
           shinydashboard::menuItem("View Results", tabName = "viewResults", icon = shiny::icon("eye")),
           shiny::h5(" About"),

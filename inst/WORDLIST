@@ -1,8 +1,10 @@
 AnalysisModules
 Appender
 AssertCollection
+Automatch
 BQ
 CDM
+CodeWAS
 CohortOperations
 DatabaseConnector
 DockerDemo
@@ -18,6 +20,7 @@ OMOP
 Olink
 ParallelLogger
 Rstudio
+TimeCodeWAS
 UI
 UpSet
 analysisModulesConfig

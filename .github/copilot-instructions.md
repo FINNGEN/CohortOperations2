@@ -1,0 +1,1 @@
+Use the rules in .cursor/rules/rproject.mdc to guide the development of the project.
