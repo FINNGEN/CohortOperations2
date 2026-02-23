@@ -230,7 +230,7 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
 
       # Match to sex and bday, match ratio 10
       subsetDef <- CohortGenerator::createCohortSubsetDefinition(
-        name = "",
+        name = "match",
         definitionId = nextSubsetDefinitionId,
         subsetOperators = list(
           HadesExtras::createMatchingSubset(

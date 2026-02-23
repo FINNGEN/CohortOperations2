@@ -5,12 +5,12 @@ Automatch
 BQ
 CDM
 CodeWAS
+CohortGenerator
 CohortOperations
 DatabaseConnector
 DockerDemo
 Eunomia
 FINNGEN
-GWAS
 GiBleed
 Hotfix
 JDBC
@@ -28,7 +28,6 @@ appVersion
 appender
 appenders
 broadsea
-config
 dna
 fct
 ggplot
