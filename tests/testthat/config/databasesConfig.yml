@@ -98,13 +98,13 @@ BQ5K:
           bigint: integer64
       tempEmulationSchema: atlas-development-270609.sandbox
     cdm:
-        cdmDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3_5k
-        vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3_5k
+        cdmDatabaseSchema: atlas-development-270609.finngen_omop_dev_5k
+        vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_dev_5k
     cohortTable:
         cohortDatabaseSchema: atlas-development-270609.sandbox
         cohortTableName: hadesextras_test_cohort_table_<timestamp>
 # AtlasDevelopment-full
-BQ5:
+BQ:
   cohortTableHandler:
     database:
       databaseId: BQ
@@ -119,8 +119,8 @@ BQ5:
           bigint: integer64
       tempEmulationSchema: atlas-development-270609.sandbox
     cdm:
-        cdmDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3
-        vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_r13_v3
+        cdmDatabaseSchema: atlas-development-270609.finngen_omop_dev
+        vocabularyDatabaseSchema: atlas-development-270609.finngen_omop_dev
     cohortTable:
         cohortDatabaseSchema: atlas-development-270609.sandbox
         cohortTableName: hadesextras_test_cohort_table_<timestamp>
