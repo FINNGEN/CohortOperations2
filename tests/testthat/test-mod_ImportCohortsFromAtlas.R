@@ -3,7 +3,7 @@
 # test_that("mod_ImportCohortsFromAtlas produces output", {
 #
 #   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
-#   withr::defer({rm(cohortTableHandler);gc()})
+#   withr::defer({cohortTableHandler$closeConnection();rm(cohortTableHandler);gc()})
 #
 #   r_databaseConnection <- shiny::reactiveValues(
 #     cohortTableHandler = cohortTableHandler,
@@ -41,7 +41,7 @@
 # test_that("mod_ImportCohortsFromCohortTable shows error when no cohort table exists", {
 #
 #   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
-#   withr::defer({rm(cohortTableHandler);gc()})
+#   withr::defer({cohortTableHandler$closeConnection();rm(cohortTableHandler);gc()})
 #
 #   # delete cohort and cohort_definition tables
 #   cohortTableHandler$connectionHandler$getConnection() |> DatabaseConnector::dbExecute("DROP TABLE cohort")
