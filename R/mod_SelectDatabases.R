@@ -99,7 +99,10 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
 
       cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
       ParallelLogger::logInfo("[Databases Connection] Create new table: ", cohortTableHandler$cohortTableNames$cohortTable)
-
+      
+      if (!is.null(r_databaseConnection$cohortTableHandler)) {
+        r_databaseConnection$cohortTableHandler$closeConnection()
+      }
       r_databaseConnection$cohortTableHandler <- cohortTableHandler
       r_databaseConnection$atlasConfig <- atlasConfig
       r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1
