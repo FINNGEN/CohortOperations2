@@ -134,9 +134,15 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       # if successful
       if(is.null(r$analysisResults$analysisError)){
-        resultMessage <- paste0("\u2705 Success\n",
-                                "\U0001F550 Running time: ", analysisDurationText, "\n"
-        )
+        resultMessage <- paste0(
+          "\u2705 GWAS analysis submitted successfully\n",
+          "\U0001F550 Submission time: ", analysisDurationText, "\n\n",
+          "The unmodifiable Regenie GWAS pipeline (GWAS + HLA allele association) has been initiated.\n",
+          "You can track job progress in the Pipelines portal using the \"Open Viewer\" button below.\n\n",
+          "Once the run is completed, results will be available in:\n",
+          "- The Green library\n",
+          "- The Results PheWeb browser: https://userresults.finngen.fi/\n"
+         )
       }else{
         resultMessage <- paste0("\u274C Error\n",
                                 "\U0001F4C4 Message: ",  r$analysisResults$analysisError, "\n")
