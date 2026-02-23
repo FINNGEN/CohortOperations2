@@ -117,7 +117,7 @@ mod_operateCohorts_server <- function(id, r_databaseConnection) {
         nextSubsetDefinitionId <- ifelse( length(existingSubsetDefinitionIds) == 0, 1, max(existingSubsetDefinitionIds)+1 )
 
         subsetDef <- CohortGenerator::createCohortSubsetDefinition(
-          name = "",
+          name = "operation",
           definitionId = nextSubsetDefinitionId,
           subsetOperators = list(
             HadesExtras::createOperationSubset(

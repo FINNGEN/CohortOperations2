@@ -1,3 +1,6 @@
+# CohortOperations2 3.1.1
+- Updated to work with CohortGenerator v1
+
 # CohortOperations2 3.1.0
 - Enable saving and loading of cohort workbenches
 - Allow flexible selection of Automatch ratio for CodeWAS and TimeCodeWAS

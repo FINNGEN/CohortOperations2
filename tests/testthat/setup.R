@@ -38,13 +38,13 @@ if (testingDatabase |> stringr::str_starts("Eunomia")) {
   )
 
   if (testingDatabase |> stringr::str_ends("GiBleed")) {
-    test_cohortTableHandlerConfig <- test_databasesConfig[[1]]$cohortTableHandle
+    test_cohortTableHandlerConfig <- test_databasesConfig$E1$cohortTableHandle
   }
   if (testingDatabase |> stringr::str_ends("MIMIC")) {
-    test_cohortTableHandlerConfig <- test_databasesConfig[[2]]$cohortTableHandle
+    test_cohortTableHandlerConfig <- test_databasesConfig$E2$cohortTableHandle
   }
   if (testingDatabase |> stringr::str_ends("FinnGen")) {
-    test_cohortTableHandlerConfig <- test_databasesConfig[[4]]$cohortTableHandle
+    test_cohortTableHandlerConfig <- test_databasesConfig$E4$cohortTableHandle
   }
 
   # add test cohorts and cohort definitions
@@ -68,10 +68,10 @@ if (testingDatabase |> stringr::str_starts("AtlasDevelopment")) {
   )
 
   if (testingDatabase |> stringr::str_ends("5k")) {
-    test_cohortTableHandlerConfig <- test_databasesConfig[[5]]$cohortTableHandler
+    test_cohortTableHandlerConfig <- test_databasesConfig$BQ5K$cohortTableHandler
   }
   if (testingDatabase |> stringr::str_ends("full")) {
-    test_cohortTableHandlerConfig <- test_databasesConfig[[6]]$cohortTableHandler
+    test_cohortTableHandlerConfig <- test_databasesConfig$BQ$cohortTableHandler
   }
 }
 
@@ -91,3 +91,14 @@ message("Database: ", testingDatabase)
 message("CO2 Modules: ", testingAnalysisModulesConfig)
 
 
+
+if (interactive()) {
+  options(
+    "hadesextras.cohortTableHandlerConfig" = test_cohortTableHandlerConfig
+  )
+} else {
+  withr::local_options(
+    "hadesextras.cohortTableHandlerConfig" = test_cohortTableHandlerConfig,
+    .local_envir = teardown_env()
+  )
+}
