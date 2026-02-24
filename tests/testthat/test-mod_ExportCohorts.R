@@ -3,7 +3,7 @@
 test_that("mod_exportsCohorts produces file", {
 
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "EunomiaDefaultCohorts")
-  withr::defer({rm(cohortTableHandler);gc()})
+  withr::defer({cohortTableHandler$closeConnection();rm(cohortTableHandler);gc()})
 
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
