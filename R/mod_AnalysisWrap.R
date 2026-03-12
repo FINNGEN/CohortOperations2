@@ -155,7 +155,8 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
         } else {
           # analysis other than gwas
-          resultMessage <- ""
+          resultMessage <- paste0("\u2705 Success\n",
+                                  "\U0001F550 Running time: ", analysisDurationText, "\n")
         }
 
       } else{
