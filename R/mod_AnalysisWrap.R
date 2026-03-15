@@ -149,7 +149,7 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
             "The unmodifiable Regenie GWAS pipeline (GWAS + HLA allele association) has been initiated.\n",
             "You can track job progress in the Pipelines portal using the \"Open Viewer\" button below.\n\n",
             "Once the run is completed, results will be available in:\n",
-            "- The Green library\n",
+            "- The Green library (sandbox custom gwas folder)\n",
             "- The Results PheWeb browser: https://userresults.finngen.fi/\n"
            )
 
