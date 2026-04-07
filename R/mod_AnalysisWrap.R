@@ -134,16 +134,32 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       # if successful
       if(is.null(r$analysisResults$analysisError)){
-        resultMessage <- paste0(
-          "\u2705 GWAS analysis submitted successfully\n",
-          "\U0001F550 Submission time: ", analysisDurationText, "\n\n",
-          "The unmodifiable Regenie GWAS pipeline (GWAS + HLA allele association) has been initiated.\n",
-          "You can track job progress in the Pipelines portal using the \"Open Viewer\" button below.\n\n",
-          "Once the run is completed, results will be available in:\n",
-          "- The Green library\n",
-          "- The Results PheWeb browser: https://userresults.finngen.fi/\n"
-         )
-      }else{
+          if (is.list(r$analysisResults$pathToResultsDatabase)) {
+
+            # This is a GWAS run
+            workflowId <- if (!is.null(r$analysisResults$pathToResultsDatabase$workflow_id)) {
+              r$analysisResults$pathToResultsDatabase$workflow_id
+            } else {
+              "Not available"
+            }
+
+          resultMessage <- paste0(
+            "\u2705  GWAS analysis submitted successfully with workflow ID: ", workflowId, "\n",
+            "\U0001F550 Submission time: ", analysisDurationText, "\n\n",
+            "The unmodifiable Regenie GWAS pipeline (GWAS + HLA allele association) has been initiated.\n",
+            "You can track job progress in the Pipelines portal using the \"Open Viewer\" button below.\n\n",
+            "Once the run is completed, results will be available in:\n",
+            "- The Green library (sandbox custom gwas folder)\n",
+            "- The Results PheWeb browser: https://userresults.finngen.fi/\n"
+           )
+
+        } else {
+          # analysis other than gwas
+          resultMessage <- paste0("\u2705 Success\n",
+                                  "\U0001F550 Running time: ", analysisDurationText, "\n")
+        }
+
+      } else{
         resultMessage <- paste0("\u274C Error\n",
                                 "\U0001F4C4 Message: ",  r$analysisResults$analysisError, "\n")
       }

@@ -1,5 +1,6 @@
-# CohortOperations2 3.1.1
+# CohortOperations2 3.1.2
 - Updated to work with CohortGenerator v1
+- Other updates
 
 # CohortOperations2 3.1.0
 - Enable saving and loading of cohort workbenches
