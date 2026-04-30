@@ -134,7 +134,10 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       # if successful
       if(is.null(r$analysisResults$analysisError)){
-          if (is.list(r$analysisResults$pathToResultsDatabase)) {
+
+          result <- r$analysisResults$pathToResultsDatabase
+
+          if (is.list(result) && "workflow_id" %in% names(result)) {
 
             # This is a GWAS run
             workflowId <- if (!is.null(r$analysisResults$pathToResultsDatabase$workflow_id)) {
@@ -196,7 +199,19 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
           is.null(r$analysisResults$analysisError)
 
         if(condition){
-          file.copy(r$analysisResults$pathToResultsDatabase, fname)
+          result <- r$analysisResults$pathToResultsDatabase
+
+          pathToDb <- if (is.list(result) && !is.null(result$pathToResultsdb)) {
+            result$pathToResultsdb
+          }else if (!is.list(result)) {
+            result
+          } else {
+            NULL
+          }
+
+          if (!is.null(pathToDb)) {
+            file.copy(pathToDb, fname)
+          }
         }
 
         ParallelLogger::logInfo("[Analysis: ", analysisName,"] Download results")
@@ -213,13 +228,48 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       ParallelLogger::logInfo("[Analysis: ", analysisName,"] Launch viewer")
 
-      if(is.null(r$analysisResults$pathToResultsDatabase)){
+      result <- r$analysisResults$pathToResultsDatabase
+
+      if (is.null(result)) {
+
         url <- paste0(url_visualiseResults)
-      }else{
-        url <- paste0(url_visualiseResults, r$analysisResults$pathToResultsDatabase)
+
+      } else if (is.list(result) && identical(result$viewerType, "codewas-table-ts")) {
+        # new codewas result
+        jsonDir <- dirname(result$pathToJson)
+
+        resourcePrefix <- paste0(
+          "codewas-json-",
+          gsub("[^A-Za-z0-9]", "", session$token)
+        )
+
+        shiny::addResourcePath(resourcePrefix, jsonDir)
+
+        jsonUrl <- paste0(
+          "/",
+          resourcePrefix,
+          "/",
+          basename(result$pathToJson)
+        )
+
+        url <- paste0(
+          url_visualiseResults,
+          utils::URLencode(jsonUrl, reserved = TRUE)
+        )
+
+      } else if (is.list(result) && "workflow_id" %in% names(result)) {
+
+        # GWAS
+        url <- paste0(url_visualiseResults)
+
+      } else {
+
+        # codewas and timecodewas results, DuckDB path only
+        url <- paste0(url_visualiseResults, result)
+
       }
 
-      shinyjs::runjs(paste0("window.open('", url, "')"))
+      shinyjs::runjs(sprintf("window.open('%s', '_blank')", url))
     })
 
   })
