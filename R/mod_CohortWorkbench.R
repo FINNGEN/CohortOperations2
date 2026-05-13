@@ -645,8 +645,6 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
         "Cohort has ", cohortEntries, " entries\n",
         "from ", cohortSubjects, " unique subjects."
       ),
-      cohortStartYearRange = purrr::map_chr(histogramCohortStartYear, .histogram_year_range),
-      cohortEndYearRange = purrr::map_chr(histogramCohortEndYear, .histogram_year_range),
       countSexStr = purrr::map_chr(sexCounts, .sexTibbleToStr_fast),
       countSexStrTooltip = purrr::map_chr(sexCounts, .sexTibbleToTooltipStr_fast),
       buildInfoStr = purrr::map_chr(buildInfo, .buildInfoStr_fast),
@@ -679,19 +677,19 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
       html = TRUE,
       maxWidth = 100
     ),
-    cohortStartYearRange = reactable::colDef(
+    histogramCohortStartYear = reactable::colDef(
       name = "Cohort Start Date",
       cell = function(value) {
-        .titleText(value, value)
+        .histogram_sparkline(value)
       },
-      maxWidth = 150
+      maxWidth = 280
     ),
-    cohortEndYearRange = reactable::colDef(
+    histogramCohortEndYear = reactable::colDef(
       name = "Cohort End Date",
       cell = function(value) {
-        .titleText(value, value)
+        .histogram_sparkline(value)
       },
-      maxWidth = 150
+      maxWidth = 280
     ),
     countSexStr = reactable::colDef(
       name = "Sex",
@@ -766,9 +764,57 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
 
 
 .titleText <- function(text, tooltip) {
-  htmltools::tags$span(
-    title = tooltip,
-    htmltools::HTML(text)
+  htmltools::HTML(
+    paste0(
+      "<span title=\"",
+      htmltools::htmlEscape(tooltip),
+      "\">",
+      text,
+      "</span>"
+    )
+  )
+}
+
+
+.histogram_sparkline <- function(data, maxBars = 60) {
+  rangeText <- .histogram_year_range(data)
+  if (identical(rangeText, "-")) {
+    return(htmltools::HTML("<span title=\"No distribution available\">-</span>"))
+  }
+
+  data <- data[!is.na(data$year) & !is.na(data$n) & data$n > 0, c("year", "n")]
+  data <- data[order(data$year), ]
+
+  if (nrow(data) > maxBars) {
+    groupSize <- ceiling(nrow(data) / maxBars)
+    data$group <- ceiling(seq_len(nrow(data)) / groupSize)
+    data <- data |>
+      dplyr::group_by(group) |>
+      dplyr::summarise(
+        year = min(year, na.rm = TRUE),
+        n = sum(n, na.rm = TRUE),
+        .groups = "drop"
+      )
+  }
+
+  maxN <- max(data$n, na.rm = TRUE)
+  bars <- vapply(data$n, function(n) {
+    height <- max(2, round(n / maxN * 34))
+    paste0(
+      "<span style=\"display:inline-block;width:3px;height:",
+      height,
+      "px;background:#9ddff5;margin-right:1px;vertical-align:bottom;\"></span>"
+    )
+  }, character(1))
+
+  htmltools::HTML(
+    paste0(
+      "<div title=\"",
+      htmltools::htmlEscape(rangeText),
+      "\" style=\"height:38px;line-height:38px;white-space:nowrap;\">",
+      paste0(bars, collapse = ""),
+      "</div>"
+    )
   )
 }
 
