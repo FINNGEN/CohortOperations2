@@ -176,6 +176,7 @@ mod_cohortWorkbench_ui <- function(id){
 #'
 #' @param id A unique identifier for the module.
 #' @param r_databaseConnection A reactiveValues object containing the database connection and handlers.
+#' @param r_workbenchCache Optional reactiveValues object with cached workbench summary data.
 #' @param table_editing A logical value indicating whether table editing is enabled. Default is TRUE.
 #'
 #' @return A server module for the Cohort Workbench.
@@ -189,7 +190,12 @@ mod_cohortWorkbench_ui <- function(id){
 #' @importFrom dplyr pull setdiff
 #'
 #' @export
-mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing = TRUE) {
+mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCache = NULL, table_editing = TRUE) {
+  if (is.logical(r_workbenchCache) && length(r_workbenchCache) == 1) {
+    table_editing <- r_workbenchCache
+    r_workbenchCache <- NULL
+  }
+
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -204,14 +210,40 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
 
     r_cohortDefinitionSetToAdd_forImportingWorkbench <- reactiveValues(cohortDefinitionSet = NULL)
 
+    get_cohorts_summary <- function() {
+      if (!is.null(r_workbenchCache)) {
+        shiny::req(r_workbenchCache$version)
+        cohortsSummary <- shiny::isolate(r_workbenchCache$cohortsSummary)
+        shiny::req(cohortsSummary, cancelOutput = TRUE)
+        return(cohortsSummary)
+      }
+
+      shiny::req(r_databaseConnection$cohortTableHandler)
+      r_databaseConnection$cohortTableHandler$getCohortsSummary()
+    }
+
+    get_cohort_count <- function() {
+      if (!is.null(r_workbenchCache)) {
+        shiny::req(r_workbenchCache$version)
+        cohortCount <- shiny::isolate(r_workbenchCache$cohortCount)
+        return(cohortCount)
+      }
+
+      nrow(get_cohorts_summary())
+    }
+
     #
     # Renders cohortsSummaryDatabases_reactable
     #
     output$cohortsSummaryDatabases_reactable <- reactable::renderReactable({
       shiny::req(r_databaseConnection$cohortTableHandler)
-      shiny::req(r_databaseConnection$hasChangeCounter)
+      if (!is.null(r_workbenchCache)) {
+        shiny::req(r_workbenchCache$version)
+      } else {
+        shiny::req(r_databaseConnection$hasChangeCounter)
+      }
 
-      r_databaseConnection$cohortTableHandler$getCohortsSummary() |>
+      get_cohorts_summary() |>
         HadesExtras::rectable_cohortsSummary(
           deleteButtonsShinyId = ns("cohortsWorkbenchDeleteButtons"),
           editButtonsShinyId = ns("cohortsWorkbenchEditButtons"))
@@ -223,9 +255,13 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
 
     shiny::observe({
       shiny::req(r_databaseConnection$cohortTableHandler)
-      shiny::req(r_databaseConnection$hasChangeCounter)
+      if (!is.null(r_workbenchCache)) {
+        shiny::req(r_workbenchCache$version)
+      } else {
+        shiny::req(r_databaseConnection$hasChangeCounter)
+      }
 
-      r_workbench$cohortCount <- nrow(r_databaseConnection$cohortTableHandler$getCohortsSummary())
+      r_workbench$cohortCount <- get_cohort_count()
     })
 
     output$cw_summary <- shiny::renderUI({
@@ -247,7 +283,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
     #
     shiny::observeEvent(input$cohortsWorkbenchDeleteButtons, {
 
-      cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
+      cohortsSummary <- get_cohorts_summary()
       rowNumber <- input$cohortsWorkbenchDeleteButtons$index
 
       cohortName <- cohortsSummary |> purrr::pluck("cohortName", rowNumber)
@@ -273,7 +309,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
     shiny::observeEvent(input$confirmSweetAlert_CohortsWorkbenchDeleteButtons, {
       if (input$confirmSweetAlert_CohortsWorkbenchDeleteButtons == TRUE) {
 
-        cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
+        cohortsSummary <- get_cohorts_summary()
         rowNumber <- input$cohortsWorkbenchDeleteButtons$index
 
         databaseName <- cohortsSummary |> purrr::pluck("databaseName", rowNumber)
@@ -291,7 +327,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
     #
     shiny::observeEvent(input$cohortsWorkbenchEditButtons, {
 
-      cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
+      cohortsSummary <- get_cohorts_summary()
       rowNumber <- input$cohortsWorkbenchEditButtons$index
 
       cohortName <- cohortsSummary |> purrr::pluck("cohortName", rowNumber)
@@ -347,7 +383,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
     #
     shiny::observeEvent(input$editCohort_actionButton, {
 
-      cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
+      cohortsSummary <- get_cohorts_summary()
       rowNumber <- input$cohortsWorkbenchEditButtons$index
 
       cohortId <- cohortsSummary |> purrr::pluck("cohortId", rowNumber)
@@ -368,7 +404,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
     shiny::observeEvent(input$cw_clearAll, {
       shiny::req(r_databaseConnection$cohortTableHandler)
 
-      cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
+      cohortsSummary <- get_cohorts_summary()
       n <- nrow(cohortsSummary)
 
       shinyWidgets::confirmSweetAlert(
@@ -388,7 +424,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, table_editing =
     shiny::observeEvent(input$confirmSweetAlert_ClearAll, {
       if (isTRUE(input$confirmSweetAlert_ClearAll)) {
 
-        cohortsSummary <- r_databaseConnection$cohortTableHandler$getCohortsSummary()
+        cohortsSummary <- get_cohorts_summary()
         cohortIds <- cohortsSummary$cohortId
 
         if (length(cohortIds) > 0) {
