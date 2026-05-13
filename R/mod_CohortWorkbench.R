@@ -111,39 +111,61 @@ mod_cohortWorkbench_ui <- function(id){
 
     ")),
 
-    # remember workbench fold or open states
+    # remember one shared workbench fold/open state across all workbench instances
     htmltools::tags$script(HTML(sprintf("
       (function() {
-        const key = '%s';
+        const key = 'cohortOperations.workbench.openState';
 
-        document.addEventListener('DOMContentLoaded', function () {
-          const details = document.getElementById(key);
-          if (!details) return;
+        function applyState(state, source) {
+          window.__cohortWorkbenchSyncing = true;
 
-          const saved = sessionStorage.getItem(key);
+          document.querySelectorAll('[data-cohort-workbench-details=\"true\"]').forEach(function(details) {
+            if (details === source) return;
 
-          // for initial loading, make it open. Then keep it closed when users go to other tabs
-          if (saved === null) {
-            details.setAttribute('open', '');
-            sessionStorage.setItem(key, 'closed');
-          }
+            if (state === 'open') {
+              details.setAttribute('open', '');
+            } else {
+              details.removeAttribute('open');
+            }
+          });
 
-          // restore previous state if open
+          window.__cohortWorkbenchSyncing = false;
+        }
+
+        function setupWorkbenchDetails() {
+          const details = document.getElementById('%s');
+          if (!details || details.dataset.cohortWorkbenchReady === 'true') return;
+
+          details.dataset.cohortWorkbenchReady = 'true';
+
+          const saved = sessionStorage.getItem(key) || 'open';
           if (saved === 'open') {
             details.setAttribute('open', '');
+          } else {
+            details.removeAttribute('open');
           }
 
-          // persist on toggle
           details.addEventListener('toggle', function () {
-            sessionStorage.setItem(key, details.open ? 'open' : 'closed');
+            if (window.__cohortWorkbenchSyncing) return;
+
+            const state = details.open ? 'open' : 'closed';
+            sessionStorage.setItem(key, state);
+            applyState(state, details);
           });
-        });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setupWorkbenchDetails);
+        } else {
+          setupWorkbenchDetails();
+        }
       })();
     ", ns("cw_details")))),
 
 
     htmltools::tags$details(
       id = ns("cw_details"),  # or TRUE to show it expanded by default
+      `data-cohort-workbench-details` = "true",
       htmltools::tags$summary( class = "foldable-summary", shiny::uiOutput(ns("cw_summary"))),
 
       # Toolbar
