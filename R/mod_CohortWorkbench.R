@@ -682,6 +682,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
       cell = function(value) {
         .histogram_sparkline(value)
       },
+      html = TRUE,
       maxWidth = 280
     ),
     histogramCohortEndYear = reactable::colDef(
@@ -689,6 +690,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
       cell = function(value) {
         .histogram_sparkline(value)
       },
+      html = TRUE,
       maxWidth = 280
     ),
     countSexStr = reactable::colDef(
@@ -699,6 +701,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
       cell = function(value, index) {
         .titleText(value, cohortsSummaryToPlot$countSexStrTooltip[[index]])
       },
+      html = TRUE,
       align = "left",
       maxWidth = 160
     ),
@@ -707,6 +710,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
       cell = function(value, index) {
         .titleText(value, cohortsSummaryToPlot$buildInfoTooltip[[index]])
       },
+      html = TRUE,
       align = "center",
       maxWidth = 80
     )
