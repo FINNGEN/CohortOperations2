@@ -213,10 +213,12 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       ParallelLogger::logInfo("[Analysis: ", analysisName,"] Launch viewer")
 
-      if(is.null(r$analysisResults$pathToResultsDatabase)){
+      result <- r$analysisResults$pathToResultsDatabase
+
+      if(is.null(result) || (is.list(result) && "workflow_id" %in% names(result))){
         url <- paste0(url_visualiseResults)
       }else{
-        url <- paste0(url_visualiseResults, r$analysisResults$pathToResultsDatabase)
+        url <- paste0(url_visualiseResults, result)
       }
 
       shinyjs::runjs(paste0("window.open('", url, "')"))
