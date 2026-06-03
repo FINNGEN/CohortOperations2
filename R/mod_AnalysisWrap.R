@@ -201,7 +201,9 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
         if(condition){
           result <- r$analysisResults$pathToResultsDatabase
 
-          pathToDb <- if (is.list(result) && !is.null(result$pathToResultsdb)) {
+          pathToDb <- if (is.list(result) && identical(result$viewerType, "codewas-table-ts") && !is.null(result$pathToPlainDuckdb)) {
+            result$pathToPlainDuckdb
+          } else if (is.list(result) && !is.null(result$pathToResultsdb)) {
             result$pathToResultsdb
           }else if (!is.list(result)) {
             result
@@ -235,26 +237,26 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
         url <- paste0(url_visualiseResults)
 
       } else if (is.list(result) && identical(result$viewerType, "codewas-table-ts")) {
-        # new codewas result
-        jsonDir <- dirname(result$pathToJson)
+        # duckdb-backed codewas viewer
+        duckdbDir <- dirname(result$pathToPlainDuckdb)
 
         resourcePrefix <- paste0(
-          "codewas-json-",
+          "codewas-duckdb-",
           gsub("[^A-Za-z0-9]", "", session$token)
         )
 
-        shiny::addResourcePath(resourcePrefix, jsonDir)
+        shiny::addResourcePath(resourcePrefix, duckdbDir)
 
-        jsonUrl <- paste0(
+        duckdbUrl <- paste0(
           "/",
           resourcePrefix,
           "/",
-          basename(result$pathToJson)
+          basename(result$pathToPlainDuckdb)
         )
 
         url <- paste0(
-          url_visualiseResults,
-          utils::URLencode(jsonUrl, reserved = TRUE)
+          "/codewas-viewer/?path=",
+          utils::URLencode(duckdbUrl, reserved = TRUE)
         )
 
       } else if (is.list(result) && "workflow_id" %in% names(result)) {
