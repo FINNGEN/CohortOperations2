@@ -23,3 +23,17 @@ test_that("filename sanitization removes spaces and special characters", {
   # Test case 6: Name with leading/trailing spaces should be trimmed
   expect_equal(sanitize_filename("  Analysis Name  "), "Analysis_Name")
 })
+
+test_that("downloadable result paths exclude GWAS workflow submissions", {
+  expect_equal(resolve_downloadable_result_path("C:/results/analysisResults.duckdb"), "C:/results/analysisResults.duckdb")
+  expect_equal(
+    resolve_downloadable_result_path(list(viewerType = "codewas-table-ts", pathToPlainDuckdb = "C:/results/codewas.duckdb")),
+    "C:/results/codewas.duckdb"
+  )
+  expect_equal(
+    resolve_downloadable_result_path(list(pathToResultsdb = "C:/results/legacy.duckdb")),
+    "C:/results/legacy.duckdb"
+  )
+  expect_null(resolve_downloadable_result_path(list(workflow_id = "workflow-123")))
+  expect_null(resolve_downloadable_result_path(list()))
+})

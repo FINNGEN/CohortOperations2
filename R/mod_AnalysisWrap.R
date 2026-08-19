@@ -30,6 +30,27 @@ mod_analysisWrap_ui <- function(id, mod_analysisSettings_ui) {
   )
 }
 
+
+resolve_downloadable_result_path <- function(result) {
+  if (is.list(result)) {
+    if (identical(result$viewerType, "codewas-table-ts") && !is.null(result$pathToPlainDuckdb)) {
+      return(result$pathToPlainDuckdb)
+    }
+
+    if (!is.null(result$pathToResultsdb)) {
+      return(result$pathToResultsdb)
+    }
+
+    return(NULL)
+  }
+
+  if (is.character(result) && length(result) == 1 && nzchar(result)) {
+    return(result)
+  }
+
+  NULL
+}
+
 #' Analysis Wrap Server
 #'
 #' @param id A unique identifier for the module.
@@ -176,12 +197,18 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
     # activate Run study if settings are valid
     #
     shiny::observe({
-      condition <- shiny::isTruthy(r$analysisResults) &&
+      canView <- shiny::isTruthy(r$analysisResults) &&
         is.null(r$analysisResults$analysisError)
-      shinyjs::toggleState("download_actionButton", condition = condition )
-      shinyjs::toggleState("view_actionButton", condition = condition )
-    })
+      downloadPath <- if (canView) {
+        resolve_downloadable_result_path(r$analysisResults$pathToResultsDatabase)
+      } else {
+        NULL
+      }
+      canDownload <- !is.null(downloadPath) && file.exists(downloadPath)
 
+      shinyjs::toggleState("download_actionButton", condition = canDownload)
+      shinyjs::toggleState("view_actionButton", condition = canView)
+    })
 
     #
     # download results
@@ -201,19 +228,10 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
         if(condition){
           result <- r$analysisResults$pathToResultsDatabase
 
-          pathToDb <- if (is.list(result) && identical(result$viewerType, "codewas-table-ts") && !is.null(result$pathToPlainDuckdb)) {
-            result$pathToPlainDuckdb
-          } else if (is.list(result) && !is.null(result$pathToResultsdb)) {
-            result$pathToResultsdb
-          }else if (!is.list(result)) {
-            result
-          } else {
-            NULL
-          }
+          pathToDb <- resolve_downloadable_result_path(result)
 
-          if (!is.null(pathToDb)) {
-            file.copy(pathToDb, fname)
-          }
+          shiny::req(!is.null(pathToDb), file.exists(pathToDb))
+          file.copy(pathToDb, fname)
         }
 
         ParallelLogger::logInfo("[Analysis: ", analysisName,"] Download results")
