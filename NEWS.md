@@ -1,3 +1,7 @@
+# CohortOperations2 3.1.3
+
+- Fixed opening the GWAS pipeline viewer after submitting a GWAS analysis
+
 # CohortOperations2 3.1.2
 - Updated to work with CohortGenerator v1
 - Other updates
