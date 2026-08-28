@@ -25,10 +25,33 @@ app_server <- function(input, output, session) {
     hasChangeCounter = 0
   )
 
+  r_workbenchCache <- shiny::reactiveValues(
+    cohortsSummary = NULL,
+    cohortCount = 0,
+    version = 0
+  )
+
+  shiny::observe({
+    changeCounter <- r_databaseConnection$hasChangeCounter
+    cohortTableHandler <- r_databaseConnection$cohortTableHandler
+
+    if (is.null(cohortTableHandler)) {
+      r_workbenchCache$cohortsSummary <- NULL
+      r_workbenchCache$cohortCount <- 0
+      r_workbenchCache$version <- changeCounter
+      return()
+    }
+
+    cohortsSummary <- cohortTableHandler$getCohortsSummary()
+    r_workbenchCache$cohortsSummary <- cohortsSummary
+    r_workbenchCache$cohortCount <- nrow(cohortsSummary)
+    r_workbenchCache$version <- changeCounter
+  })
+
 
   mod_selectDatabases_server("selectDatabases", databasesConfig, r_databaseConnection)
 
-  mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_databaseConnection)
+  mod_cohortWorkbench_server("cohortWorkbench_importCohorts", r_databaseConnection, r_workbenchCache)
   mod_importCohortsFromFile_server("importCohortsFromFile", r_databaseConnection)
   mod_importCohortsFromAtlas_server("importCohortsFromAtlas", r_databaseConnection)
 
@@ -48,13 +71,13 @@ app_server <- function(input, output, session) {
     }
   }
 
-  mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_databaseConnection)
+  mod_cohortWorkbench_server("cohortWorkbench_matchCohorts", r_databaseConnection, r_workbenchCache)
   mod_matchCohorts_server("matchCohorts", r_databaseConnection)
 
-  mod_cohortWorkbench_server("cohortWorkbench_operateCohorts", r_databaseConnection)
+  mod_cohortWorkbench_server("cohortWorkbench_operateCohorts", r_databaseConnection, r_workbenchCache)
   mod_operateCohorts_server("operateCohorts", r_databaseConnection)
 
-  mod_cohortWorkbench_server("cohortWorkbench_exportsCohorts", r_databaseConnection)
+  mod_cohortWorkbench_server("cohortWorkbench_exportsCohorts", r_databaseConnection, r_workbenchCache)
   mod_exportsCohorts_server("exportsCohorts", r_databaseConnection)
 
   # Add the new module server
@@ -64,7 +87,7 @@ app_server <- function(input, output, session) {
   analysisKeys <- setdiff(names(analysisModulesConfig), "importFromLibraries")
   lapply(analysisKeys, function(analysisKey) {
     analysis <- analysisModulesConfig[[analysisKey]]
-    mod_cohortWorkbench_server(paste0("cohortWorkbench_", analysisKey), r_databaseConnection)
+    mod_cohortWorkbench_server(paste0("cohortWorkbench_", analysisKey), r_databaseConnection, r_workbenchCache)
 
     mod_analysisWrap_server(
       id = paste0(analysisKey, "_analysis"),

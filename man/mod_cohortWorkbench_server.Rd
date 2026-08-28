@@ -4,12 +4,19 @@
 \alias{mod_cohortWorkbench_server}
 \title{Cohort Workbench Server Module}
 \usage{
-mod_cohortWorkbench_server(id, r_databaseConnection, table_editing = TRUE)
+mod_cohortWorkbench_server(
+  id,
+  r_databaseConnection,
+  r_workbenchCache = NULL,
+  table_editing = TRUE
+)
 }
 \arguments{
 \item{id}{A unique identifier for the module.}
 
 \item{r_databaseConnection}{A reactiveValues object containing the database connection and handlers.}
+
+\item{r_workbenchCache}{Optional reactiveValues object with cached workbench summary data.}
 
 \item{table_editing}{A logical value indicating whether table editing is enabled. Default is TRUE.}
 }
