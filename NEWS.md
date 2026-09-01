@@ -1,3 +1,9 @@
+# CohortOperations2 3.2.0
+
+- Improved Cohort Workbench performance and responsiveness for large workbenches
+- Updated CodeWAS result handling for DuckDB results and the results viewer
+- Disabled downloads for analyses without a downloadable result file
+
 # CohortOperations2 3.1.3
 
 - Fixed opening the GWAS pipeline viewer after submitting a GWAS analysis
