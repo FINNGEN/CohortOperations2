@@ -30,6 +30,27 @@ mod_analysisWrap_ui <- function(id, mod_analysisSettings_ui) {
   )
 }
 
+
+resolve_downloadable_result_path <- function(result) {
+  if (is.list(result)) {
+    if (identical(result$viewerType, "codewas-table-ts") && !is.null(result$pathToPlainDuckdb)) {
+      return(result$pathToPlainDuckdb)
+    }
+
+    if (!is.null(result$pathToResultsdb)) {
+      return(result$pathToResultsdb)
+    }
+
+    return(NULL)
+  }
+
+  if (is.character(result) && length(result) == 1 && nzchar(result)) {
+    return(result)
+  }
+
+  NULL
+}
+
 #' Analysis Wrap Server
 #'
 #' @param id A unique identifier for the module.
@@ -134,7 +155,10 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       # if successful
       if(is.null(r$analysisResults$analysisError)){
-          if (is.list(r$analysisResults$pathToResultsDatabase)) {
+
+          result <- r$analysisResults$pathToResultsDatabase
+
+          if (is.list(result) && "workflow_id" %in% names(result)) {
 
             # This is a GWAS run
             workflowId <- if (!is.null(r$analysisResults$pathToResultsDatabase$workflow_id)) {
@@ -173,12 +197,18 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
     # activate Run study if settings are valid
     #
     shiny::observe({
-      condition <- shiny::isTruthy(r$analysisResults) &&
+      canView <- shiny::isTruthy(r$analysisResults) &&
         is.null(r$analysisResults$analysisError)
-      shinyjs::toggleState("download_actionButton", condition = condition )
-      shinyjs::toggleState("view_actionButton", condition = condition )
-    })
+      downloadPath <- if (canView) {
+        resolve_downloadable_result_path(r$analysisResults$pathToResultsDatabase)
+      } else {
+        NULL
+      }
+      canDownload <- !is.null(downloadPath) && file.exists(downloadPath)
 
+      shinyjs::toggleState("download_actionButton", condition = canDownload)
+      shinyjs::toggleState("view_actionButton", condition = canView)
+    })
 
     #
     # download results
@@ -196,7 +226,12 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
           is.null(r$analysisResults$analysisError)
 
         if(condition){
-          file.copy(r$analysisResults$pathToResultsDatabase, fname)
+          result <- r$analysisResults$pathToResultsDatabase
+
+          pathToDb <- resolve_downloadable_result_path(result)
+
+          shiny::req(!is.null(pathToDb), file.exists(pathToDb))
+          file.copy(pathToDb, fname)
         }
 
         ParallelLogger::logInfo("[Analysis: ", analysisName,"] Download results")
@@ -215,13 +250,46 @@ mod_analysisWrap_server <- function(id, r_databaseConnection, mod_analysisSettin
 
       result <- r$analysisResults$pathToResultsDatabase
 
-      if(is.null(result) || (is.list(result) && "workflow_id" %in% names(result))){
+      if (is.null(result)) {
+
         url <- paste0(url_visualiseResults)
-      }else{
+
+      } else if (is.list(result) && identical(result$viewerType, "codewas-table-ts")) {
+        # duckdb-backed codewas viewer
+        duckdbDir <- dirname(result$pathToPlainDuckdb)
+
+        resourcePrefix <- paste0(
+          "codewas-duckdb-",
+          gsub("[^A-Za-z0-9]", "", session$token)
+        )
+
+        shiny::addResourcePath(resourcePrefix, duckdbDir)
+
+        duckdbUrl <- paste0(
+          "/",
+          resourcePrefix,
+          "/",
+          basename(result$pathToPlainDuckdb)
+        )
+
+        url <- paste0(
+          "/codewas-viewer/?path=",
+          utils::URLencode(duckdbUrl, reserved = TRUE)
+        )
+
+      } else if (is.list(result) && "workflow_id" %in% names(result)) {
+
+        # GWAS
+        url <- paste0(url_visualiseResults)
+
+      } else {
+
+        # codewas and timecodewas results, DuckDB path only
         url <- paste0(url_visualiseResults, result)
+
       }
 
-      shinyjs::runjs(paste0("window.open('", url, "')"))
+      shinyjs::runjs(sprintf("window.open('%s', '_blank')", url))
     })
 
   })
