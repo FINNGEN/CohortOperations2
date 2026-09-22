@@ -329,7 +329,7 @@ mod_cohortWorkbench_server <- function(id, r_databaseConnection, r_workbenchCach
     # If delete confirmation accepted, deletes cohort and updates r_workbench
     #
     shiny::observeEvent(input$confirmSweetAlert_CohortsWorkbenchDeleteButtons, {
-      if (input$confirmSweetAlert_CohortsWorkbenchDeleteButtons == TRUE) {
+      if (isTRUE(input$confirmSweetAlert_CohortsWorkbenchDeleteButtons)) {
 
         cohortsSummary <- get_cohorts_summary()
         rowNumber <- input$cohortsWorkbenchDeleteButtons$index
