@@ -56,7 +56,7 @@ mod_matchCohorts_ui <- function(id) {
     ),
     shinyWidgets::prettySwitch(
       inputId = ns("matchCohortStartDateWithInDuration_switch"),
-      label = "Start date within target's/control's observation period",
+      label = "Matched control must be observed at case cohort entry date (index date)",
       status = "primary",
       value = FALSE
     ),
