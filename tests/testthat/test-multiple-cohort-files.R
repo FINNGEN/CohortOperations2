@@ -35,3 +35,23 @@ test_that("multiple cohort files reject incompatible schemas", {
     "Multiple-file import requires compatible files"
   )
 })
+
+test_that("incompatible files can be returned for manual mapping", {
+  unmapped_path <- withr::local_tempfile(fileext = ".csv")
+  writeLines(c("group,subject,visit_date,extra", "A,person-1,2020-01-01,x"), unmapped_path)
+  files <- data.frame(
+    datapath = unmapped_path,
+    name = "unmapped.csv",
+    stringsAsFactors = FALSE
+  )
+
+  result <- CohortOperations2:::.read_multiple_cohort_files(
+    files,
+    allow_unmapped = TRUE
+  )
+
+  expect_length(result$data, 0)
+  expect_length(result$unmapped, 1)
+  expect_identical(result$unmapped[[1]]$name, "unmapped.csv")
+  expect_named(result$unmapped[[1]]$data, c("group", "subject", "visit_date", "extra"))
+})
