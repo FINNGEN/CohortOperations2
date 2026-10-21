@@ -9,7 +9,16 @@ import_ui <- function(id) {
   file <- shiny::tabPanelBody(
     value = "file_choice",
     shiny::tags$br(),
-    datamods::import_file_ui(id = ns("file_datamods"), title = NULL, file_extensions = file_extensions, preview_data = FALSE)
+    shiny::fileInput(
+      inputId = ns("multi_file_input"),
+      label = "Select one or more cohort files:",
+      multiple = TRUE,
+      accept = file_extensions,
+      width = "100%"
+    ),
+    shiny::helpText(
+      "Multiple files must each be a person-ID list or use the standard cohortData columns."
+    )
   )
 
   copypaste <- shiny::tabPanelBody(
@@ -85,10 +94,9 @@ import_ui <- function(id) {
   )
 }
 
-import_server <- function(id, r_importedData) {
+import_server <- function(id, r_importedData, regex_person_id = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
 
-    rf_importedTablefile <- datamods::import_file_server("file_datamods", trigger_return = "change", btn_show_data = FALSE)
     rf_importedTableCopypaste <- datamods::import_copypaste_server("copypaste_datamods", trigger_return = "change", btn_show_data = FALSE)
 
     # Add observer to update selected tab
@@ -96,10 +104,46 @@ import_server <- function(id, r_importedData) {
       shiny::updateTabsetPanel(session, "tabs-import", selected = input$from_radiogroup)
     })
 
-    shiny::observeEvent(input[["file_datamods-file"]], {
+    shiny::observeEvent(input$multi_file_input, {
       req(input$from_radiogroup == "file_choice")
-      r_importedData$data <- rf_importedTablefile$data()
-      r_importedData$name <- rf_importedTablefile$name()
+
+      files <- input$multi_file_input
+      if (nrow(files) == 1) {
+        imported <- tryCatch(
+          rio::import(files$datapath[[1]]),
+          error = function(error) error
+        )
+        if (inherits(imported, "error")) {
+          shinyWidgets::sendSweetAlert(
+            session = session,
+            type = "error",
+            title = "Could not read file",
+            text = conditionMessage(imported)
+          )
+          return()
+        }
+        r_importedData$data <- imported
+        r_importedData$name <- files$name[[1]]
+      } else {
+        imported <- tryCatch(
+          .read_multiple_cohort_files(
+            files,
+            regex_person_id = if (is.function(regex_person_id)) regex_person_id() else regex_person_id
+          ),
+          error = function(error) error
+        )
+        if (inherits(imported, "error")) {
+          shinyWidgets::sendSweetAlert(
+            session = session,
+            type = "error",
+            title = "Could not combine files",
+            text = conditionMessage(imported)
+          )
+          return()
+        }
+        r_importedData$data <- imported
+        r_importedData$name <- paste(files$name, collapse = ", ")
+      }
       shiny::removeModal()
     })
 
@@ -140,6 +184,81 @@ import_modal <- function(id) {
     size = size,
     footer = NULL
   ))
+}
+
+#' Read and combine multiple cohort files.
+#'
+#' Each file must contain either one person-ID column or the standard cohortData
+#' columns. Person-ID files become separate cohorts named after their files;
+#' standard cohortData files are combined row-wise and retain their cohort names.
+#'
+#' @param files A data frame like a Shiny `fileInput()` result.
+#' @param regex_person_id Optional regular expression used to detect a headerless
+#'   person-ID file.
+#'
+#' @return A standard cohortData data frame.
+#' @noRd
+.read_multiple_cohort_files <- function(files, regex_person_id = NULL) {
+  required_columns <- c(
+    "cohort_name",
+    "person_source_value",
+    "cohort_start_date",
+    "cohort_end_date"
+  )
+
+  imported <- lapply(seq_len(nrow(files)), function(index) {
+    file_data <- tryCatch(
+      rio::import(files$datapath[[index]]),
+      error = function(error) {
+        stop("Could not read ", files$name[[index]], ": ", conditionMessage(error), call. = FALSE)
+      }
+    )
+    file_name <- files$name[[index]]
+    file_data <- tibble::as_tibble(file_data)
+
+    if (ncol(file_data) == 1) {
+      person_values <- file_data[[1]]
+      first_name <- names(file_data)[[1]]
+      if (!is.null(regex_person_id) && stringr::str_detect(first_name, regex_person_id)) {
+        person_values <- c(first_name, person_values)
+      }
+      return(tibble::tibble(
+        cohort_name = tools::file_path_sans_ext(basename(file_name)),
+        person_source_value = as.character(person_values),
+        cohort_start_date = as.Date(NA),
+        cohort_end_date = as.Date(NA)
+      ))
+    }
+
+    names(file_data) <- stringr::str_to_lower(names(file_data))
+    if (all(required_columns %in% names(file_data))) {
+      return(file_data |>
+        dplyr::transmute(
+          cohort_name = as.character(.data$cohort_name),
+          person_source_value = as.character(.data$person_source_value),
+          cohort_start_date = as.Date(.data$cohort_start_date),
+          cohort_end_date = as.Date(.data$cohort_end_date)
+        ))
+    }
+
+    if (all(c("cohort_name", "finngenid", "cohort_start_date", "cohort_end_date") %in% names(file_data))) {
+      return(file_data |>
+        dplyr::transmute(
+          cohort_name = as.character(.data$cohort_name),
+          person_source_value = as.character(.data$finngenid),
+          cohort_start_date = as.Date(.data$cohort_start_date),
+          cohort_end_date = as.Date(.data$cohort_end_date)
+        ))
+    }
+
+    stop(
+      "File ", file_name,
+      " is not a person-ID list or standard cohortData file. Multiple-file import requires compatible files.",
+      call. = FALSE
+    )
+  })
+
+  dplyr::bind_rows(imported)
 }
 
 

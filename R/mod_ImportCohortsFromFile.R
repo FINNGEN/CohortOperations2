@@ -85,7 +85,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
     })
 
-    import_server("importFile_modal", r_importedData)
+    import_server("importFile_modal", r_importedData, regex_person_id)
 
     #
     # Evaluate the imported table
