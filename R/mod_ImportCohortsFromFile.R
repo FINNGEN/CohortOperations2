@@ -59,7 +59,8 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     #
     r_importedData <- shiny::reactiveValues(
       data = NULL,
-      name = NULL
+      name = NULL,
+      pending = NULL
     )
 
     r_dataToMap <- shiny::reactiveValues(
@@ -75,6 +76,21 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     r_cohortDefinitionSetToAdd <- shiny::reactiveValues(
       cohortDefinitionSet = NULL
     )
+
+    r_pendingFiles <- shiny::reactiveValues(data = NULL)
+
+    open_next_mapping <- function() {
+      pending <- shiny::isolate(r_pendingFiles$data)
+      if (length(pending) == 0) {
+        return(invisible(NULL))
+      }
+
+      next_file <- pending[[1]]
+      r_pendingFiles$data <- pending[-1]
+      r_dataToMap$data <- next_file$data
+      r_dataToMap$name <- next_file$name
+      mapping_modal(id = ns("mappingModal"))
+    }
 
     #
     # open the import modal
@@ -98,6 +114,26 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       shiny::req(r_importedData$data)
       importedTable <- r_importedData$data |> tibble::as_tibble()
       fileName <- r_importedData$name
+
+      # Multi-file imports may include files requiring manual mapping.
+      if (!is.null(r_importedData$pending)) {
+        r_cohortData$data <- NULL
+        r_pendingFiles$data <- r_importedData$pending
+        r_importedData$pending <- NULL
+
+        if (nrow(importedTable) > 0) {
+          r_cohortData$data <- importedTable
+        } else {
+          open_next_mapping()
+        }
+
+        r_importedData$data <- NULL
+        r_importedData$name <- NULL
+        return(invisible(NULL))
+      }
+
+      r_pendingFiles$data <- NULL
+      r_cohortData$data <- NULL
 
       cohortDataUploaded <- NULL
       # if it only has one column it is probably a list of person_ids
@@ -204,10 +240,15 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
         r_cohortData$validated <- FALSE
       } else {
         r_cohortData$validated <- TRUE
+        r_dataToMap$data <- NULL
+        r_dataToMap$name <- NULL
+        open_next_mapping()
       }
 
-      r_dataToMap$data <- NULL
-      r_dataToMap$name <- NULL
+      if (is.character(check)) {
+        r_dataToMap$data <- NULL
+        r_dataToMap$name <- NULL
+      }
     })
 
     #

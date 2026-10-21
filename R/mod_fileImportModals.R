@@ -17,7 +17,7 @@ import_ui <- function(id) {
       width = "100%"
     ),
     shiny::helpText(
-      "Multiple files must each be a person-ID list or use the standard cohortData columns."
+      "Files can be person-ID lists, standard cohortData files, or mapped individually if their columns differ."
     )
   )
 
@@ -128,7 +128,8 @@ import_server <- function(id, r_importedData, regex_person_id = NULL) {
         imported <- tryCatch(
           .read_multiple_cohort_files(
             files,
-            regex_person_id = if (is.function(regex_person_id)) regex_person_id() else regex_person_id
+            regex_person_id = if (is.function(regex_person_id)) regex_person_id() else regex_person_id,
+            allow_unmapped = TRUE
           ),
           error = function(error) error
         )
@@ -141,8 +142,9 @@ import_server <- function(id, r_importedData, regex_person_id = NULL) {
           )
           return()
         }
-        r_importedData$data <- imported
+        r_importedData$pending <- imported$unmapped
         r_importedData$name <- paste(files$name, collapse = ", ")
+        r_importedData$data <- imported$data
       }
       shiny::removeModal()
     })
@@ -196,9 +198,12 @@ import_modal <- function(id) {
 #' @param regex_person_id Optional regular expression used to detect a headerless
 #'   person-ID file.
 #'
-#' @return A standard cohortData data frame.
+#' @param allow_unmapped If `TRUE`, return unrecognized files for manual mapping.
+#'
+#' @return A standard cohortData data frame, or a list containing automatic data
+#'   and files requiring manual mapping when `allow_unmapped` is `TRUE`.
 #' @noRd
-.read_multiple_cohort_files <- function(files, regex_person_id = NULL) {
+.read_multiple_cohort_files <- function(files, regex_person_id = NULL, allow_unmapped = FALSE) {
   required_columns <- c(
     "cohort_name",
     "person_source_value",
@@ -251,12 +256,30 @@ import_modal <- function(id) {
         ))
     }
 
+    if (allow_unmapped) {
+      return(list(.unmapped = TRUE, name = file_name, data = file_data))
+    }
+
     stop(
       "File ", file_name,
       " is not a person-ID list or standard cohortData file. Multiple-file import requires compatible files.",
       call. = FALSE
     )
   })
+
+  unmapped <- imported |>
+    purrr::keep(~ is.list(.x) && ".unmapped" %in% names(.x) && isTRUE(.x[[".unmapped"]])) |>
+    purrr::map(~ list(name = .x$name, data = .x$data))
+
+  automatic <- imported |>
+    purrr::discard(~ is.list(.x) && ".unmapped" %in% names(.x) && isTRUE(.x[[".unmapped"]]))
+
+  if (allow_unmapped) {
+    return(list(
+      data = dplyr::bind_rows(automatic),
+      unmapped = unmapped
+    ))
+  }
 
   dplyr::bind_rows(imported)
 }
@@ -448,6 +471,7 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
     shiny::observe({
       shiny::req(r_dataToMap$data)
       shiny::req(input$cohort_name)
+      shiny::req(input$cohort_name %in% c("Default to file name", names(r_dataToMap$data)))
       # Default to file name
       if (input$cohort_name == "Default to file name") {
         shinyFeedback::hideFeedback("cohort_name")
@@ -491,34 +515,33 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
     shiny::observe({
       shiny::req(r_dataToMap$data)
       shiny::req(input$person_id)
+      shiny::req(input$person_id %in% names(r_dataToMap$data))
 
-      if (input$person_id %in% names(r_dataToMap$data)) {
-        hasPersonIdFormat <- r_dataToMap$data |>
-          utils::head() |>
-          dplyr::select(input$person_id) |>
-          dplyr::pull(1) |>
-          stringr::str_detect(regex_person_id()) |>
-          base::all()
+      hasPersonIdFormat <- r_dataToMap$data |>
+        utils::head() |>
+        dplyr::select(input$person_id) |>
+        dplyr::pull(1) |>
+        stringr::str_detect(regex_person_id()) |>
+        base::all()
 
-        if (!hasPersonIdFormat) {
-          shinyFeedback::showFeedbackWarning(
-            inputId = "person_id",
-            text = "Selected column does not have the expected person ID format",
-            icon = NULL
-          )
-          return()
-        }
-        nMissing <- r_dataToMap$data |>
-          dplyr::filter(is.na(!!rlang::sym(input$person_id))) |>
-          nrow()
-        if (nMissing > 0) {
-          shinyFeedback::showFeedbackWarning(
-            inputId = "person_id",
-            text = paste0(nMissing, " rows have missing person ID, they will be ignored"),
-            icon = NULL
-          )
-          return()
-        }
+      if (!hasPersonIdFormat) {
+        shinyFeedback::showFeedbackWarning(
+          inputId = "person_id",
+          text = "Selected column does not have the expected person ID format",
+          icon = NULL
+        )
+        return()
+      }
+      nMissing <- r_dataToMap$data |>
+        dplyr::filter(is.na(!!rlang::sym(input$person_id))) |>
+        nrow()
+      if (nMissing > 0) {
+        shinyFeedback::showFeedbackWarning(
+          inputId = "person_id",
+          text = paste0(nMissing, " rows have missing person ID, they will be ignored"),
+          icon = NULL
+        )
+        return()
       }
       shinyFeedback::hideFeedback("person_id")
     })
@@ -528,6 +551,8 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
     shiny::observe({
       shiny::req(r_dataToMap$data)
       shiny::req(input$end_date, input$start_date)
+      shiny::req(input$start_date %in% c("Fill with first observation date", names(r_dataToMap$data)))
+      shiny::req(input$end_date %in% c("Fill with last observation date", names(r_dataToMap$data)))
 
       # Cohort start date
       if (input$start_date == "Fill with first observation date") {
@@ -648,12 +673,20 @@ mapping_server <- function(id, r_dataToMap, r_cohortData, regex_person_id) {
           dplyr::mutate(cohort_end_date = suppressWarnings(lubridate::as_date(cohort_end_date)))
       }
 
-      r_cohortData$data <- dplyr::bind_cols(
+      mappedCohortData <- dplyr::bind_cols(
         cohort_name,
         person_id,
         cohort_start_date,
         cohort_end_date
       )
+      if (is.null(r_cohortData$data)) {
+        r_cohortData$data <- mappedCohortData
+      } else {
+        r_cohortData$data <- dplyr::bind_rows(
+          r_cohortData$data,
+          mappedCohortData
+        )
+      }
       r_dataToMap$data <- NULL
       r_dataToMap$name <- NULL
 
