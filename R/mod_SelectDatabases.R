@@ -18,6 +18,12 @@ mod_selectDatabases_ui <- function(id) {
     shiny::h2("Databases connection"),
     shiny::br(),
     shiny::p("CohortOperations can connect to one database (at the moment). By default, it will connect only to the top database."),
+    .co2_help(
+      "Help with database connection",
+      shiny::p("Select the FinnGen data freeze for your study. CO2 normally starts with the latest release, DF14; choose an earlier release only when your study requires it."),
+      shiny::p("The selected data freeze supplies the participant data, clinical records, standard vocabularies, and cohort tables used during this session. Wait for the connection-status table to confirm success before using other pages."),
+      shiny::p("The full database check is intended for troubleshooting and can be slow. Leave it unchecked during normal use.")
+    ),
     shiny::br(),
     shinyWidgets::pickerInput(
       inputId = ns("selectDatabases_pickerInput"),

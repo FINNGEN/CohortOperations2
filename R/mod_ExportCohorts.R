@@ -16,6 +16,11 @@ mod_exportsCohorts_ui <- function(id) {
   htmltools::tagList(
     shinyjs::useShinyjs(),
     shiny::tags$h4("Cohort"),
+    .co2_help(
+      "Help with exporting cohorts",
+      shiny::p("Select one or more cohorts from the workbench and choose Export to download their cohort data for use outside CO2."),
+      shiny::p("The compatibility option changes the column format for workflows that expect the older CO1 layout.")
+    ),
     shiny::tags$h5("Select cohort:"),
     shinyWidgets::pickerInput(
       inputId = ns("selectCohorts_pickerInput"),
