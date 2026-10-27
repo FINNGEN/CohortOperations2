@@ -15,6 +15,12 @@ mod_importCohortsFromFile_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
+    .co2_help(
+      "Help with file import",
+      shiny::p("Use this tab when a cohort is stored outside CO2. Open File Browser to upload CSV, TSV, text, or Excel data, or to paste a table."),
+      shiny::p("For a simple cohort, provide one column of participant identifiers. For a cohort table, use the columns cohort_name, person_source_value (or finngenid), cohort_start_date, and cohort_end_date. Map the columns if CO2 cannot identify them automatically."),
+      shiny::p("Review the preview, select the rows to import, and choose Import Selected to add the cohorts to the workbench.")
+    ),
     shiny::actionButton(ns("importModal_button"), "Open File Browser"),
     htmltools::hr(),
     reactable::reactableOutput(ns("cohorts_reactable")),
