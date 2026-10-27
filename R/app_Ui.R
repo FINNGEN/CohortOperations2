@@ -152,6 +152,20 @@ app_ui <- function(request) {
         status = "primary", solidHeader = TRUE, width = 12,
         mod_viewResults_ui("viewResults")
       )
+    ),
+    ## TAB Help
+    shinydashboard::tabItem(
+      tabName = "help",
+      shinydashboard::box(
+        title = shiny::tagList(shiny::icon("question-circle"), "Using Cohort Operations"),
+        status = "primary", solidHeader = TRUE, width = 12,
+        htmltools::div(
+          class = "co2-help-page",
+          htmltools::includeMarkdown(
+            system.file("appDocumentation/using_co2.md", package = "CohortOperations2")
+          )
+        )
+      )
     )
   )
 
@@ -185,6 +199,53 @@ app_ui <- function(request) {
   #
 
   shiny::tagList(
+    shiny::tags$style(htmltools::HTML("
+      .co2-help-page {
+        padding: 0 12px 12px;
+      }
+      .co2-help-page ul,
+      .co2-help-page ol {
+        margin-left: 0;
+        padding-left: 1.5em;
+      }
+      .co2-help-page li {
+        padding-left: 0.15em;
+      }
+      .co2-inline-help {
+        float: right;
+        position: relative;
+        z-index: 20;
+        margin: 0 0 0.5rem 0.75rem;
+      }
+      .co2-inline-help-trigger {
+        cursor: pointer;
+        color: #337ab7;
+        font-size: 1.35em;
+        line-height: 1;
+        list-style: none;
+      }
+      .co2-inline-help-trigger::-webkit-details-marker {
+        display: none;
+      }
+      .co2-inline-help-trigger:hover,
+      .co2-inline-help-trigger:focus {
+        color: #23527c;
+      }
+      .co2-inline-help-content {
+        position: absolute;
+        top: 1.8rem;
+        right: 0;
+        width: min(460px, 80vw);
+        padding: 12px 14px;
+        background: #fff;
+        border: 1px solid #b8c7ce;
+        border-radius: 4px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+      }
+      .co2-inline-help-content p:last-child {
+        margin-bottom: 0;
+      }
+    ")),
     # Your application UI logic
     shinydashboard::dashboardPage(
 
@@ -218,6 +279,7 @@ app_ui <- function(request) {
           shinydashboard::menuItem("View Results", tabName = "viewResults", icon = shiny::icon("eye")),
           shiny::h5(" About"),
           shinydashboard::menuItem("App News", tabName = "appVersion", icon = shiny::icon("info-circle")),
+          shinydashboard::menuItem("Help", tabName = "help", icon = shiny::icon("question-circle")),
           shinydashboard::menuItem("App Logs", icon = shiny::icon("info-circle"), href = "/logs/log.txt")
         )
       ),

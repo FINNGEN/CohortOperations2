@@ -15,7 +15,6 @@ mod_analysisWrap_ui <- function(id, mod_analysisSettings_ui) {
   htmltools::tagList(
     shinyjs::useShinyjs(),
     htmltools::hr(),
-    #
     mod_analysisSettings_ui(ns("analysisWrap")),
     #
     shiny::actionButton(ns("runAnalysis_actionButton"), "Run Study"),
