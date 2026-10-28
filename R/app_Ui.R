@@ -245,6 +245,55 @@ app_ui <- function(request) {
       .co2-inline-help-content p:last-child {
         margin-bottom: 0;
       }
+      .co2-field-label {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .co2-section-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .co2-section-heading h4 {
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .co2-field-help {
+        position: relative;
+        display: inline-block;
+        z-index: 15;
+      }
+      .co2-field-help-trigger {
+        cursor: pointer;
+        color: #337ab7;
+        list-style: none;
+        line-height: 1;
+      }
+      .co2-field-help-trigger::-webkit-details-marker {
+        display: none;
+      }
+      .co2-field-help-trigger:hover,
+      .co2-field-help-trigger:focus {
+        color: #23527c;
+      }
+      .co2-field-help-content {
+        position: absolute;
+        top: 1.5rem;
+        left: 0;
+        width: min(360px, 70vw);
+        padding: 0.7rem 0.85rem;
+        background: #fff;
+        border: 1px solid #b8c7ce;
+        border-radius: 4px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+        font-weight: normal;
+      }
+      .co2-field-help-content p:last-child {
+        margin-bottom: 0;
+      }
     ")),
     # Your application UI logic
     shinydashboard::dashboardPage(
