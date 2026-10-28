@@ -216,18 +216,27 @@ mod_matchCohorts_server <- function(id, r_databaseConnection) {
     )
 
     output$matchingRatioSuggestion_textOutput <- shiny::renderText({
-      shiny::req(r_databaseConnection$cohortTableHandler)
-      shiny::req(input$selectCaseCohort_pickerInput)
-      shiny::req(input$selectControlCohort_pickerInput)
+      cohort_table_handler <- r_databaseConnection$cohortTableHandler
+      case_cohort_id <- input$selectCaseCohort_pickerInput
+      control_cohort_id <- input$selectControlCohort_pickerInput
 
-      cohort_counts <- r_databaseConnection$cohortTableHandler$getCohortCounts()
+      if (is.null(cohort_table_handler) ||
+          !shiny::isTruthy(case_cohort_id) ||
+          !shiny::isTruthy(control_cohort_id)) {
+        return("")
+      }
+
+      cohort_counts <- cohort_table_handler$getCohortCounts()
       n_subjects_case <- cohort_counts |>
-        dplyr::filter(cohortId == input$selectCaseCohort_pickerInput) |>
+        dplyr::filter(cohortId == case_cohort_id) |>
         dplyr::pull(cohortSubjects)
       n_subjects_control <- cohort_counts |>
-        dplyr::filter(cohortId == input$selectControlCohort_pickerInput) |>
+        dplyr::filter(cohortId == control_cohort_id) |>
         dplyr::pull(cohortSubjects)
-      shiny::req(length(n_subjects_case) == 1, length(n_subjects_control) == 1)
+
+      if (length(n_subjects_case) != 1 || length(n_subjects_control) != 1) {
+        return("")
+      }
 
       suggested_ratio <- .estimate_matching_ratio(
         n_cases = n_subjects_case,
