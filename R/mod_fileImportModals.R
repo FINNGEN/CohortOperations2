@@ -170,7 +170,12 @@ mapping_ui <- function(id) {
     shiny::tags$h4("Uploaded data preview (first 5 rows)"),
     reactable::reactableOutput(outputId = ns("input_table")),
     shiny::hr(),
-    shiny::tags$h4("Mapping menu"),
+    .co2_section_heading(
+      "Mapping menu",
+      "Help with column mapping",
+      shiny::p("For Cohort Name, choose a column to create one cohort for each value in that column. Choose Default to file name to create one cohort from all rows."),
+      shiny::p("For Person ID, choose the column containing each participant's FinnGen identifier. For Cohort Start Date and Cohort End Date, choose date columns from the file, or use each participant's first and last recorded observation dates when the file does not provide dates.")
+    ),
     shiny::fluidRow(
       shiny::column(
         3,
