@@ -37,7 +37,13 @@ mod_matchCohorts_ui <- function(id) {
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
-    shiny::tags$h4("Settings"),
+    .co2_section_heading(
+      "Settings",
+      "Help with matching settings",
+      shiny::p("Enter the maximum number of controls to select for each case. CO2 may select fewer when there are not enough eligible controls."),
+      shiny::p("Same Sex and Same Birth Year limit controls to people with the same recorded sex or birth year as their matched case. Start date within target/control's observation period means that a control is eligible only when their own observation period includes the matched case's cohort start date."),
+      shiny::p("For the new cohort dates, choose Keep to retain each selected control's own dates. Choose Match to use the dates of the case that control was matched to.")
+    ),
     shiny::tags$h5("The new cohort will have a maximum of"),
     shiny::numericInput(
       inputId = ns("matchRatio_numericInput"),
