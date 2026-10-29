@@ -91,9 +91,14 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
     shiny::observeEvent(c(input$selectDatabases_pickerInput, input$allChecks_checkbox), {
       shiny::req(input$selectDatabases_pickerInput)
 
+      previousCohortTableHandler <- r_databaseConnection$cohortTableHandler
+      r_databaseConnection$connectionState <- "connecting"
+      r_databaseConnection$cohortTableHandler <- NULL
+      r_databaseConnection$atlasConfig <- NULL
       fct_removeSweetAlertSpinner()
       fct_sweetAlertSpinner("Connecting to database")
 
+      connection_attempt <- function() {
       cohortTableHandlerConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$cohortTableHandler
       atlasConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$atlasConfig
       ParallelLogger::logInfo("[Databases Connection] Connecting to: ", input$selectDatabases_pickerInput)
@@ -103,17 +108,44 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         loadConnectionChecksLevel <- "basicChecks"
       }
 
-      cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(cohortTableHandlerConfig, loadConnectionChecksLevel)
+      connectionDetailsSettings <- cohortTableHandlerConfig$connection$connectionDetailsSettings
+      if (identical(connectionDetailsSettings$dbms, "sqlite") &&
+          (!shiny::isTruthy(connectionDetailsSettings$server) ||
+           !file.exists(connectionDetailsSettings$server))) {
+        stop("The configured SQLite database file is missing or unavailable.")
+      }
+
+      cohortTableHandler <- HadesExtras::createCohortTableHandlerFromList(
+        cohortTableHandlerConfig,
+        loadConnectionChecksLevel
+      )
+
+      connectionErrors <- cohortTableHandler$connectionStatusLog |>
+        dplyr::filter(as.character(type) == "ERROR")
+      if (nrow(connectionErrors) > 0) {
+        stop(paste(connectionErrors$message, collapse = "; "))
+      }
+
       ParallelLogger::logInfo("[Databases Connection] Create new table: ", cohortTableHandler$cohortTableNames$cohortTable)
       
-      if (!is.null(r_databaseConnection$cohortTableHandler)) {
-        r_databaseConnection$cohortTableHandler$closeConnection()
-      }
       r_databaseConnection$cohortTableHandler <- cohortTableHandler
       r_databaseConnection$atlasConfig <- atlasConfig
       r_databaseConnection$hasChangeCounter <- r_databaseConnection$hasChangeCounter + 1
-      # trigger garbage collector to delete the old handlers
-      gc()
+
+      # Let all reactive modules switch to the new handler before closing the
+      # old connection. Closing it immediately can leave a queued observer
+      # trying to use the retired handler during a database switch.
+      if (!is.null(previousCohortTableHandler)) {
+        session$onFlushed(function() {
+          tryCatch(
+            previousCohortTableHandler$connectionHandler$closeConnection(),
+            error = function(e) {
+              ParallelLogger::logWarn("[Databases Connection] Could not close previous connection: ", e$message)
+            }
+          )
+          gc()
+        }, once = TRUE)
+      }
 
       connectionStatusLogs <- r_databaseConnection$cohortTableHandler$connectionStatusLog
       ParallelLogger::logInfo("[Databases Connection] Connected to: ", connectionStatusLogs)
@@ -225,6 +257,39 @@ mod_selectDatabases_server <- function(id, databasesConfig, r_databaseConnection
         dplyr::bind_rows(atlasStatusLogs)
 
       r$connectionStatusLogs <- connectionStatusLogs
+      r_databaseConnection$connectionState <- "ready"
+      }
+
+      tryCatch(connection_attempt(), error = function(e) {
+        r_databaseConnection$connectionState <- "failed"
+        ParallelLogger::logError("[Databases Connection] Setup failed: ", e$message)
+        failedDatabaseConfig <- databasesConfig[[input$selectDatabases_pickerInput]]$cohortTableHandler$database
+        r$connectionStatusLogs <- .appendLog(
+          tibble::tibble(),
+          databaseId = failedDatabaseConfig$databaseId,
+          databaseName = failedDatabaseConfig$databaseName,
+          type = "ERROR",
+          step = "Connect to database",
+          message = e$message
+        )
+        if (!is.null(previousCohortTableHandler)) {
+          session$onFlushed(function() {
+            tryCatch(
+              previousCohortTableHandler$connectionHandler$closeConnection(),
+              error = function(e) {
+                ParallelLogger::logWarn("[Databases Connection] Could not close previous connection: ", e$message)
+              }
+            )
+            gc()
+          }, once = TRUE)
+        }
+        fct_removeSweetAlertSpinner()
+        shiny::showNotification(
+          paste0("Unable to connect to the database: ", e$message),
+          type = "error",
+          duration = NULL
+        )
+      })
     })
 
     output$connectionStatusLogs_reactable <- reactable::renderReactable({

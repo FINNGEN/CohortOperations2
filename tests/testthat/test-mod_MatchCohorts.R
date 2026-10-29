@@ -54,7 +54,7 @@ test_that("case subsampling keeps the requested ratio when controls are sufficie
 test_that("mod_MatchCohorts produces output", {
 
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasFractureCohorts")
-  withr::defer({cohortTableHandler$closeConnection();rm(cohortTableHandler);gc()})
+  withr::defer({cohortTableHandler$connectionHandler$closeConnection();rm(cohortTableHandler);gc()})
 
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
@@ -104,7 +104,7 @@ test_that("mod_MatchCohorts produces output", {
 test_that("mod_MatchCohorts info text ", {
 
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasFractureCohorts")
-  withr::defer({cohortTableHandler$closeConnection();rm(cohortTableHandler);gc()})
+  withr::defer({cohortTableHandler$connectionHandler$closeConnection();rm(cohortTableHandler);gc()})
 
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,
@@ -157,7 +157,7 @@ test_that("mod_MatchCohorts info text ", {
 test_that("mod_MatchCohorts info text 2", {
 
   cohortTableHandler <- helper_createNewCohortTableHandler(addCohorts = "HadesExtrasAsthmaCohorts")
-  withr::defer({cohortTableHandler$closeConnection();rm(cohortTableHandler);gc()})
+  withr::defer({cohortTableHandler$connectionHandler$closeConnection();rm(cohortTableHandler);gc()})
 
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = cohortTableHandler,

@@ -295,6 +295,58 @@ app_ui <- function(request) {
         margin-bottom: 0;
       }
     ")),
+    shiny::tags$head(
+      shiny::tags$style(shiny::HTML("\
+        .sidebar-menu .co2-navigation-disabled {\
+          cursor: not-allowed;\
+          opacity: 0.5;\
+        }\
+      ")),
+      shiny::tags$script(shiny::HTML("\
+        (function() {\
+          const alwaysAvailable = new Set(['selectDatabases', 'appVersion', 'help']);\
+\
+          function setNavigationState(message) {\
+            const state = message && message.state ? message.state : 'connecting';\
+            const disableStudyPages = state !== 'ready';\
+            const links = document.querySelectorAll('.sidebar-menu a[data-toggle=\\\"tab\\\"]');\
+\
+            links.forEach(function(link) {\
+              const tabName = link.getAttribute('data-value');\
+              const disabled = disableStudyPages && !alwaysAvailable.has(tabName);\
+              link.classList.toggle('co2-navigation-disabled', disabled);\
+              link.setAttribute('aria-disabled', disabled ? 'true' : 'false');\
+              link.tabIndex = disabled ? -1 : 0;\
+            });\
+          }\
+\
+          document.addEventListener('click', function(event) {\
+            const link = event.target.closest('.sidebar-menu a.co2-navigation-disabled');\
+            if (link) {\
+              event.preventDefault();\
+              event.stopImmediatePropagation();\
+            }\
+          }, true);\
+\
+          document.addEventListener('DOMContentLoaded', function() {\
+            setNavigationState({state: 'connecting'});\
+          });\
+\
+          let connectionStateHandlerRegistered = false;\
+          function registerConnectionStateHandler() {\
+            if (connectionStateHandlerRegistered || !window.Shiny) {\
+              return;\
+            }\
+            Shiny.addCustomMessageHandler('co2ConnectionState', setNavigationState);\
+            Shiny.setInputValue('co2NavigationReady', true, {priority: 'event'});\
+            connectionStateHandlerRegistered = true;\
+          }\
+\
+          registerConnectionStateHandler();\
+          document.addEventListener('shiny:connected', registerConnectionStateHandler);\
+        })();\
+      "))
+    ),
     # Your application UI logic
     shinydashboard::dashboardPage(
 
@@ -304,6 +356,7 @@ app_ui <- function(request) {
       ## SIDEBAR
       shinydashboard::dashboardSidebar(
         shinydashboard::sidebarMenu(
+          id = "co2-sidebar-menu",
           shiny::h5(" Databases"),
           shinydashboard::menuItem("Databases connection", tabName = "selectDatabases", icon = shiny::icon("database")),
           shiny::h5(" Cohorts"),
