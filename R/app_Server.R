@@ -11,6 +11,13 @@ app_server <- function(input, output, session) {
   # log start
   ParallelLogger::logInfo("[Start] Start logging")
 
+  shiny::onUnhandledError(
+    fun = function(error) {
+      fcr_logUnhandledShinyError(error = error, sessionToken = session$token)
+    },
+    session = session
+  )
+
   # get settings loaded from file
   databasesConfig <- shiny::getShinyOption("databasesConfig")
   analysisModulesConfig <- shiny::getShinyOption("analysisModulesConfig")
