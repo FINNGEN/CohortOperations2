@@ -58,6 +58,17 @@ test_that("mod_cohortWorkbench_server updates r_databaseConnection when database
       r_databaseConnection$cohortTableHandler |> class() |> expect_contains("CohortTableHandler")
       r$connectionStatusLogs  |> dplyr::filter(step == "Check Atlas connection")  |> dplyr::pull(message) |> expect_match("Could not reach WebApi")
 
+      # An unavailable database configuration must fail safely without leaving
+      # a retired handler available to other modules.
+      session$setInputs(
+        selectDatabases_pickerInput = databasesConfig |> names() |> dplyr::nth(4),
+        allChecks_checkbox = FALSE
+      )
+
+      r_databaseConnection$connectionState |> expect_equal("failed")
+      r_databaseConnection$cohortTableHandler |> expect_null()
+      r$connectionStatusLogs |> dplyr::filter(step == "Connect to database") |>
+        dplyr::pull(message) |> expect_match("SQLite database file is missing")
 
     }
   )
