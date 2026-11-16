@@ -140,25 +140,6 @@ fcr_logUnhandledShinyError <- function(error, sessionToken = "") {
             });
         });
 
-        $(document).on('shiny:error', function(event) {
-         console.error('Shiny error. Fetching log file...');
-         $('#custom-disconnect-overlay').show();
-         $('#custom-disconnect-dialog').show();
-         $('#custom-log-content').text('Loading log file...');
-
-         fetch('/logs/log.txt')
-           .then(response => response.text())
-           .then(text => {
-             const lines = text.trim().split('\\n');
-             const last10 = lines.slice(-10).join('\\n');
-             $('#custom-log-content').text(last10);
-           })
-           .catch(error => {
-             $('#custom-log-content').text('Could not load log file.');
-             console.error('Error loading log:', error);
-           });
-       });
-
       "))
     ),
 
