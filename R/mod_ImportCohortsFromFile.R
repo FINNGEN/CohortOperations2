@@ -17,8 +17,9 @@ mod_importCohortsFromFile_ui <- function(id) {
     shinyjs::useShinyjs(),
     .co2_help(
       "Help with file import",
-      shiny::p("Use this tab when a cohort is stored outside CO2. Open File Browser to upload CSV, TSV, text, or Excel data, or to paste a table."),
-      shiny::p("For a simple cohort, provide one column of participant identifiers. For a cohort table, use the columns cohort_name, person_source_value (or finngenid), cohort_start_date, and cohort_end_date. Map the columns if CO2 cannot identify them automatically."),
+      shiny::p("Use this tab when cohorts are stored outside CO2. Open File Browser to upload one or more CSV, TSV, text, or Excel files, or to paste a table."),
+      shiny::p("For a simple cohort, provide one column of participant identifiers. Each one-column file becomes a separate cohort named after that file. For a cohort table, use the columns cohort_name, person_source_value (or finngenid), cohort_start_date, and cohort_end_date."),
+      shiny::p("When multiple files are selected, CO2 combines files it recognizes automatically and asks you to map each remaining file separately."),
       shiny::p("Review the preview, select the rows to import, and choose Import Selected to add the cohorts to the workbench.")
     ),
     shiny::actionButton(ns("importModal_button"), "Open File Browser"),

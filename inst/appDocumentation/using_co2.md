@@ -20,7 +20,7 @@ Open **Import Cohorts** to add cohorts. In most studies, start with one of the p
 - **from Endpoint** imports curated FinnGen endpoint cohorts.
 - **from Cohort Library** imports reusable, pre-created FinnGen cohorts from curated libraries.
 - **from Task Force Cohorts** imports cohorts prepared by FinnGen task forces.
-- **from File** imports a local list or cohort table. CO2 accepts `.tsv`, `.csv`, `.txt`, `.xls`, and `.xlsx` files, or pasted data. A one-column list of person identifiers is accepted. For a complete cohort table, provide the columns `cohort_name`, `person_source_value` (or `finngenid`), `cohort_start_date`, and `cohort_end_date`; use tabs or commas to separate columns in text files. If CO2 cannot recognise the columns, use the mapping dialog. It can use each participant's first and last observation dates when dates are not supplied.
+- **from File** imports local participant lists or cohort tables. CO2 accepts one or more `.tsv`, `.csv`, `.txt`, `.xls`, or `.xlsx` files, or pasted data. Each one-column participant list becomes a separate cohort named after its file. For a complete cohort table, provide the columns `cohort_name`, `person_source_value` (or `finngenid`), `cohort_start_date`, and `cohort_end_date`; use tabs or commas to separate columns in text files. When several files are selected, CO2 combines recognized files automatically and asks you to map each remaining file separately. It can use each participant's first and last observation dates when dates are not supplied.
 
 Use **Save workbench** to keep the current list for later. Use **Clean workbench** only when you want to remove the current working list and start again.
 
@@ -28,7 +28,7 @@ Use **Save workbench** to keep the current list for later. Use **Clean workbench
 
 Use **Operate Cohorts** to create a cohort from cohorts already in the workbench. Build an expression with the available operations, inspect the intersection plot, and select **Create new cohort**. The source cohorts remain in the workbench.
 
-Use **Match Cohorts** when you need a control group comparable with a case cohort. Select the case and target/control cohorts, choose the matching characteristics, and review the pre-run information. The requested ratio is the maximum number of controls per case: if too few eligible controls are available, CO2 creates the matched-control cohort using the available controls, so the achieved ratio may be lower.
+Use **Match Cohorts** when you need a control group comparable with a case cohort. Select the case and target/control cohorts, choose the matching characteristics, and review the pre-run information. The requested ratio is the maximum number of controls per case, so the achieved ratio may be lower when too few controls meet the criteria. If the overall control pool is too small for the requested ratio, CO2 lets you either keep all cases and continue with the available controls, or create a reproducible random subset of cases that the available controls can support and match controls to that subset.
 
 Use **Export Cohorts** to download cohort data when you need it outside CO2.
 

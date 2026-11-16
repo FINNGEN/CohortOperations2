@@ -19,6 +19,7 @@ mod_matchCohorts_ui <- function(id) {
     .co2_help(
       "Help with cohort matching",
       shiny::p("Select the cohort to match (usually the cases) and the cohort from which to select people (usually the controls). The ratio is the maximum number of eligible controls selected for each case. It can be lower if too few controls meet the selected criteria."),
+      shiny::p("If the control pool is too small for the requested ratio, CO2 shows the available sizes before running. You can keep all cases and continue with the available controls, or create a reproducible random subset of cases that the control pool can support and match controls to that subset."),
       shiny::p("Same Sex and Same Birth Year retain only controls with the same recorded sex or birth year as the case they are paired with. Start date within target's/control's observation period retains only controls whose own cohort period covers the matched case's cohort start date: control start date ≤ case start date ≤ control end date."),
       shiny::p("The date choices determine the dates stored in the new matched-control cohort. Keep retains the selected control's own start or end date. Match copies the corresponding date from the case it was matched to. Check Pre-run info before creating the cohort.")
     ),
