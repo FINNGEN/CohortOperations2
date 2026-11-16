@@ -17,6 +17,12 @@ mod_operateCohorts_ui <- function(id) {
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
     shiny::tags$h5("Create a new cohort by defining an set of operations with the cohorts in the workbench."),
+    .co2_help(
+      "Help with cohort operations",
+      shiny::p("Build the cohort in the blue expression area. Drag cohort names from COHORTS and operators from OPERATORS into that area, then arrange them into the expression you want to use."),
+      shiny::p("\"If they are also in\" keeps people shared by two cohorts; \"If they are not in\" removes people found in the next cohort; \"or in\" combines people from either cohort. Use parentheses to control which part is evaluated first."),
+      shiny::p("Check the resulting intersections in the UpSet plot, then select Create new cohort. The new cohort is added to the workbench and the source cohorts remain available.")
+    ),
     htmltools::hr(),
     shiny::tags$h4("Operation - expression defining the cohort"),
     htmltools::div(style = "width: 90%; height: 260; overflow: auto; margin-left: 30px; padding: 10px;",

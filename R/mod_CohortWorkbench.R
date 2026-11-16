@@ -21,6 +21,12 @@ mod_cohortWorkbench_ui <- function(id){
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
 
+    .co2_help(
+      "Help with the cohort workbench",
+      shiny::p("The workbench is your study's working set of cohorts: the groups of people you have gathered to use in CO2. Importing, operating, and matching add new cohorts to it; they do not remove the source cohorts."),
+      shiny::p("The cohorts in the workbench are the ones you can select for an operation, matching, export, or analysis. Adding a cohort does not use it in an analysis automatically. Use Save workbench to keep the list for later, or Clean workbench to remove it and start again.")
+    ),
+
     htmltools::tags$style(HTML("
       .foldable-summary {
         cursor: pointer;

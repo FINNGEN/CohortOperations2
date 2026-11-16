@@ -15,7 +15,14 @@ mod_matchCohorts_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
-    shiny::tags$h5("Create a new cohort, picking subjects from target/control cohort, with same characteristic as in matching/case cohort"),
+    shiny::tags$h5("Create a new cohort by selecting comparable participants from a target/control cohort."),
+    .co2_help(
+      "Help with cohort matching",
+      shiny::p("Select the cohort to match (usually the cases) and the cohort from which to select people (usually the controls). The ratio is the maximum number of eligible controls selected for each case. It can be lower if too few controls meet the selected criteria."),
+      shiny::p("If the control pool is too small for the requested ratio, CO2 shows the available sizes before running. You can keep all cases and continue with the available controls, or create a reproducible random subset of cases that the control pool can support and match controls to that subset."),
+      shiny::p("Same Sex and Same Birth Year retain only controls with the same recorded sex or birth year as the case they are paired with. Start date within target's/control's observation period retains only controls whose own cohort period covers the matched case's cohort start date: control start date ≤ case start date ≤ control end date."),
+      shiny::p("The date choices determine the dates stored in the new matched-control cohort. Keep retains the selected control's own start or end date. Match copies the corresponding date from the case it was matched to. Check Pre-run info before creating the cohort.")
+    ),
     htmltools::hr(),
     shiny::tags$h4("Cohorts"),
     shinyWidgets::pickerInput(
@@ -31,7 +38,13 @@ mod_matchCohorts_ui <- function(id) {
       selected = NULL,
       multiple = FALSE),
     htmltools::hr(),
-    shiny::tags$h4("Settings"),
+    .co2_section_heading(
+      "Settings",
+      "Help with matching settings",
+      shiny::p("Enter the maximum number of controls to select for each case. CO2 may select fewer when there are not enough eligible controls."),
+      shiny::p("Same Sex and Same Birth Year limit controls to people with the same recorded sex or birth year as their matched case. Start date within target/control's observation period means that a control is eligible only when their own observation period includes the matched case's cohort start date."),
+      shiny::p("For the new cohort dates, choose Keep to retain each selected control's own dates. Choose Match to use the dates of the case that control was matched to.")
+    ),
     shiny::tags$h5("The new cohort will have a maximum of"),
     shiny::numericInput(
       inputId = ns("matchRatio_numericInput"),
