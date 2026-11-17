@@ -1,3 +1,12 @@
+# CohortOperations2 3.3.0
+
+- Added offline and contextual help for the main CO2 workflows.
+- Added importing multiple cohort files together, with automatic or per-file column mapping.
+- Improved matching when there are insufficient controls by allowing users to continue with available controls or create a reproducible case subset.
+- Clarified date matching so the case cohort start date must fall within the candidate control cohort period.
+- Improved recovery from database connection failures and restricted database-dependent pages until the connection is ready.
+- Improved error logging when deleting a cohort workbench fails.
+
 # CohortOperations2 3.2.0
 
 - Improved Cohort Workbench performance and responsiveness for large workbenches
