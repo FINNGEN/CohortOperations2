@@ -11,6 +11,13 @@ app_server <- function(input, output, session) {
   # log start
   ParallelLogger::logInfo("[Start] Start logging")
 
+  shiny::onUnhandledError(
+    fun = function(error) {
+      fcr_logUnhandledShinyError(error = error, sessionToken = session$token)
+    },
+    session = session
+  )
+
   # get settings loaded from file
   databasesConfig <- shiny::getShinyOption("databasesConfig")
   analysisModulesConfig <- shiny::getShinyOption("analysisModulesConfig")
@@ -22,8 +29,25 @@ app_server <- function(input, output, session) {
   r_databaseConnection <- shiny::reactiveValues(
     cohortTableHandler = NULL,
     atlasConfig = NULL,
-    hasChangeCounter = 0
+    hasChangeCounter = 0,
+    connectionState = "connecting"
   )
+
+  shiny::observe({
+    session$sendCustomMessage(
+      "co2ConnectionState",
+      list(state = r_databaseConnection$connectionState)
+    )
+  })
+
+  # The browser confirms that its custom-message handler has been registered.
+  # Sending the state again here prevents it from missing an early update.
+  shiny::observeEvent(input$co2NavigationReady, {
+    session$sendCustomMessage(
+      "co2ConnectionState",
+      list(state = r_databaseConnection$connectionState)
+    )
+  }, ignoreInit = TRUE)
 
   r_workbenchCache <- shiny::reactiveValues(
     cohortsSummary = NULL,

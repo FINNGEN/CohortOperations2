@@ -15,6 +15,13 @@ mod_importCohortsFromFile_ui <- function(id) {
   htmltools::tagList(
     mod_fct_appendCohort_ui(),
     shinyjs::useShinyjs(),
+    .co2_help(
+      "Help with file import",
+      shiny::p("Use this tab when cohorts are stored outside CO2. Open File Browser to upload one or more CSV, TSV, text, or Excel files, or to paste a table."),
+      shiny::p("For a simple cohort, provide one column of participant identifiers. Each one-column file becomes a separate cohort named after that file. For a cohort table, use the columns cohort_name, person_source_value (or finngenid), cohort_start_date, and cohort_end_date."),
+      shiny::p("When multiple files are selected, CO2 combines files it recognizes automatically and asks you to map each remaining file separately."),
+      shiny::p("Review the preview, select the rows to import, and choose Import Selected to add the cohorts to the workbench.")
+    ),
     shiny::actionButton(ns("importModal_button"), "Open File Browser"),
     htmltools::hr(),
     reactable::reactableOutput(ns("cohorts_reactable")),
@@ -59,7 +66,8 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
     #
     r_importedData <- shiny::reactiveValues(
       data = NULL,
-      name = NULL
+      name = NULL,
+      pending = NULL
     )
 
     r_dataToMap <- shiny::reactiveValues(
@@ -76,6 +84,21 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       cohortDefinitionSet = NULL
     )
 
+    r_pendingFiles <- shiny::reactiveValues(data = NULL)
+
+    open_next_mapping <- function() {
+      pending <- shiny::isolate(r_pendingFiles$data)
+      if (length(pending) == 0) {
+        return(invisible(NULL))
+      }
+
+      next_file <- pending[[1]]
+      r_pendingFiles$data <- pending[-1]
+      r_dataToMap$data <- next_file$data
+      r_dataToMap$name <- next_file$name
+      mapping_modal(id = ns("mappingModal"))
+    }
+
     #
     # open the import modal
     #
@@ -85,7 +108,7 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
 
     })
 
-    import_server("importFile_modal", r_importedData)
+    import_server("importFile_modal", r_importedData, regex_person_id)
 
     #
     # Evaluate the imported table
@@ -98,6 +121,26 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
       shiny::req(r_importedData$data)
       importedTable <- r_importedData$data |> tibble::as_tibble()
       fileName <- r_importedData$name
+
+      # Multi-file imports may include files requiring manual mapping.
+      if (!is.null(r_importedData$pending)) {
+        r_cohortData$data <- NULL
+        r_pendingFiles$data <- r_importedData$pending
+        r_importedData$pending <- NULL
+
+        if (nrow(importedTable) > 0) {
+          r_cohortData$data <- importedTable
+        } else {
+          open_next_mapping()
+        }
+
+        r_importedData$data <- NULL
+        r_importedData$name <- NULL
+        return(invisible(NULL))
+      }
+
+      r_pendingFiles$data <- NULL
+      r_cohortData$data <- NULL
 
       cohortDataUploaded <- NULL
       # if it only has one column it is probably a list of person_ids
@@ -204,10 +247,15 @@ mod_importCohortsFromFile_server <- function(id, r_databaseConnection) {
         r_cohortData$validated <- FALSE
       } else {
         r_cohortData$validated <- TRUE
+        r_dataToMap$data <- NULL
+        r_dataToMap$name <- NULL
+        open_next_mapping()
       }
 
-      r_dataToMap$data <- NULL
-      r_dataToMap$name <- NULL
+      if (is.character(check)) {
+        r_dataToMap$data <- NULL
+        r_dataToMap$name <- NULL
+      }
     })
 
     #

@@ -34,6 +34,30 @@ fcr_setUpLogger  <- function(sToken=""){
 }
 
 
+#' Log an Unhandled Shiny Error
+#'
+#' Records the error message, failing call, and an rlang trace when available.
+#' The active session logger adds the session identifier to the log entry.
+#'
+#' @param error An error condition supplied by shiny::onUnhandledError.
+#' @param sessionToken Session token included for diagnostics.
+#' @noRd
+fcr_logUnhandledShinyError <- function(error, sessionToken = "") {
+  errorMessage <- conditionMessage(error)
+  errorCall <- conditionCall(error)
+
+  trace <- tryCatch(
+    paste(capture.output(rlang::last_trace()), collapse = "\n"),
+    error = function(e) "No rlang trace available."
+  )
+
+  ParallelLogger::logError(
+    "[Unhandled Shiny error] session=", sessionToken,
+    "\nMessage: ", errorMessage,
+    "\nCall: ", if (is.null(errorCall)) "<none>" else paste(deparse(errorCall), collapse = "\n"),
+    "\nTrace:\n", trace
+  )
+}
 #' Create Console Appender for Sandbox Logging
 #'
 #' Creates a console appender for sandbox logging with a specified layout.
@@ -115,25 +139,6 @@ fcr_setUpLogger  <- function(sToken=""){
               console.error('Error loading log:', error);
             });
         });
-
-        $(document).on('shiny:error', function(event) {
-         console.error('Shiny error. Fetching log file...');
-         $('#custom-disconnect-overlay').show();
-         $('#custom-disconnect-dialog').show();
-         $('#custom-log-content').text('Loading log file...');
-
-         fetch('/logs/log.txt')
-           .then(response => response.text())
-           .then(text => {
-             const lines = text.trim().split('\\n');
-             const last10 = lines.slice(-10).join('\\n');
-             $('#custom-log-content').text(last10);
-           })
-           .catch(error => {
-             $('#custom-log-content').text('Could not load log file.');
-             console.error('Error loading log:', error);
-           });
-       });
 
       "))
     ),
