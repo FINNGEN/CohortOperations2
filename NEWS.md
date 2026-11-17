@@ -5,7 +5,7 @@
 - Improved matching when there are insufficient controls by allowing users to continue with available controls or create a reproducible case subset.
 - Clarified date matching so the case cohort start date must fall within the candidate control cohort period.
 - Improved recovery from database connection failures and restricted database-dependent pages until the connection is ready.
-- Improved error logging when deleting a cohort workbench fails.
+- Added detailed logging for unhandled Shiny errors to help diagnose application failures.
 
 # CohortOperations2 3.2.0
 
